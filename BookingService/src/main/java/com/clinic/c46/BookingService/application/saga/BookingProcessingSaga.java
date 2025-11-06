@@ -15,6 +15,9 @@ import com.clinic.c46.CommonService.command.patient.PatientCreationFailedEvent;
 import com.clinic.c46.CommonService.event.auth.PhoneVerificationFailedEvent;
 import com.clinic.c46.CommonService.event.auth.PhoneVerifiedEvent;
 import com.clinic.c46.CommonService.event.patient.PatientCreatedEvent;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,24 +41,30 @@ import java.util.UUID;
 @NoArgsConstructor
 @ProcessingGroup("booking-saga")
 @Setter
+@Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BookingProcessingSaga {
-
     private static final String DEADLINE_NAME = "booking-deadline";
     private static final int MAX_RETRY = 3;
     private static final String RETRY_CREATE_PATIENT = "retry-create-patient";
     private static final String RETRY_CREATE_APPOINTMENT = "retry-create-appointment";
-    private final Duration BOOKING_TIMEOUT = Duration.ofMinutes(5);
+    private final Duration BOOKING_TIMEOUT = Duration.ofMinutes(1);
     private final long SCHEDULE_RETRY = 30L;
-    private int retryCountPatient = 0;
-    private int retryCountAppointment = 0;
     @Autowired
+    @JsonIgnore
     private transient CommandGateway commandGateway;
     @Autowired
+    @JsonIgnore
     private transient EventGateway eventGateway;
     @Autowired
+    @JsonIgnore
     private transient DeadlineManager deadlineManager;
+    private int retryCountPatient = 0;
+    private int retryCountAppointment = 0;
 
     private BookingProcessingStateMachine stateMachine;
+
+    private String reason;
     private String deadlineId;
     private String fingerprint;
     private String slotId;
@@ -66,21 +75,19 @@ public class BookingProcessingSaga {
     private String patientId;
     private String appointmentId;
 
-
     @StartSaga
     @SagaEventHandler(associationProperty = "bookingId")
     private void handle(SlotLockedEvent event) {
-
         log.info("SlotLockedEvent in Saga for bookingId Id : {}", event.bookingId());
+        this.stateMachine = BookingProcessingStateMachine.LOCKED;
         this.bookingId = event.bookingId();
-
-        this.deadlineId = deadlineManager.schedule(BOOKING_TIMEOUT, DEADLINE_NAME, event.bookingId());
-
         this.name = event.name();
         this.phone = event.phone();
         this.email = event.email();
         this.fingerprint = event.fingerprint();
         this.slotId = event.slotId();
+
+        this.deadlineId = deadlineManager.schedule(BOOKING_TIMEOUT, DEADLINE_NAME, this.bookingId);
 
         SagaLifecycle.associateWith("causalId", event.bookingId());
         this.commandGateway.send(VerifyPhoneCommand.builder()
@@ -93,7 +100,6 @@ public class BookingProcessingSaga {
 
     @SagaEventHandler(associationProperty = "causalId")
     private void handle(PhoneVerificationFailedEvent event) {
-        this.stateMachine = BookingProcessingStateMachine.FAILED;
         handleErrorOrTimeout();
     }
 
@@ -114,8 +120,8 @@ public class BookingProcessingSaga {
 
     @SagaEventHandler(associationProperty = "patientId")
     private void on(PatientCreationFailedEvent event) {
-        this.stateMachine = BookingProcessingStateMachine.FAILED;
-
+        this.reason = PatientCreationFailedEvent.class.getSimpleName()
+                .replace("Event", "");
         handleErrorOrTimeout();
     }
 
@@ -137,7 +143,8 @@ public class BookingProcessingSaga {
 
     @SagaEventHandler(associationProperty = "appointmentId")
     private void on(AppointmentCreationFailedEvent event) {
-        this.stateMachine = BookingProcessingStateMachine.FAILED;
+        this.reason = AppointmentCreationFailedEvent.class.getSimpleName()
+                .replace("Event", "");
         handleErrorOrTimeout();
     }
 
@@ -152,19 +159,18 @@ public class BookingProcessingSaga {
                 .build());
     }
 
+
     @DeadlineHandler(deadlineName = DEADLINE_NAME)
     public void onBookingDeadline(String bookingId) {
-        log.warn("[Booking timeout] for [bookingId]: {}", bookingId);
-
-        this.stateMachine = BookingProcessingStateMachine.TIMEOUT;
-        // handle timeout logic
+        this.reason = BookingProcessingStateMachine.TIMEOUT.name();
         handleErrorOrTimeout();
 
     }
 
 
     private void handleErrorOrTimeout() {
-        if (this.stateMachine == BookingProcessingStateMachine.PENDING_VERIFY_PATIENT_PHONE) {
+
+        if (this.stateMachine == BookingProcessingStateMachine.PENDING_VERIFY_PATIENT_PHONE || this.stateMachine == BookingProcessingStateMachine.LOCKED) {
             this.rollbackWithCompensation();
             return;
         }
@@ -181,6 +187,9 @@ public class BookingProcessingSaga {
     }
 
     private void rollbackWithCompensation() {
+        log.warn("[rollbackWithCompensation] for [bookingId]: {}", this.bookingId);
+
+        this.cancelDeadline();
         // 1. Release slot
         this.commandGateway.send(ReleaseSlotCommand.builder()
                 .slotId(this.slotId)
@@ -193,11 +202,11 @@ public class BookingProcessingSaga {
                     .patientId(this.patientId)
                     .build());
         }
-
+        log.warn("[Publish Booking timeout] for [bookingId]: {}", this.bookingId);
         // 3. Publish rejected + end saga
         eventGateway.publish(BookingRejectedEvent.builder()
                 .bookingId(this.bookingId)
-                .reason(this.stateMachine.name())
+                .reason(this.reason)
                 .build());
         SagaLifecycle.end();
     }
@@ -213,7 +222,6 @@ public class BookingProcessingSaga {
         // schedule retry after e.g., 30s * retryCount
         Duration backoff = Duration.ofSeconds(this.SCHEDULE_RETRY * this.retryCountPatient);
         deadlineManager.schedule(backoff, RETRY_CREATE_PATIENT, this.patientId);
-
     }
 
     @DeadlineHandler(deadlineName = RETRY_CREATE_PATIENT)

@@ -40,7 +40,7 @@ public class BookingStatusProjection {
     private void handleRejection(String bookingId, String message) {
         repository.findById(bookingId)
                 .ifPresent(booking -> {
-                    booking.reject();
+                    booking.reject(message);
                     repository.save(booking);
                 });
     }
