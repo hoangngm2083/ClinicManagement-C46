@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(schema = "medical_package")
+@Table(name = "medical_package")
 public class MedicalPackageView {
     @Id
     private String id;

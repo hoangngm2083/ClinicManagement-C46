@@ -12,7 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(schema = "medical_service")
+@Table(name = "medical_service")
 public class MedicalServiceView {
 
     @Id
