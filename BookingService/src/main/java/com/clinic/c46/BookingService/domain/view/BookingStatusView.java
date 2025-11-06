@@ -36,8 +36,9 @@ public class BookingStatusView extends BaseView {
         super.setUpdatedAt(LocalDateTime.now());
     }
 
-    public void reject() {
+    public void reject(String message) {
         this.status = BookingStatus.REJECTED.name();
+        this.message = message;
         super.setUpdatedAt(LocalDateTime.now());
     }
 }

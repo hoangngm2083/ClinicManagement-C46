@@ -9,7 +9,6 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -20,23 +19,20 @@ public class SlotQueryHandler {
 
     @QueryHandler
     public List<SlotDto> handle(GetAllSlotOfPackageQuery query) {
-        List<SlotDto> slotDTOs = new ArrayList<>();
-
-        slotDTOs.add(SlotDto.builder()
-                .slotId("8804d7e6-c779-4729-8095-d1102049648e")
-                .medicalPackageId(query.medicalPackageId())
-                .date(LocalDate.of(2025, 11, 20))
-                .shift(1)
-                .build());
-
-        slotDTOs.add(SlotDto.builder()
-                .slotId("a44120b6-327b-4482-8db1-08e18ac97057")
-                .medicalPackageId(query.medicalPackageId())
-                .date(LocalDate.of(2025, 11, 20))
-                .shift(0)
-                .build());
-
-        return slotDTOs;
+        return List.of(
+                SlotDto.builder()
+                        .slotId("8804d7e6-c779-4729-8095-d1102049648e")
+                        .medicalPackageId(query.medicalPackageId())
+                        .date(LocalDate.of(2025, 11, 20))
+                        .shift(1)
+                        .build(),
+                SlotDto.builder()
+                        .slotId("a44120b6-327b-4482-8db1-08e18ac97057")
+                        .medicalPackageId(query.medicalPackageId())
+                        .date(LocalDate.of(2025, 11, 20))
+                        .shift(0)
+                        .build()
+                      );
     }
 
 

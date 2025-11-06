@@ -5,6 +5,8 @@ import com.clinic.c46.BookingService.application.handler.query.dto.SlotDto;
 import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
 import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
 import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
+import com.clinic.c46.BookingService.domain.query.GetBookingStatusByIdQuery;
+import com.clinic.c46.BookingService.domain.view.BookingStatusView;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.CreateBookingRequest;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.CreateSlotRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/bookings") // polling 5s
+@RequestMapping("/booking") // polling 5s
 @RequiredArgsConstructor
 public class BookingServiceController {
 
@@ -38,17 +40,30 @@ public class BookingServiceController {
                 .bookingId(bookingId)
                 .fingerprint(fingerprint)
                 .slotId(createBookingRequest.getSlotId())
+                .email(createBookingRequest.getEmail())
+                .name(createBookingRequest.getName())
+                .phone(createBookingRequest.getPhone())
                 .build();
 
         commandGateway.sendAndWait(lockSlotCommand);
-        Map<String, String> response = Map.of("bookingId", bookingId);
 
         return ResponseEntity.accepted()
-                .body(response);
+                .body(Map.of("bookingId", bookingId));
+    }
+
+    @GetMapping("/{bookingId}/status")
+    public ResponseEntity<Map<String, BookingStatusView>> getBookingState(@PathVariable String bookingId) {
+        BookingStatusView bookingStatusView = queryGateway.query(GetBookingStatusByIdQuery.builder()
+                        .bookingId(bookingId)
+                        .build(), ResponseTypes.instanceOf(BookingStatusView.class))
+                .join();
+
+        return ResponseEntity.ok()
+                .body(Map.of("bookingStatus", bookingStatusView));
     }
 
 
-    @PostMapping("/slots")
+    @PostMapping("/slot")
     public ResponseEntity<Map<String, String>> createSlot(@RequestBody CreateSlotRequest createSlotRequest) {
         String slotId = UUID.randomUUID()
                 .toString();
@@ -61,11 +76,11 @@ public class BookingServiceController {
                 .build();
         commandGateway.sendAndWait(createSlotCommand);
 
-        return ResponseEntity.created(URI.create("/slots/" + slotId))
+        return ResponseEntity.created(URI.create("/booking/slot/" + slotId))
                 .body(Map.of("slotId", slotId));
     }
 
-    @GetMapping("/slots")
+    @GetMapping("/slot")
     public ResponseEntity<List<SlotDto>> getAllSlots(@RequestParam("medicalPackageId") String medicalPackageId) {
         List<SlotDto> slots = queryGateway.query(GetAllSlotOfPackageQuery.builder()
                         .medicalPackageId(medicalPackageId)
