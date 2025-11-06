@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table( schema = "department")
+@Table( name = "department")
 public class DepartmentView {
     @Id
     private String id;

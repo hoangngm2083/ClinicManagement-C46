@@ -1,4 +1,4 @@
-package com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto;
+package com.clinic.c46.BookingService.application.dto;
 
 
 import lombok.AllArgsConstructor;
