@@ -6,11 +6,13 @@ import com.clinic.c46.BookingService.application.saga.event.BookingRejectedEvent
 import com.clinic.c46.BookingService.domain.event.SlotLockedEvent;
 import com.clinic.c46.BookingService.domain.view.BookingStatusView;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingStatusProjection {
 
     private final BookingStatusViewRepository repository;
@@ -33,7 +35,13 @@ public class BookingStatusProjection {
 
     @EventHandler
     public void on(BookingRejectedEvent event) {
+
+        log.error("[ Booking Rejected Projection] for [bookingId]: {},  [state]: {}", event.bookingId(),
+                event.reason());
+
         handleRejection(event.bookingId(), event.reason());
+
+
     }
 
 
