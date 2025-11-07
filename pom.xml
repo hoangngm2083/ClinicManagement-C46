@@ -10,8 +10,9 @@
 
   <modules>
     <module>BookingService</module>
-    <!-- <module>AuthService</module> -->
+    <module>AuthService</module>
     <module>CommonService</module>
+    <module>NotificationService</module>
     <!-- <module>PatientService</module> -->
     <!-- <module>MedicalPackageService</module> -->
   </modules>

@@ -19,13 +19,14 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/slot")
 @Slf4j
 public class SlotController {
     private final QueryGateway queryGateway;
     private final CommandGateway commandGateway;
 
 
-    @PostMapping("/slot")
+    @PostMapping
     public ResponseEntity<Map<String, String>> createSlot(@RequestBody CreateSlotRequest createSlotRequest) {
         String slotId = UUID.randomUUID()
                 .toString();
@@ -42,7 +43,7 @@ public class SlotController {
                 .body(Map.of("slotId", slotId));
     }
 
-    @GetMapping("/slot")
+    @GetMapping
     public ResponseEntity<SlotsPagedResponse> getAllSlots(@RequestParam("medicalPackageId") String medicalPackageId) {
 
         SlotsPagedResponse response = queryGateway.query(

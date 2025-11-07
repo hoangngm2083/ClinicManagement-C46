@@ -19,8 +19,12 @@ public class SlotProjection {
 
     @EventHandler
     public void on(SlotCreatedEvent event) {
+
+
         SlotView slotView = new SlotView(event.slotId(), event.medicalPackageId(), event.shift(), event.maxQuantity(),
                 event.date());
+
+        log.info("Slot created: {}", slotView.getSlotId());
         slotRepository.save(slotView);
     }
 

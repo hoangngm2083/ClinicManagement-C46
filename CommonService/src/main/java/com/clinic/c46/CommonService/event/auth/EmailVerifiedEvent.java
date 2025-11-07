@@ -4,9 +4,9 @@ package com.clinic.c46.CommonService.event.auth;
 import lombok.Builder;
 
 @Builder
-public record PhoneVerifiedEvent(
+public record EmailVerifiedEvent(
 
-        String causalId, String phone
+        String verificationId, String email
 
 ) {
 }
