@@ -1,8 +1,8 @@
 package com.clinic.c46.BookingService.application.listener;
 
-import com.clinic.c46.BookingService.application.port.out.BookingStatusViewRepository;
-import com.clinic.c46.BookingService.application.saga.event.BookingCompletedEvent;
-import com.clinic.c46.BookingService.application.saga.event.BookingRejectedEvent;
+import com.clinic.c46.BookingService.application.repository.BookingStatusViewRepository;
+import com.clinic.c46.BookingService.domain.event.BookingCompletedEvent;
+import com.clinic.c46.BookingService.domain.event.BookingRejectedEvent;
 import com.clinic.c46.BookingService.domain.event.SlotLockedEvent;
 import com.clinic.c46.BookingService.domain.view.BookingStatusView;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class BookingStatusProjection {
     public void on(BookingCompletedEvent event) {
         repository.findById(event.bookingId())
                 .ifPresent(booking -> {
-                    booking.approve("Đặt lịch thành công!");
+                    booking.approve(event.appointmentId());
                     repository.save(booking);
                 });
     }
