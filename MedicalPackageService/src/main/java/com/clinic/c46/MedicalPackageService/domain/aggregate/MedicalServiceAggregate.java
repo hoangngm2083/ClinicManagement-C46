@@ -3,8 +3,8 @@ package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalServiceCreatedEvent;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalServiceInfoUpdatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;

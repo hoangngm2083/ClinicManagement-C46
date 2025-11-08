@@ -3,11 +3,13 @@ package com.clinic.c46.BookingService.domain.aggregate;
 
 import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
 import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
-import com.clinic.c46.BookingService.domain.command.ReleaseSlotCommand;
+import com.clinic.c46.BookingService.domain.command.ReleaseFingerprintCommand;
+import com.clinic.c46.BookingService.domain.command.ReleaseLockedSlotCommand;
 import com.clinic.c46.BookingService.domain.enums.Shift;
+import com.clinic.c46.BookingService.domain.event.FingerprintReleasedEvent;
+import com.clinic.c46.BookingService.domain.event.LockedSlotReleasedEvent;
 import com.clinic.c46.BookingService.domain.event.SlotCreatedEvent;
 import com.clinic.c46.BookingService.domain.event.SlotLockedEvent;
-import com.clinic.c46.BookingService.domain.event.SlotReleasedEvent;
 import com.clinic.c46.BookingService.domain.exception.LockedSlotNotFound;
 import com.clinic.c46.BookingService.domain.exception.SlotLockConflictException;
 import com.clinic.c46.BookingService.domain.exception.SlotUnavailableException;
@@ -40,7 +42,6 @@ public class SlotAggregate {
 
     @CommandHandler
     public SlotAggregate(CreateSlotCommand cmd) {
-
         //Validate The Command
         SlotCreatedEvent event = SlotCreatedEvent.builder()
                 .slotId(cmd.slotId())
@@ -106,7 +107,7 @@ public class SlotAggregate {
 
     // RELEASE
     @CommandHandler
-    public void handle(ReleaseSlotCommand cmd) {
+    public void handle(ReleaseLockedSlotCommand cmd) {
         boolean exists = this.lockedSlots.stream()
                 .anyMatch(lockedSlot -> lockedSlot.fingerprint()
                         .equals(cmd.fingerprint()));
@@ -115,7 +116,7 @@ public class SlotAggregate {
             throw new LockedSlotNotFound();
         }
 
-        SlotReleasedEvent event = SlotReleasedEvent.builder()
+        LockedSlotReleasedEvent event = LockedSlotReleasedEvent.builder()
                 .slotId(cmd.slotId())
                 .fingerprint(cmd.fingerprint())
                 .build();
@@ -124,11 +125,29 @@ public class SlotAggregate {
     }
 
     @EventSourcingHandler
-    public void on(SlotReleasedEvent event) {
+    public void on(LockedSlotReleasedEvent event) {
         this.remainingQuantity++;
+        this.lockedSlots.removeIf(lk -> lk.fingerprint()
+                .equals(event.fingerprint()));
+    }
+
+    @CommandHandler
+    public void handle(ReleaseFingerprintCommand cmd) {
+
+        AggregateLifecycle.apply(FingerprintReleasedEvent.builder()
+                .slotId(cmd.slotId())
+                .fingerprint(cmd.fingerprint())
+                .build());
+
+    }
+
+    @EventSourcingHandler
+    public void on(FingerprintReleasedEvent event) {
         this.lockedSlots.removeIf(lk -> lk.fingerprint()
                 .equals(event.fingerprint()));
     }
 
 
 }
+
+

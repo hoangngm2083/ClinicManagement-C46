@@ -2,8 +2,8 @@ package com.clinic.c46.MedicalPackageService.application.listener;
 
 import com.clinic.c46.MedicalPackageService.application.port.out.DepartmentViewRepository;
 import com.clinic.c46.MedicalPackageService.application.port.out.MedicalServiceViewRepository;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalServiceCreatedEvent;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalServiceInfoUpdatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.view.DepartmentView;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
 import lombok.RequiredArgsConstructor;
