@@ -13,8 +13,8 @@
     <module>AuthService</module>
     <module>CommonService</module>
     <module>NotificationService</module>
-    <!-- <module>PatientService</module> -->
-    <!-- <module>MedicalPackageService</module> -->
+    <module>PatientService</module>
+    <module>MedicalPackageService</module>
   </modules>
 
   <properties>

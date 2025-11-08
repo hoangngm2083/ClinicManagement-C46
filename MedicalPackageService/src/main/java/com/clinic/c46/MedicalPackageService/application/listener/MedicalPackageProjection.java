@@ -1,16 +1,11 @@
 package com.clinic.c46.MedicalPackageService.application.listener;
 
-import com.clinic.c46.CommonService.event.staff.DepartmentUpdatedEvent;
-import com.clinic.c46.MedicalPackageService.application.port.out.DepartmentViewRepository;
 import com.clinic.c46.MedicalPackageService.application.port.out.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.application.port.out.MedicalServiceViewRepository;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalPackageCreatedEvent;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalServiceCreatedEvent;
-import com.clinic.c46.MedicalPackageService.domain.view.DepartmentView;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
 import lombok.RequiredArgsConstructor;
-import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

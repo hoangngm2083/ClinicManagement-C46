@@ -32,6 +32,7 @@ public class BookingStatusView extends BaseView {
 
     public void approve(String appointmentId) {
         this.status = BookingStatus.APPROVED.name();
+        this.message = "Đặt lịch thành công!";
         this.appointmentId = appointmentId;
         super.setUpdatedAt(LocalDateTime.now());
     }
