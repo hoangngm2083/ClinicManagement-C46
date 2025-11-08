@@ -1,10 +1,32 @@
 package com.clinic.c46.BookingService.domain.view;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import com.clinic.c46.CommonService.domain.BaseView;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDate;
 
 @Entity
-public class AppointmentView {
+@Table(name = "appointment")
+@Getter
+@SuperBuilder
+@NoArgsConstructor
+public class AppointmentView extends BaseView {
+
     @Id
     private String id;
+
+    private int shift;
+    private LocalDate date;
+
+    private String patientName;
+    private String patientId;
+
+    // --- Chỉ giữ relation ManyToOne ---
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "medical_package_id") // tên cột foreign key trong DB
+    private MedicalPackageView medicalPackage;
 }
+
