@@ -1,52 +1,86 @@
 package com.clinic.c46.MedicalPackageService.application.listener;
 
-import com.clinic.c46.MedicalPackageService.application.port.out.MedicalPackageViewRepository;
-import com.clinic.c46.MedicalPackageService.application.port.out.MedicalServiceViewRepository;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
+import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
+import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
+import com.clinic.c46.MedicalPackageService.domain.event.MedicalPackagePriceUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.Set;
 
-@Component
+@Slf4j
+@Service
 @RequiredArgsConstructor
 public class MedicalPackageProjection {
 
     private final MedicalPackageViewRepository packageRepo;
     private final MedicalServiceViewRepository serviceRepo;
 
-
-
-    // Create package
     @EventHandler
     @Transactional
-    public void on(MedicalPackageCreatedEvent ev) {
-        if (packageRepo.existsById(ev.medicalPackageId())) return;
+    public void on(MedicalPackageCreatedEvent event) {
+        log.debug("Handling MedicalPackageCreatedEvent: {}", event);
 
-        Set<MedicalServiceView> services = Set.copyOf(serviceRepo.findAllById(ev.serviceIds()));
+        Set<MedicalServiceView> services = new HashSet<>();
 
-        MedicalPackageView pkg = MedicalPackageView.builder()
-                .id(ev.medicalPackageId())
-                .name(ev.name())
-                .description(ev.description())
-                .price(ev.price())
+        if (event.serviceIds() != null) {
+            for (String serviceId : event.serviceIds()) {
+                serviceRepo.findById(serviceId)
+                        .ifPresent(services::add);
+            }
+        }
+
+        MedicalPackageView view = MedicalPackageView.builder()
+                .id(event.medicalPackageId())
+                .name(event.name())
+                .description(event.description())
+                .price(event.price())
                 .medicalServices(services)
                 .build();
-        packageRepo.save(pkg);
+
+        packageRepo.save(view);
     }
 
-//    // Reset handler to support replay: clear view tables (careful on production)
-//    @ResetHandler
-//    @Transactional
-//    public void onReset() {
-//        // clear projection tables on reset so replay builds fresh view
-//        // NOTE: in production consider safer strategies (truncate via repository or custom DAO)
-//        packageRepo.deleteAllInBatch();
-//        serviceRepo.deleteAllInBatch();
-//        departmentRepo.deleteAllInBatch();
-//    }
+    @EventHandler
+    @Transactional
+    public void on(MedicalPackagePriceUpdatedEvent event) {
+        log.debug("Handling MedicalPackagePriceUpdatedEvent: {}", event);
+
+        packageRepo.findById(event.medicalPackageId())
+                .ifPresent(view -> {
+                    view.setPrice(event.newPrice());
+                    packageRepo.save(view);
+                });
+    }
+
+    @EventHandler
+    @Transactional
+    public void on(MedicalPackageInfoUpdatedEvent event) {
+        log.debug("Handling MedicalPackageInfoUpdatedEvent: {}", event);
+
+        packageRepo.findById(event.medicalPackageId())
+                .ifPresent(view -> {
+                    if (event.name() != null) view.setName(event.name());
+                    if (event.description() != null) view.setDescription(event.description());
+
+                    if (event.serviceIds() != null) {
+                        Set<MedicalServiceView> services = new HashSet<>();
+                        for (String serviceId : event.serviceIds()) {
+                            serviceRepo.findById(serviceId)
+                                    .ifPresent(services::add);
+                        }
+                        view.setMedicalServices(services);
+                    }
+
+                    packageRepo.save(view);
+                });
+    }
 }
