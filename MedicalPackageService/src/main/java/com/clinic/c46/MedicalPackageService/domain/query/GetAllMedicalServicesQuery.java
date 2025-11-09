@@ -1,4 +1,7 @@
 package com.clinic.c46.MedicalPackageService.domain.query;
 
-public record GetAllMedicalServicesQuery() {
+import lombok.Builder;
+
+@Builder
+public record GetAllMedicalServicesQuery(int page, String keyword) {
 }

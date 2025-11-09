@@ -1,9 +1,9 @@
 package com.clinic.c46.BookingService.infrastructure.adapter.in.web.controller;
 
-import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.CreateSlotRequest;
-import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotsPagedResponse;
 import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
 import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
+import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.CreateSlotRequest;
+import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotsPagedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -44,14 +44,13 @@ public class SlotController {
     }
 
     @GetMapping
-    public ResponseEntity<SlotsPagedResponse> getAllSlots(@RequestParam("medicalPackageId") String medicalPackageId) {
+    public ResponseEntity<SlotsPagedResponse> getAllSlots(@RequestParam("medicalPackageId") String medicalPackageId,
+            @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        SlotsPagedResponse response = queryGateway.query(
-                        GetAllSlotOfPackageQuery.builder()
-                                .medicalPackageId(medicalPackageId)
-                                .build(),
-                        ResponseTypes.instanceOf(SlotsPagedResponse.class)
-                                                        )
+        SlotsPagedResponse response = queryGateway.query(GetAllSlotOfPackageQuery.builder()
+                        .medicalPackageId(medicalPackageId)
+                        .page(page)
+                        .build(), ResponseTypes.instanceOf(SlotsPagedResponse.class))
                 .join();
         return ResponseEntity.ok(response);
     }

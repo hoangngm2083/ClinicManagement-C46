@@ -1,10 +1,9 @@
 package com.clinic.c46.MedicalPackageService.domain.view;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -19,13 +18,8 @@ public class MedicalServiceView {
     private String id;
     private String name;
     private String description;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
-    private DepartmentView department;
-
-    @ManyToMany(mappedBy = "medicalServices", fetch = FetchType.LAZY)
-    private Set<MedicalPackageView> medicalPackages = new HashSet<>();
+    private String departmentName;
+    private String departmentId;
 }
 
 

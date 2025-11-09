@@ -12,8 +12,8 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table( name = "department")
-public class DepartmentView {
+@Table( name = "department_rep")
+public class DepartmentViewRep {
     @Id
     private String id;
     private String name;

@@ -1,4 +1,4 @@
-package com.clinic.c46.MedicalPackageService.application.handler.query.dto;
+package com.clinic.c46.MedicalPackageService.application.dto;
 
 
 import lombok.Builder;
