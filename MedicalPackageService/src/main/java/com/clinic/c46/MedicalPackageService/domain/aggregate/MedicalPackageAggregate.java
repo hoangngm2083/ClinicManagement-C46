@@ -1,11 +1,11 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackageInfoCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackagePriceCommand;
-import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
-import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.event.MedicalPackagePriceUpdatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
@@ -27,6 +27,7 @@ public class MedicalPackageAggregate {
     private Set<String> serviceIds;
     private int version;
     private BigDecimal price;
+    private String image;
 
 
     @CommandHandler
@@ -42,6 +43,7 @@ public class MedicalPackageAggregate {
                 .name(cmd.name())
                 .description(cmd.description())
                 .price(cmd.price())
+                .image(cmd.image())
                 .serviceIds(cmd.serviceIds())
                 .build();
 
@@ -56,6 +58,7 @@ public class MedicalPackageAggregate {
         this.description = event.description();
         this.serviceIds = event.serviceIds();
         this.price = event.price();
+        this.image = event.image();
         this.version = 1;
     }
 
@@ -67,7 +70,6 @@ public class MedicalPackageAggregate {
             throw new IllegalArgumentException("Giá mới không hợp lệ");
         }
 
-        // Nếu giá không đổi -> bỏ qua (idempotent)
         if (this.price.compareTo(cmd.newPrice()) == 0) {
             return;
         }
@@ -101,6 +103,11 @@ public class MedicalPackageAggregate {
             hasChange = true;
         }
 
+        if (cmd.image() != null && !cmd.image()
+                .equals(this.image)) {
+            hasChange = true;
+        }
+
         if (!hasChange) return;
 
         MedicalPackageInfoUpdatedEvent event = MedicalPackageInfoUpdatedEvent.builder()
@@ -108,6 +115,7 @@ public class MedicalPackageAggregate {
                 .name(cmd.name())
                 .description(cmd.description())
                 .serviceIds(cmd.serviceIds())
+                .image(cmd.image())
                 .version(++this.version)
                 .build();
 
@@ -121,6 +129,7 @@ public class MedicalPackageAggregate {
         if (event.name() != null) this.name = event.name();
         if (event.description() != null) this.description = event.description();
         if (event.serviceIds() != null) this.serviceIds = event.serviceIds();
+        if (event.image() != null) this.image = event.image();
     }
 
 }

@@ -9,6 +9,5 @@ import java.util.Set;
 
 @Builder
 public record CreateMedicalPackageCommand(@TargetAggregateIdentifier String medicalPackageId, String name,
-                                          String description, Set<String> serviceIds, BigDecimal price
-) {
+                                          String description, Set<String> serviceIds, BigDecimal price, String image) {
 }
