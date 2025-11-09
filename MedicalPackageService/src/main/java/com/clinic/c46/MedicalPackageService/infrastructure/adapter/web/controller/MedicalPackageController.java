@@ -1,6 +1,7 @@
 package com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.controller;
 
 
+import com.clinic.c46.CommonService.helper.SortDirection;
 import com.clinic.c46.CommonService.query.medicalPackage.FindMedicalPackageByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetailDTO;
@@ -8,6 +9,9 @@ import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPaged
 import com.clinic.c46.MedicalPackageService.application.service.MedicalPackageService;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.CreateMedicalPackageRequest;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
@@ -29,11 +33,18 @@ public class MedicalPackageController {
     @GetMapping
     public ResponseEntity<MedicalPackagesPagedDto> getMedicalPackages(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "keyword", required = false) String keyword) {
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @Parameter(
+                    in = ParameterIn.QUERY,
+                    description = "Hướng sắp xếp: 'ASC' (tăng dần) hoặc 'DESC' (giảm dần)",
+                    schema = @Schema(allowableValues = {"ASC", "DESC"}, defaultValue = "DESC")
+            )
+            @RequestParam(value = "sort", defaultValue = "ASC") SortDirection sort) {
 
         GetAllPackagesQuery getAllMedicalPackageQuery = GetAllPackagesQuery.builder()
                 .page(page)
                 .keyword(keyword)
+                .sort(sort)
                 .build();
 
         MedicalPackagesPagedDto medicalPackageDTOs = queryGateway.query(getAllMedicalPackageQuery,
@@ -54,6 +65,7 @@ public class MedicalPackageController {
                 .description(bodyRequest.getDescription())
                 .price(bodyRequest.getPrice())
                 .name(bodyRequest.getName())
+                .image(bodyRequest.getImage())
                 .serviceIds(bodyRequest.getServiceIds())
                 .build();
 

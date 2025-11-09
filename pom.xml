@@ -9,11 +9,11 @@
   <packaging>pom</packaging>
 
   <modules>
-    <!-- <module>BookingService</module>
-    <module>AuthService</module> -->
+    <module>BookingService</module>
+    <module>AuthService</module>
     <module>CommonService</module>
-    <!-- <module>NotificationService</module>
-    <module>PatientService</module> -->
+    <module>NotificationService</module>
+    <module>PatientService</module>
     <module>MedicalPackageService</module>
     <module>StaffService</module>
   </modules>
