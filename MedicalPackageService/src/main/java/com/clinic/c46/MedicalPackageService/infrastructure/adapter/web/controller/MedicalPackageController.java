@@ -1,42 +1,47 @@
-package com.clinic.c46.MedicalPackageService.infrastructure.adapter.web;
+package com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.controller;
 
 
+import com.clinic.c46.CommonService.dto.MedicalPackageDTO;
+import com.clinic.c46.CommonService.query.medicalPackage.FindMedicalPackageByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
+import com.clinic.c46.MedicalPackageService.application.service.MedicalPackageService;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
-import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
-import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
+import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.CreateMedicalPackageRequest;
 import lombok.RequiredArgsConstructor;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/medicalPackages")
+@RequestMapping("/medical-package")
 @RequiredArgsConstructor
 public class MedicalPackageController {
 
     private final QueryGateway queryGateway;
-    private final CommandGateway commandGateway;
+    private final MedicalPackageService medicalPackageService;
 
     @GetMapping
-    public ResponseEntity<Map<String, List<MedicalPackageView>>> getMedicalPackages() {
+    public ResponseEntity<MedicalPackagesPagedDto> getMedicalPackages(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "keyword", required = false) String keyword) {
 
         GetAllPackagesQuery getAllMedicalPackageQuery = GetAllPackagesQuery.builder()
+                .page(page)
+                .keyword(keyword)
                 .build();
 
-        List<MedicalPackageView> medicalPackageDTOs = queryGateway.query(getAllMedicalPackageQuery,
-                        ResponseTypes.multipleInstancesOf(MedicalPackageView.class))
+        MedicalPackagesPagedDto medicalPackageDTOs = queryGateway.query(getAllMedicalPackageQuery,
+                        ResponseTypes.instanceOf(MedicalPackagesPagedDto.class))
                 .join();
 
         return ResponseEntity.ok()
-                .body(Map.of("medicalPackages", medicalPackageDTOs));
+                .body(medicalPackageDTOs);
     }
 
     @PostMapping
@@ -52,33 +57,24 @@ public class MedicalPackageController {
                 .serviceIds(bodyRequest.getServiceIds())
                 .build();
 
-        commandGateway.sendAndWait(cmd);
+        medicalPackageService.createPackage(cmd);
 
         return ResponseEntity.created(URI.create("/medicalPackages/" + medicalPackageId))
                 .body(Map.of("medicalPackageId", medicalPackageId));
 
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<MedicalPackageDTO> getById(@PathVariable String id) {
 
-    @PostMapping("/services")
-    public ResponseEntity<Map<String, String>> createMedicalService(
-            @RequestBody CreateMedicalServiceRequest bodyRequest) {
-        String medicalServiceId = UUID.randomUUID()
-                .toString();
-        CreateMedicalServiceCommand cmd = CreateMedicalServiceCommand.builder()
-                .medicalServiceId(medicalServiceId)
-                .description(bodyRequest.getDescription())
-                .name(bodyRequest.getName())
-                .departmentId(bodyRequest.getDepartmentId())
+        FindMedicalPackageByIdQuery query = FindMedicalPackageByIdQuery.builder()
+                .medicalPackageId(id)
                 .build();
 
-        commandGateway.sendAndWait(cmd);
-
-        return ResponseEntity.created(URI.create("/medicalServices/" + medicalServiceId))
-                .body(Map.of("medicalServiceId", medicalServiceId));
-
+        MedicalPackageDTO medicalPackageDTO = queryGateway.query(query,
+                        ResponseTypes.instanceOf(MedicalPackageDTO.class))
+                .join();
+        return ResponseEntity.ok(medicalPackageDTO);
     }
-
-
 
 }
