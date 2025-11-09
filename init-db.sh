@@ -9,6 +9,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE DATABASE patient_db;
     CREATE DATABASE medical_package_db;
     CREATE DATABASE notification_db;
+    CREATE DATABASE staff_db;
+    CREATE DATABASE examation_db;
+    CREATE DATABASE examation_flow_db;
+    CREATE DATABASE payment_db;
 
     -- Tạo user nếu cần (tùy chọn)
     -- CREATE USER clinic_app WITH PASSWORD 'clinic_pass';

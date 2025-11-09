@@ -19,4 +19,5 @@ public abstract class BasePagedResponse<T> {
     private int page;
     private int size;
     private long total;
+    private int totalPages;
 }

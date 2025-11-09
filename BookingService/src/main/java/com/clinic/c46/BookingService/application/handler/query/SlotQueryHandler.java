@@ -7,9 +7,13 @@ import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotResponse;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotsPagedResponse;
+import com.clinic.c46.CommonService.query.BaseQueryHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.queryhandling.QueryHandler;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +23,19 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SlotQueryHandler {
+public class SlotQueryHandler extends BaseQueryHandler {
 
     private final SlotViewRepository slotRepository;
 
     @QueryHandler
     public SlotsPagedResponse handle(GetAllSlotOfPackageQuery query) {
-        List<SlotResponse> slots = slotRepository.findAllByMedicalPackageId(query.medicalPackageId())
-                .stream()
+        int page = Math.max(query.page(), 0);
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+
+        Page<SlotView> slotPage = slotRepository.findAllByMedicalPackageId(query.medicalPackageId(), pageable);
+
+        List<SlotResponse> slots = slotPage.getContent().stream()
                 .map(entity -> SlotResponse.builder()
                         .slotId(entity.getSlotId())
                         .medicalPackageId(query.medicalPackageId())
@@ -35,15 +44,17 @@ public class SlotQueryHandler {
                         .remainingQuantity(entity.getRemainingQuantity())
                         .date(entity.getDate())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         return SlotsPagedResponse.builder()
                 .content(slots)
-                .page(0)
+                .page(page)
                 .size(slots.size())
-                .total(slots.size())
+                .total((int) slotPage.getTotalElements())
+                .totalPages(slotPage.getTotalPages())
                 .build();
     }
+
 
 
     @QueryHandler

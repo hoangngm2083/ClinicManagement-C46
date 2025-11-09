@@ -58,118 +58,147 @@ services:
     networks:
       - c46-net
 
-  booking-service:
-    build: ./BookingService
-    restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
-      axon-server:
-        condition: service_healthy
-    ports:
-      - "8082:8082"
-    environment:
-      - AXON_AXONSERVER_SERVERS=axon-server
-      - AXONSERVER_HOST=axon-server
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/booking_db
-      - SPRING_DATASOURCE_USERNAME=booking
-      - SPRING_DATASOURCE_PASSWORD=booking
-      - JAVA_OPTS=-Xmx512m -Xms256m
-      - TZ=Asia/Ho_Chi_Minh
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8082/actuator/health" ]
-      interval: 20s
-      timeout: 10s
-      retries: 5
-    networks:
-      - c46-net
-  auth-service:
-    build: ./AuthService
-    restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
-      axon-server:
-        condition: service_healthy
-    ports:
-      - "8081:8081"
-    environment:
-      - PUBLIC_BASE_URL=http://localhost:8081
+  # booking-service:
+  #   build: ./BookingService
+  #   restart: always
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     axon-server:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8082:8082"
+  #   environment:
+  #     - AXON_AXONSERVER_SERVERS=axon-server
+  #     - AXONSERVER_HOST=axon-server
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/booking_db
+  #     - SPRING_DATASOURCE_USERNAME=booking
+  #     - SPRING_DATASOURCE_PASSWORD=booking
+  #     - JAVA_OPTS=-Xmx512m -Xms256m
+  #     - TZ=Asia/Ho_Chi_Minh
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--spider", "http://localhost:8082/actuator/health" ]
+  #     interval: 20s
+  #     timeout: 10s
+  #     retries: 5
+  #   networks:
+  #     - c46-net
+  # auth-service:
+  #   build: ./AuthService
+  #   restart: always
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     axon-server:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     - PUBLIC_BASE_URL=http://localhost:8081
 
-      - AXON_AXONSERVER_SERVERS=axon-server
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
-      - SPRING_DATASOURCE_USERNAME=booking
-      - SPRING_DATASOURCE_PASSWORD=booking
-      - JAVA_OPTS=-Xmx512m -Xms256m
-      - TZ=Asia/Ho_Chi_Minh
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8081/actuator/health" ]
-      interval: 20s
-      timeout: 10s
-      retries: 5
-    networks:
-      - c46-net
+  #     - AXON_AXONSERVER_SERVERS=axon-server
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+  #     - SPRING_DATASOURCE_USERNAME=booking
+  #     - SPRING_DATASOURCE_PASSWORD=booking
+  #     - JAVA_OPTS=-Xmx512m -Xms256m
+  #     - TZ=Asia/Ho_Chi_Minh
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--spider", "http://localhost:8081/actuator/health" ]
+  #     interval: 20s
+  #     timeout: 10s
+  #     retries: 5
+  #   networks:
+  #     - c46-net
 
-  notification-service:
-    build: ./NotificationService
+  # notification-service:
+  #   build: ./NotificationService
+  #   restart: always
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     axon-server:
+  #       condition: service_healthy
+  #   environment:
+  #     - MAIL_HOST=smtp.gmail.com
+  #     - MAIL_PORT=587
+  #     # - MAIL_USERNAME=${MAIL_USERNAME}
+  #     # - MAIL_PASSWORD=${MAIL_PASSWORD} 
+  #     # - SPRING_PROFILES_ACTIVE=prod # kích hoạt profile tương ứng -> load cấu hình khác nhau
+
+  #     - AXON_AXONSERVER_SERVERS=axon-server
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+  #     - SPRING_DATASOURCE_USERNAME=booking
+  #     - SPRING_DATASOURCE_PASSWORD=booking
+  #     - JAVA_OPTS=-Xmx512m -Xms256m
+  #     - TZ=Asia/Ho_Chi_Minh
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "8083:8080"
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--spider", "http://localhost:8081/actuator/health" ]
+  #     interval: 20s
+  #     timeout: 10s
+  #     retries: 5
+  #   networks:
+  #     - c46-net
+  # patient-service:
+  #   build: ./PatientService
+  #   restart: always
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     axon-server:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8088:8088"
+  #   environment:
+  #     - AXON_AXONSERVER_SERVERS=axon-server
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/patient_db
+  #     - SPRING_DATASOURCE_USERNAME=booking
+  #     - SPRING_DATASOURCE_PASSWORD=booking
+  #     - JAVA_OPTS=-Xmx512m -Xms256m
+  #     - TZ=Asia/Ho_Chi_Minh
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--spider", "http://localhost:8088/actuator/health" ]
+  #     interval: 20s
+  #     timeout: 10s
+  #     retries: 5
+  #   networks:
+  #     - c46-net
+
+
+
+  staff-service:
+    build: ./StaffService
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
       axon-server:
         condition: service_healthy
+    ports:
+      - "8090:8090"
     environment:
-      - MAIL_HOST=smtp.gmail.com
-      - MAIL_PORT=587
-      # - MAIL_USERNAME=${MAIL_USERNAME}
-      # - MAIL_PASSWORD=${MAIL_PASSWORD} 
-      # - SPRING_PROFILES_ACTIVE=prod # kích hoạt profile tương ứng -> load cấu hình khác nhau
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/staff_db
+      - SPRING_DATASOURCE_USERNAME=booking
+      - SPRING_DATASOURCE_PASSWORD=booking
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - TZ=Asia/Ho_Chi_Minh
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8090/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - c46-net
 
-      - AXON_AXONSERVER_SERVERS=axon-server
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
-      - SPRING_DATASOURCE_USERNAME=booking
-      - SPRING_DATASOURCE_PASSWORD=booking
-      - JAVA_OPTS=-Xmx512m -Xms256m
-      - TZ=Asia/Ho_Chi_Minh
-    env_file:
-      - .env
-    ports:
-      - "8083:8080"
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8081/actuator/health" ]
-      interval: 20s
-      timeout: 10s
-      retries: 5
-    networks:
-      - c46-net
-  patient-service:
-    build: ./PatientService
-    restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
-      axon-server:
-        condition: service_healthy
-    ports:
-      - "8088:8088"
-    environment:
-      - AXON_AXONSERVER_SERVERS=axon-server
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/patient_db
-      - SPRING_DATASOURCE_USERNAME=booking
-      - SPRING_DATASOURCE_PASSWORD=booking
-      - JAVA_OPTS=-Xmx512m -Xms256m
-      - TZ=Asia/Ho_Chi_Minh
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8088/actuator/health" ]
-      interval: 20s
-      timeout: 10s
-      retries: 5
-    networks:
-      - c46-net
   medical-package-service:
     build: ./MedicalPackageService
     restart: always
