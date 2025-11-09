@@ -43,6 +43,7 @@ public class MedicalPackageProjection {
                 .name(event.name())
                 .description(event.description())
                 .price(event.price())
+                .image(event.image())
                 .medicalServices(services)
                 .build();
 
@@ -70,6 +71,7 @@ public class MedicalPackageProjection {
                 .ifPresent(view -> {
                     if (event.name() != null) view.setName(event.name());
                     if (event.description() != null) view.setDescription(event.description());
+                    if (event.image() != null) view.setImage(event.image());
 
                     if (event.serviceIds() != null) {
                         Set<MedicalServiceView> services = new HashSet<>();

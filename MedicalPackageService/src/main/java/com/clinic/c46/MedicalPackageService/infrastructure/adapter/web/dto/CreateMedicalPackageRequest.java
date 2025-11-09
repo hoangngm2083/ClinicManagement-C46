@@ -18,4 +18,5 @@ public class CreateMedicalPackageRequest {
     private String description;
     private Set<String> serviceIds;
     private BigDecimal price;
+    private String image;
 }
