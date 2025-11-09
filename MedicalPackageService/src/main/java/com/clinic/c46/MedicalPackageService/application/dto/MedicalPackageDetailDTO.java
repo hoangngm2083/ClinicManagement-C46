@@ -8,6 +8,6 @@ import java.util.List;
 
 @Builder
 public record MedicalPackageDetailDTO(String medicalPackageId, String name, String description, BigDecimal price,
-                                      List<MedicalServiceDTO> medicalServices) {
+                                      List<MedicalServiceDTO> medicalServices, String image) {
 
 }

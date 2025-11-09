@@ -8,5 +8,5 @@ import java.util.Set;
 
 @Builder
 public record UpdateMedicalPackageInfoCommand(@TargetAggregateIdentifier String medicalPackageId, String name, String description,
-                                              Set<String> serviceIds) {
+                                              Set<String> serviceIds, String image) {
 }

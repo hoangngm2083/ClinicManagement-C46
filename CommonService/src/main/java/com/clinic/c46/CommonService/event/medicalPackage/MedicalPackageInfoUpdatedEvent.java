@@ -6,5 +6,5 @@ import java.util.Set;
 
 @Builder
 public record MedicalPackageInfoUpdatedEvent(String medicalPackageId, String name, String description,
-                                             Set<String> serviceIds, int version) {
+                                             Set<String> serviceIds, int version, String image) {
 }

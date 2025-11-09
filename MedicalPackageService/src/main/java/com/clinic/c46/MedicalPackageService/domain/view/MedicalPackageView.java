@@ -21,6 +21,7 @@ public class MedicalPackageView {
     private String name;
     private String description;
     private BigDecimal price;
+    private String image;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

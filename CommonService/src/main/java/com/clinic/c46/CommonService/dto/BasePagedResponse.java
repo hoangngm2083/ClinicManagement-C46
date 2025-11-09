@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 @SuperBuilder
-public abstract class BasePagedResponse<T> {
+public class BasePagedResponse<T> {
     private List<T> content;
     private int page;
     private int size;
