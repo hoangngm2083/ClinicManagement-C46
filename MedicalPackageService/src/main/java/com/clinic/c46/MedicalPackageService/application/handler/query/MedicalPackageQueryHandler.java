@@ -4,7 +4,9 @@ import com.clinic.c46.CommonService.dto.MedicalPackageDTO;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
 import com.clinic.c46.CommonService.query.medicalPackage.FindMedicalPackageByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetailDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDTO;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
     public MedicalPackagesPagedDto handle(GetAllPackagesQuery q) {
 
         int page = this.calcPage(q.page());
-        Pageable pageable = PageRequest.of( page, PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
 
 
         Specification<MedicalPackageView> spec = Specification.allOf();
@@ -60,13 +62,24 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
     }
 
     @QueryHandler
-    public MedicalPackageDTO handle(FindMedicalPackageByIdQuery q) {
+    public MedicalPackageDetailDTO handle(FindMedicalPackageByIdQuery q) {
+
         return packageRepo.findById(q.medicalPackageId())
-                .map(view -> MedicalPackageDTO.builder()
+                .map(view -> MedicalPackageDetailDTO.builder()
                         .medicalPackageId(view.getId())
                         .price(view.getPrice())
                         .name(view.getName())
                         .description(view.getDescription())
+                        .medicalServices(view.getMedicalServices()
+                                .stream()
+                                .map(serviceView -> MedicalServiceDTO.builder()
+                                        .name(serviceView.getName())
+                                        .medicalServiceId(serviceView.getId())
+                                        .description(serviceView.getDescription())
+                                        .departmentId(serviceView.getDepartmentId())
+                                        .departmentName(serviceView.getDepartmentName())
+                                        .build())
+                                .toList())
                         .build())
                 .orElse(null);
     }

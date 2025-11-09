@@ -1,9 +1,9 @@
 package com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.controller;
 
 
-import com.clinic.c46.CommonService.dto.MedicalPackageDTO;
 import com.clinic.c46.CommonService.query.medicalPackage.FindMedicalPackageByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetailDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.service.MedicalPackageService;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
@@ -65,16 +65,16 @@ public class MedicalPackageController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MedicalPackageDTO> getById(@PathVariable String id) {
+    public ResponseEntity<MedicalPackageDetailDTO> getById(@PathVariable String id) {
 
         FindMedicalPackageByIdQuery query = FindMedicalPackageByIdQuery.builder()
                 .medicalPackageId(id)
                 .build();
 
-        MedicalPackageDTO medicalPackageDTO = queryGateway.query(query,
-                        ResponseTypes.instanceOf(MedicalPackageDTO.class))
+        MedicalPackageDetailDTO medicalPackageDetailDTO = queryGateway.query(query,
+                        ResponseTypes.instanceOf(MedicalPackageDetailDTO.class))
                 .join();
-        return ResponseEntity.ok(medicalPackageDTO);
+        return ResponseEntity.ok(medicalPackageDetailDTO);
     }
 
 }
