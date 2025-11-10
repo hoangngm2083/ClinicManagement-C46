@@ -9,6 +9,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>ApiGateway</module>
     <module>BookingService</module>
     <module>AuthService</module>
     <module>CommonService</module>
