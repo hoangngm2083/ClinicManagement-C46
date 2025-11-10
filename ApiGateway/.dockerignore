@@ -1,0 +1,10 @@
+# Exclude everything except the built JAR
+target/*
+!target/*.jar
+
+.mvn/
+mvnw
+mvnw.cmd
+*.md
+.gitignore
+src/

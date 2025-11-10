@@ -58,6 +58,31 @@ services:
     networks:
       - c46-net
 
+  api-gateway:
+    build: ./ApiGateway
+    container_name: api-gateway
+    restart: always
+    depends_on:
+      - auth-service
+      - booking-service
+      - notification-service
+      - patient-service
+      - staff-service
+      - medical-package-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - TZ=Asia/Ho_Chi_Minh
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - c46-net
+
   booking-service:
     build: ./BookingService
     restart: always
