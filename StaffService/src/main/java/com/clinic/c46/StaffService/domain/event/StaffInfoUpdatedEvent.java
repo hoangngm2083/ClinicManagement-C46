@@ -1,0 +1,9 @@
+package com.clinic.c46.StaffService.domain.event;
+
+import com.clinic.c46.StaffService.domain.enums.Role;
+import lombok.Builder;
+
+@Builder
+public record StaffInfoUpdatedEvent(String staffId, String name, String phone, String description, String image,
+                                    Role role, String eSignature, String departmentId) {
+}

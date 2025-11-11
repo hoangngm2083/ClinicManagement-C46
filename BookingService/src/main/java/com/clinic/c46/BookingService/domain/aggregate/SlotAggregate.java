@@ -5,7 +5,7 @@ import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
 import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
 import com.clinic.c46.BookingService.domain.command.ReleaseFingerprintCommand;
 import com.clinic.c46.BookingService.domain.command.ReleaseLockedSlotCommand;
-import com.clinic.c46.BookingService.domain.enums.Shift;
+import com.clinic.c46.CommonService.type.Shift;
 import com.clinic.c46.BookingService.domain.event.FingerprintReleasedEvent;
 import com.clinic.c46.BookingService.domain.event.LockedSlotReleasedEvent;
 import com.clinic.c46.BookingService.domain.event.SlotCreatedEvent;

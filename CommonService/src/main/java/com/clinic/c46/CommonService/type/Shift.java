@@ -1,8 +1,8 @@
-package com.clinic.c46.BookingService.domain.enums;
+package com.clinic.c46.CommonService.type;
 
 public enum Shift {
-    AFTERNOON(0),
-    MORNING(1);
+    AFTERNOON(1),
+    MORNING(0);
 
     private final int code;
 
