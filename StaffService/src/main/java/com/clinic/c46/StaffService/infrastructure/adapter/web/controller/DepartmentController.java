@@ -1,17 +1,19 @@
 package com.clinic.c46.StaffService.infrastructure.adapter.web.controller;
 
 
+import com.clinic.c46.StaffService.application.dto.CreateDepartmentRequest;
 import com.clinic.c46.StaffService.application.dto.DepartmentDTO;
 import com.clinic.c46.StaffService.application.dto.DepartmentsPagedDTO;
 import com.clinic.c46.StaffService.application.service.DepartmentService;
 import com.clinic.c46.StaffService.domain.command.CreateDepartmentCommand;
 import com.clinic.c46.StaffService.domain.query.GetAllDepartmentsQuery;
 import com.clinic.c46.StaffService.domain.query.GetDepartmentByIdQuery;
-import com.clinic.c46.StaffService.infrastructure.adapter.web.dto.CreateDepartmentRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/department")
 @RequiredArgsConstructor
+@Validated
 public class DepartmentController {
 
     private final DepartmentService departmentService;
@@ -54,7 +57,7 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> create(@RequestBody CreateDepartmentRequest requestBody) {
+    public ResponseEntity<Map<String, String>> create(@Valid @RequestBody CreateDepartmentRequest requestBody) {
 
 
         String departmentId = UUID.randomUUID()
