@@ -1,13 +1,14 @@
 package com.clinic.c46.StaffService;
 
 import com.clinic.c46.CommonService.config.CommonAxonConfig;
+import com.clinic.c46.CommonService.config.CommonServiceConfig;
 import com.clinic.c46.CommonService.exception.BaseGlobalExceptionHandler;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import({CommonAxonConfig.class, BaseGlobalExceptionHandler.class})
+@Import({CommonAxonConfig.class, BaseGlobalExceptionHandler.class, CommonServiceConfig.class})
 public class StaffServiceApplication {
 
     public static void main(String[] args) {

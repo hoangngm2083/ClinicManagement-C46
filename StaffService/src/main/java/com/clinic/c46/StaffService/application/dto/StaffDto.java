@@ -1,7 +1,8 @@
 package com.clinic.c46.StaffService.application.dto;
 
-import com.clinic.c46.StaffService.domain.enums.Role;
+import lombok.Builder;
 
+@Builder
 public record StaffDto(
 
         String id,
@@ -16,7 +17,7 @@ public record StaffDto(
 
         String image,
 
-        Role role,
+        int role,
 
         String eSignature,
 

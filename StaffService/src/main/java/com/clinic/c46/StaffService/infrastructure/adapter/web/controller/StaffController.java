@@ -1,13 +1,12 @@
 package com.clinic.c46.StaffService.infrastructure.adapter.web.controller;
 
 
-import com.clinic.c46.StaffService.application.dto.CreateStaffRequest;
-import com.clinic.c46.StaffService.application.dto.RequestDayOffsRequest;
-import com.clinic.c46.StaffService.application.dto.StaffDto;
-import com.clinic.c46.StaffService.application.dto.UpdateStaffRequest;
+import com.clinic.c46.CommonService.helper.SortDirection;
+import com.clinic.c46.StaffService.application.dto.*;
 import com.clinic.c46.StaffService.application.service.StaffService;
 import com.clinic.c46.StaffService.domain.query.FindStaffByIdQuery;
 import com.clinic.c46.StaffService.domain.query.FindStaffScheduleQuery;
+import com.clinic.c46.StaffService.domain.query.GetAllStaffQuery;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -38,7 +37,6 @@ public class StaffController {
         return staffService.createStaff(request)
                 .thenApply(staffId -> ResponseEntity.status(HttpStatus.CREATED)
                         .body(staffId));
-
     }
 
     @PutMapping("/{staffId}")
@@ -59,6 +57,25 @@ public class StaffController {
     @DeleteMapping("/{staffId}")
     public CompletableFuture<ResponseEntity<Void>> deleteStaff(@PathVariable String staffId) {
         return staffService.deleteStaff(staffId)
+                .thenApply(ResponseEntity::ok);
+    }
+
+    @GetMapping
+    public CompletableFuture<ResponseEntity<StaffsPagedDTO>> getAllStaffs(
+            @RequestParam(required = false) String keyword, @RequestParam(required = false) Integer role,
+            @RequestParam(required = false) String departmentId, @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false, defaultValue = "ASC") String sort,
+            @RequestParam(required = false, defaultValue = "1") Integer page) {
+        GetAllStaffQuery query = GetAllStaffQuery.builder()
+                .keyword(keyword)
+                .role(role)
+                .departmentId(departmentId)
+                .sortBy(sortBy)
+                .sort(SortDirection.valueOf(sort))
+                .page(page)
+                .build();
+
+        return queryGateway.query(query, ResponseTypes.instanceOf(StaffsPagedDTO.class))
                 .thenApply(ResponseEntity::ok);
     }
 

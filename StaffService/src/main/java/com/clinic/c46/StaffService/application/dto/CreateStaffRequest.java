@@ -1,7 +1,7 @@
 package com.clinic.c46.StaffService.application.dto;
 
-import com.clinic.c46.StaffService.domain.enums.Role;
 import jakarta.validation.constraints.*;
+import org.hibernate.validator.constraints.Range;
 
 
 public record CreateStaffRequest(
@@ -15,7 +15,7 @@ public record CreateStaffRequest(
 
         @Size(max = 255, message = "Image path must not exceed 255 characters") String image,
 
-        @NotNull(message = "Role is required") Role role,
+        @NotNull(message = "Role is required") @Range(min = 0, max = 2, message = "Role must be 0, 1, or 2") int role,
 
         @Size(max = 255, message = "E-signature must not exceed 255 characters") String eSignature,
 
