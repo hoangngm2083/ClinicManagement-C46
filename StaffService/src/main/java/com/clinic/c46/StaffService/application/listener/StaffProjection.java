@@ -37,10 +37,11 @@ public class StaffProjection {
 
     @EventHandler
     public void on(DayOffRequestedEvent event) {
+        log.warn("=== EVENT HANDLER DAYOFFS: {}", event.dayOffs());
         log.info("Handling DayOffRequestedEvent for staff ID: {}", event.staffId());
         repository.findById(event.staffId())
                 .ifPresent(staffView -> {
-                    staffView.handleDayOffsRequest(event);
+                    staffView.handleDayOffsRequest(event.dayOffs());
                     repository.save(staffView);
                 });
     }

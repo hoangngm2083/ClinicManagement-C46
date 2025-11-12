@@ -1,6 +1,9 @@
 package com.clinic.c46.StaffService.application.handler.query;
 
 
+import com.clinic.c46.CommonService.helper.PageAndSortHelper;
+import com.clinic.c46.CommonService.helper.SortDirection;
+import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
 import com.clinic.c46.StaffService.application.dto.DepartmentDTO;
 import com.clinic.c46.StaffService.application.dto.DepartmentsPagedDTO;
@@ -12,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -25,43 +27,24 @@ import java.util.List;
 public class DepartmentQueryHandler extends BaseQueryHandler {
 
     private final DepartmentViewRepository departmentViewRepository;
+    private final PageAndSortHelper pageAndSortHelper;
+    private final SpecificationBuilder specificationBuilder;
 
 
     @QueryHandler
     public DepartmentsPagedDTO handle(GetAllDepartmentsQuery query) {
 
-        int page = this.calcPage(query.page());
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-
-        Specification<DepartmentView> spec = Specification.allOf();
-
-        String keyword = query.keyword();
-        if (keyword != null && !keyword.trim()
-                .isBlank()) {
-            String lowerKeyword = "%" + keyword.trim()
-                    .toLowerCase() + "%";
-
-            spec = spec.and((root, cq, cb) -> cb.or(cb.like(cb.lower(root.get("name")), lowerKeyword),
-                    cb.like(cb.lower(root.get("description")), lowerKeyword)));
-        }
-
-
+        Pageable pageable = pageAndSortHelper.buildPageable(query.page(), "", SortDirection.ASC);
+        Specification<DepartmentView> spec = specificationBuilder.keyword(query.keyword(),
+                List.of("name", "description"));
+        
         Page<DepartmentView> pageResult = departmentViewRepository.findAll(spec, pageable);
 
-        List<DepartmentDTO> content = pageResult.map(view -> DepartmentDTO.builder()
-                        .id(view.getId())
-                        .name(view.getName())
-                        .description(view.getDescription())
-                        .build())
-                .toList();
-
-        return DepartmentsPagedDTO.builder()
-                .content(content)
-                .page(page)
-                .size(pageResult.getSize())
-                .total(pageResult.getTotalElements())
-                .totalPages(pageResult.getTotalPages())
-                .build();
+        return pageAndSortHelper.toPaged(pageResult, view -> DepartmentDTO.builder()
+                .id(view.getId())
+                .name(view.getName())
+                .description(view.getDescription())
+                .build(), DepartmentsPagedDTO::new);
     }
 
     @QueryHandler
