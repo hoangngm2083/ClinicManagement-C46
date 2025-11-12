@@ -9,6 +9,7 @@ import com.clinic.c46.StaffService.domain.command.CreateStaffCommand;
 import com.clinic.c46.StaffService.domain.command.DeleteStaffCommand;
 import com.clinic.c46.StaffService.domain.command.RequestDayOffCommand;
 import com.clinic.c46.StaffService.domain.command.UpdateStaffInfoCommand;
+import com.clinic.c46.StaffService.domain.enums.Role;
 import com.clinic.c46.StaffService.domain.valueObject.DayOff;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,8 @@ public class StaffServiceImpl implements StaffService {
                 .toString();
 
         CreateStaffCommand command = new CreateStaffCommand(staffId, request.name(), request.email(), request.phone(),
-                request.description(), request.image(), request.role(), request.eSignature(), request.departmentId());
+                request.description(), request.image(), Role.findByCode(request.role()), request.eSignature(),
+                request.departmentId());
 
         return commandGateway.send(command)
                 .thenApply(result -> staffId);
@@ -49,7 +51,8 @@ public class StaffServiceImpl implements StaffService {
     public CompletableFuture<Void> updateStaff(String staffId, UpdateStaffRequest request) {
         // Validate...
         UpdateStaffInfoCommand command = new UpdateStaffInfoCommand(staffId, request.name(), request.phone(),
-                request.description(), request.image(), request.role(), request.eSignature(), request.departmentId());
+                request.description(), request.image(), Role.findByCode(request.role()), request.eSignature(),
+                request.departmentId());
 
         return commandGateway.send(command);
     }

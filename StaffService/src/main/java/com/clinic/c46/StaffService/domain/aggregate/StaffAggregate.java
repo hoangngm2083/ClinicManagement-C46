@@ -12,6 +12,7 @@ import com.clinic.c46.StaffService.domain.event.StaffDeletedEvent;
 import com.clinic.c46.StaffService.domain.event.StaffInfoUpdatedEvent;
 import com.clinic.c46.StaffService.domain.valueObject.DayOff;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -21,11 +22,11 @@ import org.axonframework.spring.stereotype.Aggregate;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Aggregate
 @NoArgsConstructor
+@Slf4j
 public class StaffAggregate {
 
     @AggregateIdentifier
@@ -38,7 +39,7 @@ public class StaffAggregate {
     private Role role;
     private String eSignature;
     private boolean active;
-    private List<DayOff> dayOffs;
+    private Set<DayOff> dayOffs;
     private String departmentId;
 
     @CommandHandler
@@ -66,7 +67,7 @@ public class StaffAggregate {
         this.eSignature = event.eSignature();
         this.departmentId = event.departmentId();
         this.active = true;
-        this.dayOffs = new ArrayList<>();
+        this.dayOffs = new HashSet<>();
     }
 
     @CommandHandler
@@ -93,6 +94,9 @@ public class StaffAggregate {
 
     @CommandHandler
     public void handle(RequestDayOffCommand command) {
+        log.warn("=== Aggregate DAYOFFS command: {}", command.dayOffs());
+        log.warn("=== Aggregate DAYOFFS before: {}", dayOffs);
+
         if (!this.active) {
             throw new IllegalStateException("Inactive staff cannot request day off");
         }
@@ -109,13 +113,16 @@ public class StaffAggregate {
             throw new IllegalArgumentException("Cannot request day off in the past");
         }
 
-        Set<DayOff> existingDayOffs = new HashSet<>(this.dayOffs);
-        command.dayOffs()
-                .retainAll(existingDayOffs);
-        if (!command.dayOffs()
-                .isEmpty()) {
-            throw new IllegalArgumentException("Day off already requested for this date and shift");
+        Set<DayOff> dayOffsToCheck = new HashSet<>(command.dayOffs());
+
+        dayOffsToCheck.retainAll(this.dayOffs);
+
+        if (!dayOffsToCheck.isEmpty()) {
+            throw new IllegalArgumentException("Day off already requested for this date and shift: " + dayOffsToCheck);
         }
+
+        log.warn("=== Aggregate DAYOFFS after: {}", dayOffs);
+
 
         AggregateLifecycle.apply(new DayOffRequestedEvent(this.staffId, command.dayOffs()));
     }
