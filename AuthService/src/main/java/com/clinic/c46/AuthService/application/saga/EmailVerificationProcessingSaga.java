@@ -1,8 +1,8 @@
 package com.clinic.c46.AuthService.application.saga;
 
 import com.clinic.c46.AuthService.application.service.EmailVerificationService;
-import com.clinic.c46.AuthService.domain.event.EmailVerificationStartedEvent;
 import com.clinic.c46.AuthService.domain.event.EmailVerificationPatientRepliedEvent;
+import com.clinic.c46.AuthService.domain.event.EmailVerificationStartedEvent;
 import com.clinic.c46.CommonService.command.notification.SendOTPVerificationCommand;
 import com.clinic.c46.CommonService.event.auth.EmailVerificationFailedEvent;
 import com.clinic.c46.CommonService.event.auth.EmailVerifiedEvent;
@@ -19,6 +19,7 @@ import org.axonframework.deadline.annotation.DeadlineHandler;
 import org.axonframework.eventhandling.gateway.EventGateway;
 import org.axonframework.modelling.saga.EndSaga;
 import org.axonframework.modelling.saga.SagaEventHandler;
+import org.axonframework.modelling.saga.SagaLifecycle;
 import org.axonframework.modelling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ import java.time.Duration;
 public class EmailVerificationProcessingSaga {
     private static final String DEADLINE_NAME = "email-verification-deadline";
 
-    private transient final Duration EMAIL_VERIFICATION_TIMEOUT = Duration.ofSeconds(10000);
+    private transient final Duration EMAIL_VERIFICATION_TIMEOUT = Duration.ofMinutes(5);
     @Autowired
     @JsonIgnore
 
@@ -64,7 +65,7 @@ public class EmailVerificationProcessingSaga {
         this.verificationId = event.verificationId();
         this.verificationCode = event.code();
         this.email = event.email();
-
+        SagaLifecycle.associateWith("verificationId", this.verificationId);
         log.info("Starting email verification saga for: {}", email);
 
         this.deadlineId = deadlineManager.schedule(EMAIL_VERIFICATION_TIMEOUT, DEADLINE_NAME, this.verificationId);
