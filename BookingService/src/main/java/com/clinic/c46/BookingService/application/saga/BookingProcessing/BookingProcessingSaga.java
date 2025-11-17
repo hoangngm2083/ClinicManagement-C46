@@ -43,7 +43,7 @@ public class BookingProcessingSaga {
     private static final int MAX_RETRY = 3;
     private static final String RETRY_CREATE_PATIENT = "retry-create-patient";
     private static final String RETRY_CREATE_APPOINTMENT = "retry-create-appointment";
-    private final Duration BOOKING_TIMEOUT = Duration.ofSeconds(30);
+    private final Duration BOOKING_TIMEOUT = Duration.ofSeconds(10000);
     private final long SCHEDULE_RETRY = 30L;
     @Autowired
     @JsonIgnore
