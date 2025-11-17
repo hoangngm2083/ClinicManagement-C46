@@ -35,7 +35,7 @@ import java.time.Duration;
 public class EmailVerificationProcessingSaga {
     private static final String DEADLINE_NAME = "email-verification-deadline";
 
-    private transient final Duration EMAIL_VERIFICATION_TIMEOUT = Duration.ofSeconds(20);
+    private transient final Duration EMAIL_VERIFICATION_TIMEOUT = Duration.ofSeconds(10000);
     @Autowired
     @JsonIgnore
 
