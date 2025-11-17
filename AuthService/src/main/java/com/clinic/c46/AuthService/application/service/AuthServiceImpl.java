@@ -53,9 +53,6 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
-                .accountName(savedAccount.getAccountName())
-                .accountId(savedAccount.getAccountId())
-                .staffId(savedAccount.getStaffId())
                 .build();
     }
     
@@ -84,9 +81,6 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
-                .accountName(account.getAccountName())
-                .accountId(account.getAccountId())
-                .staffId(account.getStaffId())
                 .build();
     }
     
@@ -117,9 +111,6 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(newAccessToken)
                 .refreshToken(refreshToken)
-                .accountName(account.getAccountName())
-                .accountId(account.getAccountId())
-                .staffId(account.getStaffId())
                 .build();
     }
 }
