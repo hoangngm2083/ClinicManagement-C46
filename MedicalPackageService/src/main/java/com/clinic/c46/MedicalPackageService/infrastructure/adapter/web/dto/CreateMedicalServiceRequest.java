@@ -13,13 +13,14 @@ import lombok.Setter;
 @Setter
 public class CreateMedicalServiceRequest {
 
-    @NotBlank(message = "Tên dịch vụ không được để trống")
+    @NotBlank
     private String name;
 
-    @NotBlank(message = "Mô tả không được để trống")
+    @NotBlank
     private String description;
 
-    @NotBlank(message = "Mã khoa không được để trống")
+    @NotBlank
     private String departmentId;
+    private int processingPriority;
 }
 

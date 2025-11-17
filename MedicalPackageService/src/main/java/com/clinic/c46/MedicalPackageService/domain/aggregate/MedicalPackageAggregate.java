@@ -6,7 +6,7 @@ import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdat
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackageInfoCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackagePriceCommand;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalPackagePriceUpdatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;

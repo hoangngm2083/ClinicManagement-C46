@@ -5,5 +5,5 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 @Builder
 public record CreateMedicalServiceCommand(@TargetAggregateIdentifier String medicalServiceId, String name,
-                                          String description, String departmentId) {
+                                          int processingPriority, String description, String departmentId) {
 }

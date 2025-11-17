@@ -8,7 +8,7 @@ import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.CommonService.dto.PatientDto;
-import com.clinic.c46.CommonService.query.patient.FindPatientByIdQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
@@ -42,7 +42,7 @@ public class AppointmentProjection {
 
         PatientDto patientDto;
         try {
-            patientDto = queryGateway.query(FindPatientByIdQuery.builder()
+            patientDto = queryGateway.query(GetPatientByIdQuery.builder()
                             .patientId(event.patientId())
                             .build(), ResponseTypes.instanceOf(PatientDto.class))
                     .join();
