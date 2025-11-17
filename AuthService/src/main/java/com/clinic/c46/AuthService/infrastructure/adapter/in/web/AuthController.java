@@ -1,6 +1,7 @@
 package com.clinic.c46.AuthService.infrastructure.adapter.in.web;
 
 import com.clinic.c46.AuthService.application.service.AuthService;
+import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.AccountInfoResponse;
 import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.AuthResponse;
 import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.CreateAccountRequest;
 import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.LoginRequest;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -40,6 +42,14 @@ public class AuthController {
     @Operation(summary = "Refresh token", description = "Get a new access token using refresh token")
     public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         AuthResponse response = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/me")
+    @Operation(summary = "Get current account info", description = "Get current authenticated user's account information from bearer token")
+    public ResponseEntity<AccountInfoResponse> getCurrentAccount(Authentication authentication) {
+        String accountName = authentication.getName();
+        AccountInfoResponse response = authService.getCurrentAccount(accountName);
         return ResponseEntity.ok(response);
     }
 }

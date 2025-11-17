@@ -2,6 +2,7 @@ package com.clinic.c46.AuthService.application.service;
 
 import com.clinic.c46.AuthService.application.repository.AccountRepository;
 import com.clinic.c46.AuthService.domain.entity.Account;
+import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.AccountInfoResponse;
 import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.AuthResponse;
 import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.CreateAccountRequest;
 import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.LoginRequest;
@@ -111,6 +112,22 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(newAccessToken)
                 .refreshToken(refreshToken)
+                .build();
+    }
+    
+    @Override
+    public AccountInfoResponse getCurrentAccount(String accountName) {
+        // Find account
+        Account account = accountRepository.findByAccountNameAndIsDeletedFalse(accountName)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        
+        log.info("Retrieved account info for: {}", accountName);
+        
+        return AccountInfoResponse.builder()
+                .accountId(account.getAccountId())
+                .accountName(account.getAccountName())
+                .staffId(account.getStaffId())
+                .role(account.getRole())
                 .build();
     }
 }
