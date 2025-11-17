@@ -43,7 +43,7 @@ public class BookingProcessingSaga {
     private static final int MAX_RETRY = 3;
     private static final String RETRY_CREATE_PATIENT = "retry-create-patient";
     private static final String RETRY_CREATE_APPOINTMENT = "retry-create-appointment";
-    private final Duration BOOKING_TIMEOUT = Duration.ofSeconds(10000);
+    private final Duration BOOKING_TIMEOUT = Duration.ofMinutes(10);
     private final long SCHEDULE_RETRY = 30L;
     @Autowired
     @JsonIgnore
@@ -106,7 +106,6 @@ public class BookingProcessingSaga {
 
     @SagaEventHandler(associationProperty = "verificationId")
     private void handle(EmailVerifiedEvent event) {
-
         this.patientId = UUID.randomUUID()
                 .toString();
         SagaLifecycle.associateWith("patientId", this.patientId);
@@ -153,6 +152,7 @@ public class BookingProcessingSaga {
     @SagaEventHandler(associationProperty = "appointmentId")
     private void handle(AppointmentCreatedEvent event) {
         this.stateMachine = BookingProcessingStateMachine.PENDING_RELEASE_SLOT_LOCKED;
+        SagaLifecycle.associateWith("fingerprint", this.fingerprint);
         this.commandGateway.send(ReleaseFingerprintCommand.builder()
                 .slotId(this.slotId)
                 .fingerprint(this.fingerprint)
