@@ -120,7 +120,7 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - PUBLIC_BASE_URL=http://localhost:8081
+      - PUBLIC_BASE_URL=http://localhost:3000
 
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=docker
