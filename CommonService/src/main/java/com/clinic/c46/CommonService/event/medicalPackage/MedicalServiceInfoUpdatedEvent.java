@@ -5,5 +5,5 @@ import lombok.Builder;
 @Builder
 public record MedicalServiceInfoUpdatedEvent(
 
-        String medicalServiceId, String name, String description, String departmentId) {
+        String medicalServiceId, String name, int processingPriority,String description, String departmentId) {
 }

@@ -2,7 +2,7 @@ package com.clinic.c46.PatientService.application.service;
 import com.clinic.c46.CommonService.command.patient.CreatePatientCommand;
 import com.clinic.c46.CommonService.command.patient.DeletePatientCommand;
 import com.clinic.c46.CommonService.query.patient.GetAllPatientsQuery;
-import com.clinic.c46.CommonService.query.patient.FindPatientByIdQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -42,7 +42,7 @@ public class PatientService {
     // QUERY
     public CompletableFuture<PatientView> getPatientById(String id) {
         return queryGateway.query(
-                new FindPatientByIdQuery(id),
+                new GetPatientByIdQuery(id),
                 ResponseTypes.instanceOf(PatientView.class)
                                  );
     }

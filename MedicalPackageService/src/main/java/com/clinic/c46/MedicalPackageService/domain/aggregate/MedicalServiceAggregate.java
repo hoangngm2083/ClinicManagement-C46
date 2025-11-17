@@ -1,10 +1,10 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 
-import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
-import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
+import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -21,6 +21,7 @@ public class MedicalServiceAggregate {
     private String name;
     private String description;
     private String departmentId;
+    private int processingPriority;
 
     // ---------------------- CREATE ----------------------
     @CommandHandler
@@ -35,6 +36,7 @@ public class MedicalServiceAggregate {
                 .name(cmd.name())
                 .description(cmd.description())
                 .departmentId(cmd.departmentId())
+                .processingPriority(cmd.processingPriority())
                 .build();
 
         AggregateLifecycle.apply(event);
@@ -46,9 +48,9 @@ public class MedicalServiceAggregate {
         this.name = event.name();
         this.description = event.description();
         this.departmentId = event.departmentId();
+        this.processingPriority = event.processingPriority();
     }
 
-    // ---------------------- UPDATE INFO ----------------------
     @CommandHandler
     public void handle(UpdateMedicalServiceInfoCommand cmd) {
         boolean changed = false;
@@ -60,6 +62,8 @@ public class MedicalServiceAggregate {
         if (cmd.departmentId() != null && !cmd.departmentId()
                 .equals(this.departmentId)) changed = true;
 
+        if (!(cmd.processingPriority() == (this.processingPriority))) changed = true;
+
         if (!changed) return;
 
         var event = MedicalServiceInfoUpdatedEvent.builder()
@@ -67,6 +71,7 @@ public class MedicalServiceAggregate {
                 .name(cmd.name())
                 .description(cmd.description())
                 .departmentId(cmd.departmentId())
+                .processingPriority(cmd.processingPriority())
                 .build();
 
         AggregateLifecycle.apply(event);
@@ -77,6 +82,7 @@ public class MedicalServiceAggregate {
         if (event.name() != null) this.name = event.name();
         if (event.description() != null) this.description = event.description();
         if (event.departmentId() != null) this.departmentId = event.departmentId();
+        this.processingPriority = event.processingPriority();
     }
 
 

@@ -2,8 +2,9 @@ package com.clinic.c46.PatientService.application.handler.query;
 
 
 import com.clinic.c46.CommonService.dto.PatientDto;
-import com.clinic.c46.CommonService.query.patient.FindPatientByIdQuery;
+import com.clinic.c46.CommonService.query.patient.ExistsPatientByIdQuery;
 import com.clinic.c46.CommonService.query.patient.GetAllPatientsQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import com.clinic.c46.PatientService.application.repository.PatientViewRepository;
 import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class PatientQueryHandler {
     private final PatientViewRepository repository;
 
     @QueryHandler
-    public PatientDto handle(FindPatientByIdQuery query) {
+    public PatientDto handle(GetPatientByIdQuery query) {
         log.debug("Handling GetPatientByIdQuery: {}", query);
         return repository.findById(query.patientId())
                 .map(view -> PatientDto.builder()
@@ -37,5 +38,11 @@ public class PatientQueryHandler {
         log.debug("Handling GetAllPatientsQuery");
         return repository.findAll();
     }
+
+    @QueryHandler
+    public boolean handle(ExistsPatientByIdQuery query) {
+        return repository.existsById(query.patientId());
+    }
+
 
 }

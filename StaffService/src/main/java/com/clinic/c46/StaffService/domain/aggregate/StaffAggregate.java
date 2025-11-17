@@ -20,7 +20,6 @@ import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -94,8 +93,6 @@ public class StaffAggregate {
 
     @CommandHandler
     public void handle(RequestDayOffCommand command) {
-        log.warn("=== Aggregate DAYOFFS command: {}", command.dayOffs());
-        log.warn("=== Aggregate DAYOFFS before: {}", dayOffs);
 
         if (!this.active) {
             throw new IllegalStateException("Inactive staff cannot request day off");
