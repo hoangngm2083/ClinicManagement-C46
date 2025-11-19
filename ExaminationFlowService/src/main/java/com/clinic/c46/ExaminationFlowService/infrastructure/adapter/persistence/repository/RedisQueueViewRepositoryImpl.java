@@ -172,4 +172,19 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
         // If you prefer pushing to tail for FIFO, use rightPush. Here design uses right as oldest.
     }
 
+    @Override
+    public void deleteQueue(String queueId) {
+        // delete main list, history list and init flags
+        String main = mainKey(queueId);
+        String history = historyKey(queueId);
+        String mainFlag = main + ":init_flag";
+        String historyFlag = history + ":init_flag";
+
+        redisTemplate.delete(main);
+        redisTemplate.delete(history);
+        redisTemplate.delete(mainFlag);
+        redisTemplate.delete(historyFlag);
+        log.info("Deleted queue data for {}", queueId);
+    }
+
 }

@@ -38,4 +38,9 @@ public interface QueueViewRepository {
      * optionally: method to push new item to tail (enqueue)
      */
     void enqueueToTail(String queueId, String itemId);
+
+    /**
+     * Delete queue structures (main, history and flags) for a given queueId
+     */
+    void deleteQueue(String queueId);
 }

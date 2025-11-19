@@ -6,6 +6,7 @@ import com.clinic.c46.StaffService.application.dto.DepartmentDTO;
 import com.clinic.c46.StaffService.application.dto.DepartmentsPagedDTO;
 import com.clinic.c46.StaffService.application.service.DepartmentService;
 import com.clinic.c46.StaffService.domain.command.CreateDepartmentCommand;
+import com.clinic.c46.StaffService.domain.command.DeleteDepartmentCommand;
 import com.clinic.c46.StaffService.domain.query.GetAllDepartmentsQuery;
 import com.clinic.c46.StaffService.domain.query.GetDepartmentByIdQuery;
 import jakarta.validation.Valid;
@@ -72,6 +73,15 @@ public class DepartmentController {
 
         return ResponseEntity.created(URI.create("/api/department/" + departmentId))
                 .body(Map.of("departmentId", departmentId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> delete(@PathVariable String id) {
+        DeleteDepartmentCommand cmd = DeleteDepartmentCommand.builder()
+                .departmentId(id)
+                .build();
+        departmentService.delete(cmd);
+        return ResponseEntity.ok(Map.of("departmentId", id, "status", "deleted"));
     }
 
 }

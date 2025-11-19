@@ -9,7 +9,7 @@ import com.clinic.c46.ExaminationFlowService.application.dto.ServiceRepDto;
 import com.clinic.c46.ExaminationFlowService.application.query.GetItemIdOfTopQueueQuery;
 import com.clinic.c46.ExaminationFlowService.application.query.GetMedicalFormDetailsByIdQuery;
 import com.clinic.c46.ExaminationFlowService.application.query.GetQueueItemDetailsByIdQuery;
-import com.clinic.c46.ExaminationFlowService.application.query.GetQueueSizeQuery;
+import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
 import com.clinic.c46.ExaminationFlowService.domain.command.TakeNextItemCommand;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemTakenEvent;

@@ -57,6 +57,7 @@ public class MedicalServiceController {
                 .departmentId(bodyRequest.getDepartmentId())
                 .name(bodyRequest.getName())
                 .processingPriority(bodyRequest.getProcessingPriority())
+                .formTemplate(bodyRequest.getFormTemplate())
                 .description(bodyRequest.getDescription())
                 .build();
 

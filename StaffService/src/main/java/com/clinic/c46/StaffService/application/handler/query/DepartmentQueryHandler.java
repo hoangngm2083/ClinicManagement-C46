@@ -5,6 +5,7 @@ import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SortDirection;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
+import com.clinic.c46.CommonService.query.staff.GetIdOfAllDepartmentQuery;
 import com.clinic.c46.StaffService.application.dto.DepartmentDTO;
 import com.clinic.c46.StaffService.application.dto.DepartmentsPagedDTO;
 import com.clinic.c46.StaffService.application.repository.DepartmentViewRepository;
@@ -37,6 +38,7 @@ public class DepartmentQueryHandler extends BaseQueryHandler {
         Pageable pageable = pageAndSortHelper.buildPageable(query.page(), "", SortDirection.ASC);
         Specification<DepartmentView> spec = specificationBuilder.keyword(query.keyword(),
                 List.of("name", "description"));
+
         
         Page<DepartmentView> pageResult = departmentViewRepository.findAll(spec, pageable);
 
@@ -56,6 +58,14 @@ public class DepartmentQueryHandler extends BaseQueryHandler {
                         .name(departmentView.getName())
                         .build())
                 .orElse(null);
+    }
+
+    @QueryHandler
+    public List<String> handle(GetIdOfAllDepartmentQuery query) {
+        return departmentViewRepository.findAll()
+                .stream()
+                .map(DepartmentView::getId)
+                .toList();
     }
 
 
