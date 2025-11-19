@@ -8,5 +8,5 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 public record UpdateMedicalServiceInfoCommand(
 
         @TargetAggregateIdentifier String medicalServiceId, String name, String description, int processingPriority,
-        String departmentId) {
+        String departmentId, String formTemplate) {
 }

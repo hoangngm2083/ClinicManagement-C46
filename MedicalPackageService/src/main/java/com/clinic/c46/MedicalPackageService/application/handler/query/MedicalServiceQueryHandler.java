@@ -49,6 +49,7 @@ public class MedicalServiceQueryHandler extends BaseQueryHandler {
                         .departmentId(view.getDepartmentId())
                         .departmentName(view.getDepartmentName())
                         .processingPriority(view.getProcessingPriority())
+                        .formTemplate(view.getFormTemplate())
                         .description(view.getDescription())
                         .build())
                 .toList();
@@ -71,6 +72,7 @@ public class MedicalServiceQueryHandler extends BaseQueryHandler {
                         .name(view.getName())
                         .processingPriority(view.getProcessingPriority())
                         .description(view.getDescription())
+                        .formTemplate(view.getFormTemplate())
                         .build());
     }
 

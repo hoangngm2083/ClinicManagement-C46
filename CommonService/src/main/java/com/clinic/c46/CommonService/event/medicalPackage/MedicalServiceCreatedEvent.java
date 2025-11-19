@@ -5,5 +5,5 @@ import lombok.Builder;
 
 @Builder
 public record MedicalServiceCreatedEvent(String medicalServiceId, String name, String description,
-                                         int processingPriority, String departmentId) {
+                                         int processingPriority, String departmentId, String formTemplate) {
 }

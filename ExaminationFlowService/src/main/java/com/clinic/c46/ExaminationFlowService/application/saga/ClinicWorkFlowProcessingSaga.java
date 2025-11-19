@@ -5,7 +5,7 @@ import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.ExaminationFlowService.application.dto.ServiceRepDto;
 import com.clinic.c46.ExaminationFlowService.application.query.GetAllServicesOfPackagesQuery;
-import com.clinic.c46.ExaminationFlowService.application.query.GetQueueSizeQuery;
+import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
 import com.clinic.c46.ExaminationFlowService.domain.command.CreateQueueItemCommand;
 import com.clinic.c46.ExaminationFlowService.domain.event.MedicalFormCreatedEvent;

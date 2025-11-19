@@ -47,4 +47,15 @@ public class QueueProjector {
         queueViewRepository.createQueue(event.departmentId());
     }
 
+    @EventHandler
+    public void on(com.clinic.c46.CommonService.event.staff.DepartmentDeletedEvent event) {
+        // When department deleted, remove its queue data
+        try {
+            queueViewRepository.deleteQueue(event.departmentId());
+            log.info("Deleted queue for department {}", event.departmentId());
+        } catch (Exception e) {
+            log.error("Failed to delete queue for department {}", event.departmentId(), e);
+        }
+    }
+
 }

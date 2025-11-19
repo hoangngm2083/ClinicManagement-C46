@@ -1,7 +1,9 @@
 package com.clinic.c46.StaffService.domain.aggregate;
 
 import com.clinic.c46.CommonService.event.staff.DepartmentCreatedEvent;
+import com.clinic.c46.CommonService.event.staff.DepartmentDeletedEvent;
 import com.clinic.c46.StaffService.domain.command.CreateDepartmentCommand;
+import com.clinic.c46.StaffService.domain.command.DeleteDepartmentCommand;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -32,6 +34,19 @@ public class DepartmentAggregate {
         this.departmentId = event.departmentId();
         this.name = event.departmentName();
         this.description = event.description();
+    }
+
+    @CommandHandler
+    public void handle(DeleteDepartmentCommand cmd) {
+        // emit deleted event
+        AggregateLifecycle.apply(DepartmentDeletedEvent.builder()
+                .departmentId(cmd.departmentId())
+                .build());
+    }
+
+    @EventSourcingHandler
+    public void on(DepartmentDeletedEvent event) {
+        AggregateLifecycle.markDeleted();
     }
 }
 

@@ -2,7 +2,7 @@ package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
 
 import com.clinic.c46.ExaminationFlowService.application.query.GetItemIdOfTopQueueQuery;
-import com.clinic.c46.ExaminationFlowService.application.query.GetQueueSizeQuery;
+import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.QueueViewRepository;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryHandler;

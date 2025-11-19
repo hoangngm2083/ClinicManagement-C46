@@ -1,6 +1,6 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket;
 
-import com.clinic.c46.ExaminationFlowService.application.query.GetQueueSizeQuery;
+import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
 import com.clinic.c46.ExaminationFlowService.domain.event.TakeNextItemRequestedEvent;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.CompleteItemRequest;
