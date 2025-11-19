@@ -20,6 +20,8 @@ public class MedicalServiceView {
     private String description;
     private String departmentName;
     private String departmentId;
+    private int processingPriority;
+    private String formTemplate;
 }
 
 

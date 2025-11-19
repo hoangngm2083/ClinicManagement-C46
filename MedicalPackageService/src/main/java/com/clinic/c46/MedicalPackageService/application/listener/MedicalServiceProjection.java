@@ -13,6 +13,8 @@ import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -42,6 +44,8 @@ public class MedicalServiceProjection {
                 .description(ev.description())
                 .departmentId(ev.departmentId())
                 .departmentName(dep.getName())
+                .processingPriority(ev.processingPriority())
+                .formTemplate(ev.formTemplate())
                 .build();
 
         medicalServiceViewRepository.save(svc);
@@ -56,18 +60,21 @@ public class MedicalServiceProjection {
                 .ifPresent(view -> {
                     if (event.name() != null) view.setName(event.name());
                     if (event.description() != null) view.setDescription(event.description());
-
+                    if (event.formTemplate() != null) view.setFormTemplate(event.formTemplate());
+                    view.setProcessingPriority(event.processingPriority());
                     if (event.departmentId() != null && !event.departmentId()
                             .equals(view.getDepartmentId())) {
 
-                        DepartmentViewRep dep = departmentViewRepository.findById(event.departmentId())
-                                .orElse(null);
-                        if (dep == null) {
+                        Optional<DepartmentViewRep> depOpt = departmentViewRepository.findById(event.departmentId());
+                        if (depOpt.isEmpty()) {
                             throw new TransientDataNotReadyException(
                                     "[MedicalServiceInfoUpdatedEvent] [DepartmentNotFound] [departmentId=" + event.departmentId() + "]");
                         }
+                        DepartmentViewRep dep = depOpt.get();
+
                         view.setDepartmentName(dep.getName());
                     }
+
                     medicalServiceViewRepository.save(view);
                 });
     }

@@ -23,4 +23,6 @@ public interface StaffViewRepository extends JpaRepository<StaffView, String>, J
             @Param("endDate") LocalDate endDate);
 
     boolean existsByEmail(String email);
+
+    List<StaffView> findAllByDepartmentId(String departmentId);
 }

@@ -17,6 +17,8 @@
     <module>PatientService</module>
     <module>MedicalPackageService</module>
     <module>StaffService</module>
+    <module>ExaminationService</module>
+    <module>ExaminationFlowService</module>
   </modules>
 
   <properties>
