@@ -6,6 +6,7 @@ import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.StaffService.application.dto.StaffDto;
 import com.clinic.c46.StaffService.application.dto.StaffsPagedDTO;
 import com.clinic.c46.StaffService.application.repository.StaffViewRepository;
+import com.clinic.c46.StaffService.domain.enums.Role;
 import com.clinic.c46.StaffService.domain.query.FindStaffByIdQuery;
 import com.clinic.c46.StaffService.domain.query.FindStaffScheduleQuery;
 import com.clinic.c46.StaffService.domain.query.GetAllStaffQuery;
@@ -40,11 +41,13 @@ public class StaffQueryHandler {
 
         Specification<StaffView> spec1 = specificationBuilder.keyword(q.keyword(), List.of("name", "description"));
         Specification<StaffView> spec2 = specificationBuilder.fieldEquals("departmentId", q.departmentId());
-        Specification<StaffView> spec3 = specificationBuilder.fieldEquals("role", q.role());
+        Specification<StaffView> spec3 = specificationBuilder.fieldEquals("role", q.role() == null ? null : Role.findByCode(q.role()));
+        Specification<StaffView> spec4 = (root, query, cb) -> cb.isNull(root.get("deletedAt"));
 
         Specification<StaffView> finalSpec = Specification.allOf(spec1)
                 .and(spec2)
-                .and(spec3);
+                .and(spec3)
+                .and(spec4);
 
         Page<StaffView> pageResult = staffViewRepository.findAll(finalSpec, pageable);
 
@@ -83,8 +86,9 @@ public class StaffQueryHandler {
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
         List<StaffView> activeStaff = staffViewRepository.findStaffWithDayOffsBetween(start, end);
 
-        // Filter staff based on schedule logic
+        // Filter staff based on schedule logic and exclude deleted staff
         return activeStaff.stream()
+                .filter(staff -> !staff.isDeleted())
                 .map(this::toStaffDto)
                 .collect(Collectors.toList());
     }
