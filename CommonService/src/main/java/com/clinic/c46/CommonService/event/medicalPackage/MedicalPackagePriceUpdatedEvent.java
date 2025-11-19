@@ -1,4 +1,4 @@
-package com.clinic.c46.MedicalPackageService.domain.event;
+package com.clinic.c46.CommonService.event.medicalPackage;
 
 import lombok.Builder;
 

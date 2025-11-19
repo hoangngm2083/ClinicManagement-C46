@@ -4,7 +4,7 @@ import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEv
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
-import com.clinic.c46.MedicalPackageService.domain.event.MedicalPackagePriceUpdatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
 import lombok.RequiredArgsConstructor;

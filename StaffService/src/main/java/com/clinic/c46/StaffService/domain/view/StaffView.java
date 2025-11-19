@@ -77,20 +77,9 @@ public class StaffView extends BaseView {
     }
 
     public void handleDayOffsRequest(Set<DayOff> dayOffs) {
-        log.warn("=== INCOMING DAYOFFS: {}", dayOffs);
-        log.warn("=== BEFORE {}", this.dayOffs);
-        log.debug("=== BEFORE {}", this.dayOffs);
         this.dayOffs.addAll(dayOffs);
-        log.warn("=== AFTER {}", this.dayOffs);
-        log.debug("=== AFTER {}", this.dayOffs);
         markUpdated();
     }
 
-    public void handleDelete() {
-        markDeleted();
-    }
 
-    public boolean isDeleted() {
-        return this.getDeletedAt() != null;
-    }
 }

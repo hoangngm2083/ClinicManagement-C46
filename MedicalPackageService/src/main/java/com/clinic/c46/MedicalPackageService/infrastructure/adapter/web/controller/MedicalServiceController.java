@@ -8,10 +8,12 @@ import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceC
 import com.clinic.c46.MedicalPackageService.domain.query.GetAllMedicalServicesQuery;
 import com.clinic.c46.MedicalPackageService.domain.query.GetMedicalServiceByIdQuery;
 import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.CreateMedicalServiceRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/medical-service")
 @RequiredArgsConstructor
+@Validated
 public class MedicalServiceController {
     private final QueryGateway queryGateway;
     private final MedicalServiceService medicalServiceService;
@@ -44,7 +47,7 @@ public class MedicalServiceController {
 
     @PostMapping
     public ResponseEntity<Map<String, String>> createMedicalService(
-            @RequestBody CreateMedicalServiceRequest bodyRequest) {
+            @RequestBody @Valid CreateMedicalServiceRequest bodyRequest) {
 
 
         String medicalServiceId = UUID.randomUUID()
@@ -53,6 +56,8 @@ public class MedicalServiceController {
                 .medicalServiceId(medicalServiceId)
                 .departmentId(bodyRequest.getDepartmentId())
                 .name(bodyRequest.getName())
+                .processingPriority(bodyRequest.getProcessingPriority())
+                .formTemplate(bodyRequest.getFormTemplate())
                 .description(bodyRequest.getDescription())
                 .build();
 
