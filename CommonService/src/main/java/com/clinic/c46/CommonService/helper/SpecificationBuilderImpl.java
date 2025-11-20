@@ -1,5 +1,6 @@
 package com.clinic.c46.CommonService.helper;
 
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,6 +30,30 @@ public class SpecificationBuilderImpl implements SpecificationBuilder {
             }
             return cb.or(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    public <T, F extends Comparable<? super F>> Specification<T> fromTo(String field, Class<F> fieldType, F from,
+            F to) {
+
+        Specification<T> specFrom = (root, cq, cb) -> {
+            if (from == null) {
+                return null;
+            }
+            Path<F> fieldPath = root.get(field);
+
+            return cb.greaterThanOrEqualTo(fieldPath, from);
+        };
+
+        Specification<T> specTo = (root, cq, cb) -> {
+            if (to == null) {
+                return null;
+            }
+            Path<F> fieldPath = root.get(field);
+
+            return cb.lessThanOrEqualTo(fieldPath, to);
+        };
+
+        return Specification.allOf(specFrom, specTo);
     }
 
     @Override
