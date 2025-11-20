@@ -20,7 +20,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 
 import java.security.Principal;
-import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -58,11 +57,10 @@ public class ExamFlowWSController {
 
     @MessageMapping("/exam-workflow/query/queue-size")
     public void handle(@Payload String queueId, SimpMessageHeaderAccessor headerAccessor) {
-        String user = Objects.requireNonNull(headerAccessor.getUser())
-                .getName();
+
         Long qSize = queryGateway.query(new GetQueueSizeQuery(queueId), ResponseTypes.instanceOf(Long.class))
                 .join();
-        WSNotifier.sendToUser(user, qSize);
+        WSNotifier.broadcast(queueId, qSize);
     }
 
 

@@ -1,4 +1,4 @@
-package com.clinic.c46.ExaminationService.domain.view;
+package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view;
 
 import com.clinic.c46.CommonService.domain.BaseView;
 import jakarta.persistence.*;
@@ -22,12 +22,12 @@ public class ExamView extends BaseView implements Serializable {
 
     @Id
     private String id;
-
     private String patientId;
     private String patientName;
     private String patientEmail;
+    private String medicalFormId;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "exam_result_view", joinColumns = @JoinColumn(name = "exam_id"))
     @Builder.Default
     private Set<ResultView> results = new HashSet<>();

@@ -12,5 +12,5 @@ public class MedicalResult {
     private String serviceId;
     private String data;
     private String pdfUrl;
-    private String status;
+    private ResultStatus status;
 }

@@ -1,6 +1,7 @@
-package com.clinic.c46.ExaminationService.domain.view;
+package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view;
 
 import com.clinic.c46.CommonService.domain.BaseView;
+import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -20,6 +21,6 @@ public class ResultView extends BaseView implements Serializable {
     @Column(columnDefinition = "TEXT")
     private String data;
     private String pdfUrl;
-    private String status;
+    private ResultStatus status;
     private String doctorName;
 }

@@ -3,15 +3,19 @@ package com.clinic.c46.ExaminationFlowService.application.saga;
 import com.clinic.c46.CommonService.command.examination.CreateExaminationCommand;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
+import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.dto.ServiceRepDto;
 import com.clinic.c46.ExaminationFlowService.application.query.GetAllServicesOfPackagesQuery;
-import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
 import com.clinic.c46.ExaminationFlowService.domain.command.CreateQueueItemCommand;
 import com.clinic.c46.ExaminationFlowService.domain.event.MedicalFormCreatedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCreatedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemProcessedEvent;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.deadline.DeadlineManager;
@@ -30,14 +34,21 @@ import java.util.*;
 @Saga
 @Slf4j
 @NoArgsConstructor
+@Getter
+@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ClinicWorkFlowProcessingSaga {
     @Autowired
+    @JsonIgnore
     private transient CommandGateway commandGateway;
     @Autowired
+    @JsonIgnore
     private transient QueryGateway queryGateway;
     @Autowired
+    @JsonIgnore
     private transient WebSocketNotifier wSNotifier;
     @Autowired
+    @JsonIgnore
     private transient DeadlineManager deadlineManager;
 
     private String medicalFormId;
@@ -45,11 +56,8 @@ public class ClinicWorkFlowProcessingSaga {
     private String invoiceId;
     private String examinationId;
     private String queueItemProcessingId;
-
     // TRONG PHẦN KHAI BÁO BIẾN
-    private PriorityQueue<ServiceRepDto> requestServiceSorted = new PriorityQueue<>(
-            (a, b) -> a.processingPriority() - b.processingPriority());
-
+    private PriorityQueue<ServiceRepDto> requestServiceSorted = new PriorityQueue<>();
     // KHỞI TẠO SET NÀY!
     private Set<String> completedServices = new HashSet<>();
 
@@ -93,6 +101,7 @@ public class ClinicWorkFlowProcessingSaga {
     }
 
     public List<ServiceRepDto> extractServicesOfAllPackages(Set<String> packageIds) throws ResourceNotFoundException {
+        log.warn(" ++++++++++ Extracting services for package IDs: {}", packageIds);
         List<ServiceRepDto> services = queryGateway.query(GetAllServicesOfPackagesQuery.builder()
                         .packageIds(packageIds)
                         .build(), ResponseTypes.multipleInstancesOf(ServiceRepDto.class))
@@ -105,6 +114,10 @@ public class ClinicWorkFlowProcessingSaga {
 
     @SagaEventHandler(associationProperty = "examinationId")
     public void handle(ExaminationCreatedEvent event) {
+
+        log.warn("Received ExaminationCreatedEvent for examinationId: {}", event.examinationId());
+        log.warn("Received ExaminationCreatedEvent for examinationId: {}", this.stateMachine);
+
         this.stateMachine = ClinicWorkFlowProcessingStateMachine.EXAMINATION_CREATED;
         debugTrace(event);
         // Send command add Medical Form to Queue
@@ -171,8 +184,8 @@ public class ClinicWorkFlowProcessingSaga {
 
         CreateQueueItemCommand cmd = CreateQueueItemCommand.builder()
                 .queueItemId(queueItemProcessingId)
-                .serviceId(serviceToProcess.serviceId())
                 .medicalFormId(this.medicalFormId)
+                .serviceId(serviceToProcess.serviceId())
                 .queueId(serviceToProcess.departmentId())
                 .build();
 

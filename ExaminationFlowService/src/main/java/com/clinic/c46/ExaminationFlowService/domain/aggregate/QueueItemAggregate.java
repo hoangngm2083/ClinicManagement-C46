@@ -43,7 +43,7 @@ public class QueueItemAggregate {
 
     @CommandHandler
     public void handle(TakeNextItemCommand cmd) {
-        if (!QueueItemStatus.IN_PROGRESS.equals(this.status)) {
+        if (QueueItemStatus.IN_PROGRESS.equals(this.status)) {
             throw new TakeItemConflictException("This medical form is being processed.");
         }
         // TODO: apply event

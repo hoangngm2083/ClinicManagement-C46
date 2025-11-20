@@ -1,15 +1,15 @@
-package com.clinic.c46.ExaminationService.application.listener;
+package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projector;
 
 import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
-import com.clinic.c46.ExaminationService.application.repository.DoctorRepViewRepository;
-import com.clinic.c46.ExaminationService.application.repository.ExamViewRepository;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.DoctorRepViewRepository;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.ExamViewRepository;
 import com.clinic.c46.ExaminationService.domain.event.*;
 import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
-import com.clinic.c46.ExaminationService.domain.view.DoctorRepView;
-import com.clinic.c46.ExaminationService.domain.view.ExamView;
-import com.clinic.c46.ExaminationService.domain.view.ResultView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.DoctorRepView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.ExamView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.ResultView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
@@ -35,6 +35,7 @@ public class ExaminationViewProjection {
         ExamView view = ExamView.builder()
                 .id(event.examinationId())
                 .patientId(event.patientId())
+                .medicalFormId(event.medicalFormId())
                 .build();
 
 

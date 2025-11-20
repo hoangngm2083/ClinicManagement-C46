@@ -5,6 +5,7 @@ import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.ExaminationService.domain.command.*;
 import com.clinic.c46.ExaminationService.domain.event.*;
 import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
+import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,7 @@ public class ExaminationAggregate {
 
     @CommandHandler
     public ExaminationAggregate(CreateExaminationCommand cmd) {
-        AggregateLifecycle.apply(new ExaminationCreatedEvent(cmd.examinationId(), cmd.patientId()));
+        AggregateLifecycle.apply(new ExaminationCreatedEvent(cmd.examinationId(), cmd.patientId(), cmd.medicalFormId()));
     }
 
     @EventSourcingHandler
@@ -58,7 +59,8 @@ public class ExaminationAggregate {
 
     @CommandHandler
     public void handle(RemoveResultCommand cmd) {
-        MedicalResult resultToRemove = findResultOrThrow(cmd.serviceId());
+        // Validate result exists
+        findResultOrThrow(cmd.serviceId());
         AggregateLifecycle.apply(new ResultRemovedEvent(cmd.examId(), cmd.serviceId()));
     }
 
@@ -72,12 +74,18 @@ public class ExaminationAggregate {
     public void handle(UpdateResultStatusCommand cmd) {
         MedicalResult resultToUpdate = findResultOrThrow(cmd.serviceId());
 
-        if (resultToUpdate.getStatus()
-                .equals(cmd.newStatus())) {
+        // Only allow update if current status is not SIGNED
+        if (resultToUpdate.getStatus().equals(ResultStatus.SIGNED)) {
+            log.warn("examination.update-result.command Result with status SIGNED cannot be updated");
             return;
         }
 
-        AggregateLifecycle.apply(new ResultStatusUpdatedEvent(cmd.examId(), cmd.serviceId(), cmd.newStatus()));
+        ResultStatus newStatus = ResultStatus.valueOf(cmd.newStatus());
+        if (resultToUpdate.getStatus().equals(newStatus)) {
+            return;
+        }
+
+        AggregateLifecycle.apply(new ResultStatusUpdatedEvent(cmd.examId(), cmd.serviceId(), newStatus));
     }
 
     @EventSourcingHandler
