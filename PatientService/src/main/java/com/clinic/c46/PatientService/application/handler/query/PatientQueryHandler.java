@@ -22,7 +22,6 @@ public class PatientQueryHandler {
 
     @QueryHandler
     public PatientDto handle(GetPatientByIdQuery query) {
-        log.debug("Handling GetPatientByIdQuery: {}", query);
         return repository.findById(query.patientId())
                 .map(view -> PatientDto.builder()
                         .patientId(view.getId())

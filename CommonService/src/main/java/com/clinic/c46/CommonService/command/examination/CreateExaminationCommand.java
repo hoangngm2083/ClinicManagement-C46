@@ -6,6 +6,7 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 @Builder
 public record CreateExaminationCommand(@TargetAggregateIdentifier @NotBlank String examinationId,
-                                       @NotBlank String patientId) {
+                                       @NotBlank String patientId,
+                                       String medicalFormId) {
 
 }

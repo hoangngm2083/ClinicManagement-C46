@@ -4,12 +4,13 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record ExaminationDto(
+public record ExamDetailsDto(
         String id,
         String patientId,
         String patientName,
         String patientEmail,
         String medicalFormId,
-        List<?> results
+        List<MedicalResultDto> results
 ) {
 }
+
