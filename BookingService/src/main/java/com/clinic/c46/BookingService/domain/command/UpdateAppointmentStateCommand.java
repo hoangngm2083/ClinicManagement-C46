@@ -4,5 +4,5 @@ import lombok.Builder;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 @Builder
-public record CancelAppointmentCommand(@TargetAggregateIdentifier String appointmentId) {
+public record UpdateAppointmentStateCommand(@TargetAggregateIdentifier String appointmentId, String newState) {
 }

@@ -11,4 +11,7 @@ public interface SpecificationBuilder {
     <T> Specification<T> fieldEquals(String field, Object value);
 
     <T> Specification<T> keyword(String keyword, List<String> fields);
+
+    <T, F extends Comparable<? super F>> Specification<T> fromTo(String field, Class<F> fieldType, F from,
+            F to);
 }

@@ -4,6 +4,7 @@ import com.clinic.c46.CommonService.domain.BaseView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
@@ -11,18 +12,17 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "appointment")
 @Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 public class AppointmentView extends BaseView {
-
     @Id
     private String id;
-
     private int shift;
     private LocalDate date;
-
     private String patientName;
     private String patientId;
+    private String state;
 
     // --- Chỉ giữ relation ManyToOne ---
     @ManyToOne(fetch = FetchType.EAGER)
