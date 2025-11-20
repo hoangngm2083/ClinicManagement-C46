@@ -1,11 +1,11 @@
 package com.clinic.c46.BookingService.domain.aggregate;
 
 
-import com.clinic.c46.BookingService.domain.command.CancelAppointmentCommand;
 import com.clinic.c46.BookingService.domain.command.CreateAppointmentCommand;
+import com.clinic.c46.BookingService.domain.command.UpdateAppointmentStateCommand;
 import com.clinic.c46.BookingService.domain.enums.AppointmentState;
-import com.clinic.c46.BookingService.domain.event.AppointmentCanceledEvent;
 import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
+import com.clinic.c46.BookingService.domain.event.AppointmentStateUpdatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -29,6 +29,7 @@ public class AppointmentAggregate {
                 .appointmentId(cmd.appointmentId())
                 .patientId(cmd.patientId())
                 .slotId(cmd.slotId())
+                .state(AppointmentState.CREATED.name())
                 .build();
 
         AggregateLifecycle.apply(appointmentCreatedEvent);
@@ -39,20 +40,21 @@ public class AppointmentAggregate {
         this.appointmentId = event.appointmentId();
         this.patientId = event.patientId();
         this.slotId = event.slotId();
-        this.state = AppointmentState.CREATED;
+        this.state = AppointmentState.valueOf(event.state());
     }
 
     @CommandHandler
-    public void handle(CancelAppointmentCommand cmd) {
+    public void handle(UpdateAppointmentStateCommand cmd) {
 
-        AggregateLifecycle.apply(AppointmentCanceledEvent.builder()
+        AggregateLifecycle.apply(AppointmentStateUpdatedEvent.builder()
                 .appointmentId(this.appointmentId)
+                .newState(cmd.newState())
                 .build());
     }
 
     @EventSourcingHandler
-    public void on(AppointmentCanceledEvent event) {
-        this.state = AppointmentState.CANCELED;
+    public void on(AppointmentStateUpdatedEvent event) {
+        this.state = AppointmentState.valueOf(event.newState());
     }
 
 }

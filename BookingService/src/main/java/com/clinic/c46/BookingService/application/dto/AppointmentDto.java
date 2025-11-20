@@ -1,15 +1,15 @@
-package com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto;
+package com.clinic.c46.BookingService.application.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentDto {

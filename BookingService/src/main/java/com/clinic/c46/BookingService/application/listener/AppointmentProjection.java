@@ -4,10 +4,11 @@ package com.clinic.c46.BookingService.application.listener;
 import com.clinic.c46.BookingService.application.repository.AppointmentViewRepository;
 import com.clinic.c46.BookingService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.BookingService.application.repository.SlotViewRepository;
-import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
-import com.clinic.c46.BookingService.domain.event.AppointmentCanceledEvent;
 import com.clinic.c46.BookingService.domain.enums.AppointmentState;
+import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
+import com.clinic.c46.BookingService.domain.event.AppointmentStateUpdatedEvent;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
+import com.clinic.c46.BookingService.domain.view.MedicalPackageView;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
@@ -38,9 +39,9 @@ public class AppointmentProjection {
         SlotView slotView = slotViewRepository.findById(event.slotId())
                 .orElseThrow(() -> new IllegalStateException("Slot not found yet for event: " + event.slotId()));
 
-//        MedicalPackageView medicalPackageView = medicalPackageViewRepository.findById(slotView.getMedicalPackageId())
-//                .orElseThrow(() -> new IllegalStateException(
-//                        "MedicalPackage not available yet for slot: " + slotView.getMedicalPackageId()));
+        MedicalPackageView medicalPackageView = medicalPackageViewRepository.findById(slotView.getMedicalPackageId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "MedicalPackage not available yet for slot: " + slotView.getMedicalPackageId()));
 
         PatientDto patientDto;
         try {
@@ -53,17 +54,16 @@ public class AppointmentProjection {
         }
 
         AppointmentView view = AppointmentView.builder()
-            .id(event.appointmentId())
-            .patientId(event.patientId())
-            .patientName(patientDto.name())
-            .shift(slotView.getShift())
-            .date(slotView.getDate())
-    //                .medicalPackage(medicalPackageView)
-            .medicalPackage(null)
-            .state(AppointmentState.CREATED.name())
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
+                .id(event.appointmentId())
+                .patientId(event.patientId())
+                .patientName(patientDto.name())
+                .shift(slotView.getShift())
+                .date(slotView.getDate())
+                .medicalPackage(medicalPackageView)
+                .state(AppointmentState.CREATED.name())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
         appointmentRepository.save(view);
 
@@ -72,11 +72,11 @@ public class AppointmentProjection {
 
 
     @EventHandler
-    public void on(AppointmentCanceledEvent event) {
+    public void on(AppointmentStateUpdatedEvent event) {
         appointmentRepository.findById(event.appointmentId())
                 .ifPresent(view -> {
-                    view.setState(AppointmentState.CANCELED.name());
-                    view.setUpdatedAt(LocalDateTime.now());
+                    view.setState(event.newState());
+                    view.markUpdated();
                     appointmentRepository.save(view);
                 });
     }
