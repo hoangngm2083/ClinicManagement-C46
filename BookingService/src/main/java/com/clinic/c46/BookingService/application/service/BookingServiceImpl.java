@@ -1,12 +1,15 @@
 package com.clinic.c46.BookingService.application.service;
 
+import com.clinic.c46.BookingService.application.dto.AppointmentDetailsDto;
 import com.clinic.c46.BookingService.application.repository.AppointmentViewRepository;
-import com.clinic.c46.BookingService.domain.command.CancelAppointmentCommand;
 import com.clinic.c46.BookingService.domain.command.CreateAppointmentCommand;
 import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
+import com.clinic.c46.BookingService.domain.command.UpdateAppointmentStateCommand;
+import com.clinic.c46.BookingService.domain.query.GetAppointmentByIdQuery;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.stereotype.Service;
 
@@ -34,18 +37,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public CompletableFuture<Object> cancelAppointment(CancelAppointmentCommand cmd) {
+    public CompletableFuture<Object> updateAppointmentState(UpdateAppointmentStateCommand cmd) {
         return commandGateway.send(cmd);
     }
 
     @Override
-    public Optional<AppointmentView> getAppointmentById(String appointmentId) {
-        return appointmentViewRepository.findById(appointmentId);
-    }
-
-    @Override
-    public AppointmentView saveAppointmentView(AppointmentView appointmentView) {
-        return appointmentViewRepository.save(appointmentView);
+    public CompletableFuture<Optional<AppointmentDetailsDto>> getAppointmentById(String appointmentId) {
+        GetAppointmentByIdQuery query = new GetAppointmentByIdQuery(appointmentId);
+        return queryGateway.query(query, ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class));
     }
 
     @Override
@@ -54,3 +53,5 @@ public class BookingServiceImpl implements BookingService {
     }
 
 }
+
+
