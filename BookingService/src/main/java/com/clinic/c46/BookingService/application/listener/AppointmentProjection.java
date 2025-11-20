@@ -5,6 +5,8 @@ import com.clinic.c46.BookingService.application.repository.AppointmentViewRepos
 import com.clinic.c46.BookingService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.BookingService.application.repository.SlotViewRepository;
 import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
+import com.clinic.c46.BookingService.domain.event.AppointmentCanceledEvent;
+import com.clinic.c46.BookingService.domain.enums.AppointmentState;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.CommonService.dto.PatientDto;
@@ -51,16 +53,17 @@ public class AppointmentProjection {
         }
 
         AppointmentView view = AppointmentView.builder()
-                .id(event.appointmentId())
-                .patientId(event.patientId())
-                .patientName(patientDto.name())
-                .shift(slotView.getShift())
-                .date(slotView.getDate())
-//                .medicalPackage(medicalPackageView)
-                .medicalPackage(null)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+            .id(event.appointmentId())
+            .patientId(event.patientId())
+            .patientName(patientDto.name())
+            .shift(slotView.getShift())
+            .date(slotView.getDate())
+    //                .medicalPackage(medicalPackageView)
+            .medicalPackage(null)
+            .state(AppointmentState.CREATED.name())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
 
         appointmentRepository.save(view);
 
@@ -68,14 +71,13 @@ public class AppointmentProjection {
     }
 
 
-//    @EventHandler
-//    public void on(AppointmentCancelledEvent event) {
-//        appointmentRepository.findById(event.getAppointmentId())
-//                .ifPresent(view -> {
-//                    view.setStatus(AppointmentStatus.CANCELLED);
-//                    view.setUpdatedAt(LocalDateTime.now());
-//                    view.setNotes(event.getReason());
-//                    appointmentRepository.save(view);
-//                });
-//    }
+    @EventHandler
+    public void on(AppointmentCanceledEvent event) {
+        appointmentRepository.findById(event.appointmentId())
+                .ifPresent(view -> {
+                    view.setState(AppointmentState.CANCELED.name());
+                    view.setUpdatedAt(LocalDateTime.now());
+                    appointmentRepository.save(view);
+                });
+    }
 }
