@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
-    private String token;
-    private String refreshToken;
+public class AccountInfoResponse {
+    private Integer accountId;
+    private String accountName;
+    private String staffId;
+    private String role;
 }

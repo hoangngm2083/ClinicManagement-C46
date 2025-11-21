@@ -6,7 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum Role {
-    DOCTOR(0), RECEPTIONIST(1), MANAGER(2);
+    DOCTOR(0), RECEPTIONIST(1), MANAGER(2), ADMIN(3);
     private final int code;
 
     public static Role findByCode(int code) {
