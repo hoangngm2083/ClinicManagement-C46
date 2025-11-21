@@ -25,4 +25,14 @@ public class DepartmentProjection {
         departmentViewRepository.save(departmentView);
 
     }
+
+    @EventHandler
+    @Transactional
+    public void on(com.clinic.c46.CommonService.event.staff.DepartmentDeletedEvent event) {
+        departmentViewRepository.findById(event.departmentId())
+                .ifPresent(view -> {
+                    view.handleDelete();
+                    departmentViewRepository.save(view);
+                });
+    }
 }

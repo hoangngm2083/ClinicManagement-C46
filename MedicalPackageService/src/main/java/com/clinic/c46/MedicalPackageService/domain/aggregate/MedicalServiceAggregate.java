@@ -1,16 +1,18 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 
-import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
-import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
+import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
+
+import java.util.Objects;
 
 @Aggregate
 @NoArgsConstructor
@@ -21,8 +23,9 @@ public class MedicalServiceAggregate {
     private String name;
     private String description;
     private String departmentId;
+    private String formTemplate;
+    private int processingPriority;
 
-    // ---------------------- CREATE ----------------------
     @CommandHandler
     public MedicalServiceAggregate(CreateMedicalServiceCommand cmd) {
         if (cmd.name() == null || cmd.name()
@@ -35,6 +38,8 @@ public class MedicalServiceAggregate {
                 .name(cmd.name())
                 .description(cmd.description())
                 .departmentId(cmd.departmentId())
+                .processingPriority(cmd.processingPriority())
+                .formTemplate(cmd.formTemplate())
                 .build();
 
         AggregateLifecycle.apply(event);
@@ -46,9 +51,10 @@ public class MedicalServiceAggregate {
         this.name = event.name();
         this.description = event.description();
         this.departmentId = event.departmentId();
+        this.processingPriority = event.processingPriority();
+        this.formTemplate = event.formTemplate();
     }
 
-    // ---------------------- UPDATE INFO ----------------------
     @CommandHandler
     public void handle(UpdateMedicalServiceInfoCommand cmd) {
         boolean changed = false;
@@ -60,6 +66,9 @@ public class MedicalServiceAggregate {
         if (cmd.departmentId() != null && !cmd.departmentId()
                 .equals(this.departmentId)) changed = true;
 
+        if (!(cmd.processingPriority() == (this.processingPriority))) changed = true;
+        if (!(Objects.equals(cmd.formTemplate(), this.formTemplate))) changed = true;
+
         if (!changed) return;
 
         var event = MedicalServiceInfoUpdatedEvent.builder()
@@ -67,6 +76,8 @@ public class MedicalServiceAggregate {
                 .name(cmd.name())
                 .description(cmd.description())
                 .departmentId(cmd.departmentId())
+                .processingPriority(cmd.processingPriority())
+                .formTemplate(cmd.formTemplate())
                 .build();
 
         AggregateLifecycle.apply(event);
@@ -77,6 +88,8 @@ public class MedicalServiceAggregate {
         if (event.name() != null) this.name = event.name();
         if (event.description() != null) this.description = event.description();
         if (event.departmentId() != null) this.departmentId = event.departmentId();
+        if (event.formTemplate() != null) this.formTemplate = event.formTemplate();
+        this.processingPriority = event.processingPriority();
     }
 
 

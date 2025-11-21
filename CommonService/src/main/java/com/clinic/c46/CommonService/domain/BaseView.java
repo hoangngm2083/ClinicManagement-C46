@@ -20,18 +20,26 @@ public abstract class BaseView {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
-    protected void markCreated() {
+    public void markCreated() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    protected void markUpdated() {
+    public void markUpdated() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    protected void markDeleted() {
+    public void markDeleted() {
         this.updatedAt = LocalDateTime.now();
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public void handleDelete() {
+        markDeleted();
+    }
+
+    public boolean isDeleted() {
+        return this.getDeletedAt() != null;
     }
 }
 
