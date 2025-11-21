@@ -1,6 +1,6 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
-import com.clinic.c46.CommonService.dto.ExaminationDto;
+import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.query.examination.GetExaminationByIdQuery;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
@@ -40,14 +40,21 @@ public class MedicalFormQueryHandler {
 
     @QueryHandler
     public CompletableFuture<Optional<MedicalFormDetailsDto>> handle(GetMedicalFormDetailsByIdQuery query) {
+        log.info("[MedicalFormQueryHandler.handle] START: Getting medical form details for medicalFormId={}",
+                query.medicalFormId());
 
         Optional<MedicalFormView> viewOptional = medicalFormViewRepository.findById(query.medicalFormId());
 
         if (viewOptional.isEmpty()) {
+            log.warn("[MedicalFormQueryHandler.handle] Medical form view NOT found in database for medicalFormId={}",
+                    query.medicalFormId());
             return CompletableFuture.completedFuture(Optional.empty());
         }
 
         MedicalFormView view = viewOptional.get();
+        log.info(
+                "[MedicalFormQueryHandler.handle] Medical form view found: id={}, patientId={}, examinationId={}, status={}",
+                view.getId(), view.getPatientId(), view.getExaminationId(), view.getMedicalFormStatus());
 
         GetPatientByIdQuery getPatientByIdQuery = GetPatientByIdQuery.builder()
                 .patientId(view.getPatientId())
@@ -57,42 +64,35 @@ public class MedicalFormQueryHandler {
                 .examinationId(view.getExaminationId())
                 .build();
 
+        log.debug("[MedicalFormQueryHandler.handle] Querying Patient: patientId={}", view.getPatientId());
         CompletableFuture<PatientDto> patientFuture = queryGateway.query(getPatientByIdQuery,
                         ResponseTypes.instanceOf(PatientDto.class))
                 .handle((patientDto, throwable) -> {
                     if (throwable != null) {
-                        log.warn("Failed to retrieve Patient data: {}", view.getId(), throwable);
+                        log.warn(
+                                "[MedicalFormQueryHandler.handle] FAILED to retrieve Patient data for patientId={}, form={}: {}",
+                                view.getPatientId(), view.getId(), throwable.getMessage(), throwable);
                         return null;
                     }
+                    if (patientDto == null) {
+                        log.warn(
+                                "[MedicalFormQueryHandler.handle] Patient is NULL from query gateway for patientId={}, form={}",
+                                view.getPatientId(), view.getId());
+                        return null;
+                    }
+                    log.info("[MedicalFormQueryHandler.handle] Patient retrieved successfully: patientId={}, name={}",
+                            patientDto.patientId(), patientDto.name());
                     return patientDto;
                 });
 
-        CompletableFuture<ExaminationDto> examinationFuture = queryGateway.query(getExaminationByIdQuery,
-                        ResponseTypes.instanceOf(ExaminationDto.class))
+        log.debug("[MedicalFormQueryHandler.handle] Querying Examination: examinationId={}", view.getExaminationId());
+        CompletableFuture<Optional<ExamDetailsDto>> examinationFuture = queryGateway.query(getExaminationByIdQuery,
+                ResponseTypes.optionalInstanceOf(ExamDetailsDto.class));
 
-                .handle((examinationDto, throwable) -> {
-                    if (throwable != null) {
-
-                        log.warn("Failed to retrieve Examination data: {}", view.getId(), throwable);
-                        return null;
-                    }
-                    return examinationDto;
-                });
-
-
-        return patientFuture.thenCombine(examinationFuture, (patient, examination) -> Optional.of(
-                        MedicalFormDetailsDto.builder()
-                                .id(view.getId())
-                                .medicalFormStatus(view.getMedicalFormStatus())
-                                .patient(Optional.ofNullable(patient))
-                                .examination(Optional.ofNullable(examination))
-                                .build()))
-                .handle((result, throwable) -> {
-                    if (throwable != null) {
-                        log.error("Critical error during DTO combination for form: {}", view.getId(), throwable);
-                        return Optional.empty();
-                    }
-                    return result;
-                });
+        return examinationFuture.thenApply((examinationOpt) -> Optional.of(MedicalFormDetailsDto.builder()
+                .id(view.getId())
+                .medicalFormStatus(view.getMedicalFormStatus())
+                .examination(examinationOpt)
+                .build()));
     }
 }

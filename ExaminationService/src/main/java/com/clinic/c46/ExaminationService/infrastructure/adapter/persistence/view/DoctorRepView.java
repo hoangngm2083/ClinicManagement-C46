@@ -1,4 +1,4 @@
-package com.clinic.c46.ExaminationService.domain.view;
+package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view;
 
 import com.clinic.c46.CommonService.domain.BaseView;
 import jakarta.persistence.Column;

@@ -1,10 +1,10 @@
-package com.clinic.c46.ExaminationService.application.listener;
+package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projector;
 
 import com.clinic.c46.CommonService.event.staff.DoctorCreatedEvent;
 import com.clinic.c46.CommonService.event.staff.DoctorDeletedEvent;
 import com.clinic.c46.CommonService.event.staff.DoctorUpdatedEvent;
-import com.clinic.c46.ExaminationService.application.repository.DoctorRepViewRepository;
-import com.clinic.c46.ExaminationService.domain.view.DoctorRepView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.DoctorRepViewRepository;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.DoctorRepView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Service;
