@@ -2,8 +2,8 @@ package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence
 
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.ExaminationFlowService.domain.aggregate.QueueItemStatus;
+import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCompletedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCreatedEvent;
-import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemProcessedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemTakenEvent;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection.QueueItemView;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.QueueItemViewRepository;
@@ -43,13 +43,12 @@ public class QueueItemProjector {
         QueueItemView itemView = itemViewOpt.get();
         if (itemView.getStatus() == QueueItemStatus.IN_PROGRESS) return;
         itemView.setStatus(QueueItemStatus.IN_PROGRESS);
-        itemView.setStaffId(event.staffId());
         itemView.markUpdated();
         queryItemViewRepository.save(itemView);
     }
 
     @EventHandler
-    public void handle(QueueItemProcessedEvent event) {
+    public void handle(QueueItemCompletedEvent event) {
         Optional<QueueItemView> itemViewOpt = queryItemViewRepository.findById(event.queueItemId());
         if (itemViewOpt.isEmpty()) {
             throw new ResourceNotFoundException("Hồ sơ không tồn tại!");
@@ -57,9 +56,8 @@ public class QueueItemProjector {
         QueueItemView itemView = itemViewOpt.get();
         if (itemView.getStatus() == QueueItemStatus.COMPLETED) return;
         itemView.setStatus(QueueItemStatus.COMPLETED);
+        itemView.setStaffId(event.staffId());
         itemView.markUpdated();
         queryItemViewRepository.save(itemView);
-
-
     }
 }

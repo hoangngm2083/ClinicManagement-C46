@@ -1,6 +1,7 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.helper;
 
 
+import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemDetailsDto;
 import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemDto;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection.QueueItemView;
 import org.mapstruct.Mapper;
@@ -12,6 +13,10 @@ public interface QueueItemMapper {
 
     @Mappings({@Mapping(source = "view.id", target = "queueItemId")})
     QueueItemDto toDto(QueueItemView view);
+
+    @Mappings({@Mapping(source = "view.id", target = "queueItemId")})
+    QueueItemDetailsDto toDetailsDto(QueueItemView view);
+
 
 }
 

@@ -20,7 +20,7 @@ public interface QueueViewRepository {
     /**
      * Complete an item: remove it from processing list (LREM), and optionally push to history.
      */
-    boolean complete(String queueId, String itemId);
+    void complete(String queueId, String itemId);
 
     /**
      * Rollback an item: remove from processing and push to HEAD of main queue (leftPush)

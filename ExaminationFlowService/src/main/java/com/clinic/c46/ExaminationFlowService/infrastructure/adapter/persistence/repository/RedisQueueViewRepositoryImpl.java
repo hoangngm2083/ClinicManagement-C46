@@ -43,8 +43,9 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     @Override
     public void createQueue(String queueId) {
         initializeListQueue(mainKey(queueId));
-
         initializeListQueue(historyKey(queueId));
+        initializeListQueue(procKey());
+
     }
 
     private void initializeListQueue(String keyPrefix) {
@@ -100,6 +101,7 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     @Override
     public Long getQueueSize(String queueId) {
         String queueKey = mainKey(queueId);
+        log.warn("====== queueKey = {} =======", queueKey);
         return redisTemplate.opsForList()
                 .size(queueKey);
     }
@@ -123,16 +125,14 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     /**
      * Complete an item: remove it from processing list (LREM), and optionally push to history.
      */
-    public boolean complete(String queueId, String itemId) {
+    public void complete(String queueId, String itemId) {
         String proc = procKey();
         Long removed = redisTemplate.opsForList()
                 .remove(proc, 1, itemId); // remove first match
         if (removed != null && removed > 0) {
             redisTemplate.opsForList()
                     .leftPush(historyKey(queueId), itemId); // archive
-            return true;
         }
-        return false;
     }
 
     /**

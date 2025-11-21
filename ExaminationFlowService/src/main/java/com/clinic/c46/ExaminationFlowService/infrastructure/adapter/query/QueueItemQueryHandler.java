@@ -1,6 +1,8 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
+import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemDetailsDto;
 import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemDto;
+import com.clinic.c46.ExaminationFlowService.application.query.GetQueueItemByIdQuery;
 import com.clinic.c46.ExaminationFlowService.application.query.GetQueueItemDetailsByIdQuery;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.helper.QueueItemMapper;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.QueueItemViewRepository;
@@ -21,10 +23,15 @@ public class QueueItemQueryHandler {
 
 
     @QueryHandler
-    public Optional<QueueItemDto> handle(GetQueueItemDetailsByIdQuery query) {
-        // Implementation goes here
+    public Optional<QueueItemDto> handle(GetQueueItemByIdQuery query) {
         return queueItemViewRepository.findById(query.queueItemId())
                 .map(mapper::toDto);
+    }
+
+    @QueryHandler
+    public Optional<QueueItemDetailsDto> handle(GetQueueItemDetailsByIdQuery query) {
+        return queueItemViewRepository.findById(query.itemId())
+                .map(mapper::toDetailsDto);
 
 
     }
