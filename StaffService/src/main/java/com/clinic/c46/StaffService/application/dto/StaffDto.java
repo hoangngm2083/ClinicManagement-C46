@@ -19,7 +19,5 @@ public record StaffDto(
 
         int role,
 
-        String eSignature,
-
-        String departmentId) {
+        String eSignature, String departmentId, String departmentName) {
 }

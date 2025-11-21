@@ -49,7 +49,7 @@ public class EmailSenderImpl implements EmailSender {
             MimeMessage message = createMessage(to, subject, html, emailContentType);
             sendMessage(message, to);
         } catch (MessagingException e) {
-            log.error("❌ Failed to send email to {}", to, e);
+            log.error("Failed to send email to {}", to, e);
             throw new EmailSendingException("Failed to send email", e);
         }
     }
@@ -57,9 +57,9 @@ public class EmailSenderImpl implements EmailSender {
     private void sendMessage(MimeMessage message, String to) {
         try {
             mailSender.send(message);
-            log.info("✅ Email sent to {}", to);
+            log.info("Email sent to {}", to);
         } catch (Exception e) {
-            log.error("❌ Failed to send email to {}", to, e);
+            log.error("Failed to send email to {}", to, e);
             throw new EmailSendingException("Failed to send email to " + to, e);
         }
     }

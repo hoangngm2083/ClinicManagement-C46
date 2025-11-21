@@ -3,12 +3,15 @@ package com.clinic.c46.StaffService.application.handler.query;
 
 import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
+import com.clinic.c46.CommonService.query.staff.GetIdOfAllStaffQuery;
 import com.clinic.c46.StaffService.application.dto.StaffDto;
 import com.clinic.c46.StaffService.application.dto.StaffsPagedDTO;
+import com.clinic.c46.StaffService.application.repository.DepartmentViewRepository;
 import com.clinic.c46.StaffService.application.repository.StaffViewRepository;
 import com.clinic.c46.StaffService.domain.enums.Role;
 import com.clinic.c46.StaffService.domain.query.FindStaffByIdQuery;
 import com.clinic.c46.StaffService.domain.query.FindStaffScheduleQuery;
+import com.clinic.c46.StaffService.domain.query.GetAllStaffIdOfDepQuery;
 import com.clinic.c46.StaffService.domain.query.GetAllStaffQuery;
 import com.clinic.c46.StaffService.domain.view.StaffView;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 public class StaffQueryHandler {
 
     private final StaffViewRepository staffViewRepository;
+    private final DepartmentViewRepository departmentViewRepository;
     private final PageAndSortHelper pageAndSortHelper;
     private final SpecificationBuilder specificationBuilder;
 
@@ -51,18 +55,22 @@ public class StaffQueryHandler {
 
         Page<StaffView> pageResult = staffViewRepository.findAll(finalSpec, pageable);
 
-        return pageAndSortHelper.toPaged(pageResult, view -> StaffDto.builder()
-                .name(view.getName())
-                .description(view.getDescription())
-                .image(view.getImage())
-                .id(view.getId())
-                .email(view.getEmail())
-                .eSignature(view.getESignature())
-                .departmentId(view.getDepartmentId())
-                .phone(view.getPhone())
-                .role(view.getRole()
-                        .getCode())
-                .build(), StaffsPagedDTO::new);
+        return pageAndSortHelper.toPaged(pageResult, view -> {
+            String deptName = getDepartmentName(view.getDepartmentId());
+            return StaffDto.builder()
+                    .name(view.getName())
+                    .description(view.getDescription())
+                    .image(view.getImage())
+                    .id(view.getId())
+                    .email(view.getEmail())
+                    .eSignature(view.getESignature())
+                    .departmentId(view.getDepartmentId())
+                    .departmentName(deptName)
+                    .phone(view.getPhone())
+                    .role(view.getRole()
+                            .getCode())
+                    .build();
+        }, StaffsPagedDTO::new);
     }
 
     @QueryHandler
@@ -93,10 +101,35 @@ public class StaffQueryHandler {
                 .collect(Collectors.toList());
     }
 
+    @QueryHandler
+    public List<String> handle(GetIdOfAllStaffQuery query) {
+        return staffViewRepository.findAll()
+                .stream()
+                .map(StaffView::getId)
+                .toList();
+    }
+
+    @QueryHandler
+    public List<String> handle(GetAllStaffIdOfDepQuery query) {
+        return staffViewRepository.findAllByDepartmentId(query.departmentId())
+                .stream()
+                .filter(staff -> !staff.isDeleted())
+                .map(StaffView::getId)
+                .toList();
+    }
+
     private StaffDto toStaffDto(StaffView staffView) {
+        String deptName = getDepartmentName(staffView.getDepartmentId());
         return new StaffDto(staffView.getId(), staffView.getName(), staffView.getEmail(), staffView.getPhone(),
                 staffView.getDescription(), staffView.getImage(), staffView.getRole()
-                .getCode(), staffView.getESignature(), staffView.getDepartmentId());
+                .getCode(), staffView.getESignature(), staffView.getDepartmentId(), deptName);
+    }
+
+    private String getDepartmentName(String departmentId) {
+        if (departmentId == null) return null;
+        return departmentViewRepository.findById(departmentId)
+                .map(com.clinic.c46.StaffService.domain.view.DepartmentView::getName)
+                .orElse(null);
     }
 
 

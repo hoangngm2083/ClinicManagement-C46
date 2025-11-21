@@ -41,17 +41,13 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
         Page<MedicalPackageView> pageResult = packageRepo.findAll(spec, pageable);
 
 
-        return pageAndSortHelper.toPaged(
-                pageResult,
-                view -> MedicalPackageDTO.builder()
-                        .medicalPackageId(view.getId())
-                        .name(view.getName())
-                        .description(view.getDescription())
-                        .image(view.getImage())
-                        .price(view.getPrice())
-                        .build(),
-                MedicalPackagesPagedDto::new
-                                        );
+        return pageAndSortHelper.toPaged(pageResult, view -> MedicalPackageDTO.builder()
+                .medicalPackageId(view.getId())
+                .name(view.getName())
+                .description(view.getDescription())
+                .image(view.getImage())
+                .price(view.getPrice())
+                .build(), MedicalPackagesPagedDto::new);
 
     }
 
@@ -73,6 +69,8 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
                                         .description(serviceView.getDescription())
                                         .departmentId(serviceView.getDepartmentId())
                                         .departmentName(serviceView.getDepartmentName())
+                                        .processingPriority(serviceView.getProcessingPriority())
+                                        .formTemplate(serviceView.getFormTemplate())
                                         .build())
                                 .toList())
                         .build())

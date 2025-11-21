@@ -1,10 +1,20 @@
 package com.clinic.c46.BookingService.application.service;
 
+import com.clinic.c46.BookingService.application.dto.AppointmentDetailsDto;
+import com.clinic.c46.BookingService.application.repository.AppointmentViewRepository;
+import com.clinic.c46.BookingService.domain.command.CreateAppointmentCommand;
 import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
+import com.clinic.c46.BookingService.domain.command.UpdateAppointmentStateCommand;
+import com.clinic.c46.BookingService.domain.query.GetAppointmentByIdQuery;
+import com.clinic.c46.BookingService.domain.view.AppointmentView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -14,11 +24,34 @@ public class BookingServiceImpl implements BookingService {
 
     private final QueryGateway queryGateway;
 
+    private final AppointmentViewRepository appointmentViewRepository;
+
     @Override
     public void lockSlot(LockSlotCommand cmd) {
-
         commandGateway.send(cmd);
+    }
 
+    @Override
+    public CompletableFuture<Object> createAppointment(CreateAppointmentCommand cmd) {
+        return commandGateway.send(cmd);
+    }
+
+    @Override
+    public CompletableFuture<Object> updateAppointmentState(UpdateAppointmentStateCommand cmd) {
+        return commandGateway.send(cmd);
+    }
+
+    @Override
+    public CompletableFuture<Optional<AppointmentDetailsDto>> getAppointmentById(String appointmentId) {
+        GetAppointmentByIdQuery query = new GetAppointmentByIdQuery(appointmentId);
+        return queryGateway.query(query, ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class));
+    }
+
+    @Override
+    public void deleteAppointment(String appointmentId) {
+        appointmentViewRepository.deleteById(appointmentId);
     }
 
 }
+
+

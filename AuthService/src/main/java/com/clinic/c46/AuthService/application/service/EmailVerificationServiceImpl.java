@@ -29,7 +29,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     @Override
     public String buildCallbackUrl(String verificationId, String otp) {
-        return publicBaseUrl + "/api/auth/otp/email?" + "verificationId=" + verificationId + "&code=" + otp;
+        return publicBaseUrl + "/email-verification?" + "verificationId=" + verificationId + "&code=" + otp;
 
     }
 

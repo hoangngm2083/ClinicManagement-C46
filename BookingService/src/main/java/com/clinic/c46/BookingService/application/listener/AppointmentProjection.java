@@ -4,11 +4,14 @@ package com.clinic.c46.BookingService.application.listener;
 import com.clinic.c46.BookingService.application.repository.AppointmentViewRepository;
 import com.clinic.c46.BookingService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.BookingService.application.repository.SlotViewRepository;
+import com.clinic.c46.BookingService.domain.enums.AppointmentState;
 import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
+import com.clinic.c46.BookingService.domain.event.AppointmentStateUpdatedEvent;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
+import com.clinic.c46.BookingService.domain.view.MedicalPackageView;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.CommonService.dto.PatientDto;
-import com.clinic.c46.CommonService.query.patient.FindPatientByIdQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
@@ -36,13 +39,13 @@ public class AppointmentProjection {
         SlotView slotView = slotViewRepository.findById(event.slotId())
                 .orElseThrow(() -> new IllegalStateException("Slot not found yet for event: " + event.slotId()));
 
-//        MedicalPackageView medicalPackageView = medicalPackageViewRepository.findById(slotView.getMedicalPackageId())
-//                .orElseThrow(() -> new IllegalStateException(
-//                        "MedicalPackage not available yet for slot: " + slotView.getMedicalPackageId()));
+        MedicalPackageView medicalPackageView = medicalPackageViewRepository.findById(slotView.getMedicalPackageId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "MedicalPackage not available yet for slot: " + slotView.getMedicalPackageId()));
 
         PatientDto patientDto;
         try {
-            patientDto = queryGateway.query(FindPatientByIdQuery.builder()
+            patientDto = queryGateway.query(GetPatientByIdQuery.builder()
                             .patientId(event.patientId())
                             .build(), ResponseTypes.instanceOf(PatientDto.class))
                     .join();
@@ -56,8 +59,8 @@ public class AppointmentProjection {
                 .patientName(patientDto.name())
                 .shift(slotView.getShift())
                 .date(slotView.getDate())
-//                .medicalPackage(medicalPackageView)
-                .medicalPackage(null)
+                .medicalPackage(medicalPackageView)
+                .state(AppointmentState.CREATED.name())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -68,14 +71,13 @@ public class AppointmentProjection {
     }
 
 
-//    @EventHandler
-//    public void on(AppointmentCancelledEvent event) {
-//        appointmentRepository.findById(event.getAppointmentId())
-//                .ifPresent(view -> {
-//                    view.setStatus(AppointmentStatus.CANCELLED);
-//                    view.setUpdatedAt(LocalDateTime.now());
-//                    view.setNotes(event.getReason());
-//                    appointmentRepository.save(view);
-//                });
-//    }
+    @EventHandler
+    public void on(AppointmentStateUpdatedEvent event) {
+        appointmentRepository.findById(event.appointmentId())
+                .ifPresent(view -> {
+                    view.setState(event.newState());
+                    view.markUpdated();
+                    appointmentRepository.save(view);
+                });
+    }
 }
