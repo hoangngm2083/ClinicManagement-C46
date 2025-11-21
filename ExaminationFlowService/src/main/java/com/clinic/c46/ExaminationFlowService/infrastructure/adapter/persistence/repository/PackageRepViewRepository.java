@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 
 @Repository
@@ -14,6 +15,7 @@ public interface PackageRepViewRepository extends JpaRepository<PackageRepView, 
 
     @Query("SELECT p.id FROM PackageRepView p WHERE p.id IN :ids")
     Set<String> findIdByPackageIdIn(@Param("ids") Set<String> ids);
+
 
 
 }

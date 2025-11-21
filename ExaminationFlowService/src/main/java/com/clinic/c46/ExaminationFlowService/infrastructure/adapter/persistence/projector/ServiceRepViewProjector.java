@@ -4,12 +4,11 @@ package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
-import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.ServiceRepViewRepository;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection.ServiceRepView;
+import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.ServiceRepViewRepository;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +26,7 @@ public class ServiceRepViewProjector {
                 .name(event.name())
                 .departmentId(event.departmentId())
                 .processingPriority(event.processingPriority())
+                .formTemplate(event.formTemplate())
                 .build();
         serviceRepView.markCreated();
         serviceRepViewRepository.save(serviceRepView);
@@ -43,6 +43,7 @@ public class ServiceRepViewProjector {
         serviceRepView.setName(event.name());
         serviceRepView.setDepartmentId(event.departmentId());
         serviceRepView.setProcessingPriority(event.processingPriority());
+        serviceRepView.setFormTemplate(event.formTemplate());
         serviceRepView.markUpdated();
 
         // Save

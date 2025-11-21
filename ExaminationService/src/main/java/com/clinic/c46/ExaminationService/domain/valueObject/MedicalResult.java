@@ -6,11 +6,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Builder
+@Setter
 @EqualsAndHashCode(of = "serviceId")
 public class MedicalResult {
     private String doctorId;
     private String serviceId;
     private String data;
     private String pdfUrl;
-    private String status;
+    private ResultStatus status;
 }
