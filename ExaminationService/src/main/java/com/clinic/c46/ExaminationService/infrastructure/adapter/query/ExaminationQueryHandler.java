@@ -1,4 +1,4 @@
-package com.clinic.c46.ExaminationService.application.handler.query;
+package com.clinic.c46.ExaminationService.infrastructure.adapter.query;
 
 
 import com.clinic.c46.CommonService.helper.PageAndSortHelper;

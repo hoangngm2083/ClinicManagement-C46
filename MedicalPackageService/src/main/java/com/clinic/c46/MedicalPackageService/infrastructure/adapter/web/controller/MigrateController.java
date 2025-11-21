@@ -74,7 +74,8 @@ public class MigrateController {
         List<String> createdServiceIds = new ArrayList<>();
 
         for (MedicalServiceData service : services) {
-            String serviceId = UUID.randomUUID().toString();
+            String serviceId = UUID.randomUUID()
+                    .toString();
             CreateMedicalServiceCommand cmd = CreateMedicalServiceCommand.builder()
                     .medicalServiceId(serviceId)
                     .name(service.name)
@@ -86,9 +87,10 @@ public class MigrateController {
 
             medicalServiceService.create(cmd);
             createdServiceIds.add(serviceId);
-            log.debug("Created medical service: {} for department: {} with id: {}", service.name, departmentId, serviceId);
+            log.debug("Created medical service: {} for department: {} with id: {}", service.name, departmentId,
+                    serviceId);
         }
-        
+
         return createdServiceIds;
     }
 
@@ -120,21 +122,51 @@ public class MigrateController {
     private Set<String> selectServicesForPackage(List<String> allServiceIds, int requestedCount) {
         Set<String> selectedIds = new HashSet<>();
         int count = Math.min(requestedCount, allServiceIds.size());
-        
+
         for (int i = 0; i < count; i++) {
             selectedIds.add(allServiceIds.get(i));
         }
-        
+
         return selectedIds;
     }
 
     private List<MedicalServiceData> getDefaultMedicalServices() {
-        return Arrays.asList(new MedicalServiceData("Khám Tổng Quát", "Khám sức khỏe tổng quát cho bệnh nhân", 1,
-                        "general_checkup_form"),
-                new MedicalServiceData("Xét Nghiệm Máu", "Xét nghiệm máu để chẩn đoán bệnh", 2, "blood_test_form"),
-                new MedicalServiceData("Siêu Âm", "Khám bằng siêu âm các cơ quan trong", 3, "ultrasound_form"),
-                new MedicalServiceData("Chụp X-Quang", "Chụp hình X-quang chẩn đoán", 4, "xray_form"),
-                new MedicalServiceData("Điện Tim", "Ghi điện tim chẩn đoán bệnh tim", 5, "ecg_form"));
+        return Arrays.asList(new MedicalServiceData("Khám Tổng Quát", "Khám sức khỏe tổng quát cho bệnh nhân", 1, """ 
+                  {
+                  "components": [
+                    { "key": "description", "label": "Mô tả", "type": "textarea" },
+                    { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
+                  ]
+                }
+                """), new MedicalServiceData("Xét Nghiệm Máu", "Xét nghiệm máu để chẩn đoán bệnh", 2, """ 
+                  {
+                  "components": [
+                    { "key": "description", "label": "Mô tả", "type": "textarea" },
+                    { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
+                  ]
+                }
+                """), new MedicalServiceData("Siêu Âm", "Khám bằng siêu âm các cơ quan trong", 3, """ 
+                  {
+                  "components": [
+                    { "key": "description", "label": "Mô tả", "type": "textarea" },
+                    { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
+                  ]
+                }
+                """), new MedicalServiceData("Chụp X-Quang", "Chụp hình X-quang chẩn đoán", 4, """ 
+                  {
+                  "components": [
+                    { "key": "description", "label": "Mô tả", "type": "textarea" },
+                    { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
+                  ]
+                }
+                """), new MedicalServiceData("Điện Tim", "Ghi điện tim chẩn đoán bệnh tim", 5, """ 
+                  {
+                  "components": [
+                    { "key": "description", "label": "Mô tả", "type": "textarea" },
+                    { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
+                  ]
+                }
+                """));
     }
 
     private List<MedicalPackageData> getDefaultMedicalPackages() {

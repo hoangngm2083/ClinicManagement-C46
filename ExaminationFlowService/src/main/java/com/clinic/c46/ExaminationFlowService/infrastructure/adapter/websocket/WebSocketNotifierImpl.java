@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class WebSocketNotifierImpl implements WebSocketNotifier {
 
+    public static final String STAFF_SPECIFIC_GET_QUEUE_SIZE_URL = "/queue/query-size-reply";
     private final String STAFF_SPECIFIC_NOTIFY_ERROR_URL = "/queue/errors";
     private final String STAFF_SPECIFIC_SEND_ITEM_URL = "/queue/exam-workflow/item/details";
-    private final String STAFF_SPECIFIC_GET_QUEUE_SIZE_URL = "/queue/query-size-reply";
     private final SimpMessagingTemplate webSocketPusher;
     private final QueryGateway queryGateway;
 
@@ -25,10 +25,12 @@ public class WebSocketNotifierImpl implements WebSocketNotifier {
 
     @Override
     public void sendToUser(String userId, Object payload) {
-
-        log.warn("======== WebSocketNotifierImpl : {} ========", userId);
-
         webSocketPusher.convertAndSendToUser(userId, STAFF_SPECIFIC_SEND_ITEM_URL, payload);
+    }
+
+    @Override
+    public void sendToUser(String userId, String url, Object payload) {
+        webSocketPusher.convertAndSendToUser(userId, url, payload);
     }
 
     @Override

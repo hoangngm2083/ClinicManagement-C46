@@ -2,11 +2,16 @@ package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.pro
 
 import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
+import com.clinic.c46.CommonService.event.examination.ResultAddedEvent;
+import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
+import com.clinic.c46.ExaminationService.domain.event.ExaminationDeletedEvent;
+import com.clinic.c46.ExaminationService.domain.event.ResultRemovedEvent;
+import com.clinic.c46.ExaminationService.domain.event.ResultStatusUpdatedEvent;
+import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
+import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.DoctorRepViewRepository;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.ExamViewRepository;
-import com.clinic.c46.ExaminationService.domain.event.*;
-import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.DoctorRepView;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.ExamView;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.ResultView;
@@ -58,19 +63,22 @@ public class ExaminationViewProjection {
 
     @EventHandler
     public void on(ResultAddedEvent event) {
-        log.info("[examination.projection.ResultAddedEvent] {}", event.medicalResult()
-                .getServiceId());
-
+        log.info("[examination.projection.ResultAddedEvent] {}", event.serviceId());
         examViewRepository.findById(event.examinationId())
-                .filter(view -> !view.containsServiceId(event.medicalResult()
-                        .getServiceId()))
+                .filter(view -> !view.containsServiceId(event.serviceId()))
                 .ifPresent(view -> addResultToView(view, event));
     }
 
     private void addResultToView(ExamView view, ResultAddedEvent event) {
-        MedicalResult medicalResult = event.medicalResult();
+        MedicalResult medicalResult = MedicalResult.builder()
+                .doctorId(event.doctorId())
+                .serviceId(event.serviceId())
+                .status(ResultStatus.CREATED)
+                .data(event.data())
+                .build();
         DoctorRepView doctorRepView = getDoctorOrThrow(medicalResult.getDoctorId());
         ResultView resultView = buildResultView(medicalResult, doctorRepView.getName());
+        resultView.markCreated();
         view.addResultView(resultView);
         view.markUpdated();
         examViewRepository.save(view);
@@ -78,9 +86,7 @@ public class ExaminationViewProjection {
 
     private DoctorRepView getDoctorOrThrow(String doctorId) {
         return doctorViewRepository.findById(doctorId)
-                .orElseThrow(() -> new IllegalStateException(
-                        String.format("[examination.projection.ResultAddedEvent.doctor-not-found] doctorId: %s",
-                                doctorId)));
+                .orElseThrow(() -> new ResourceNotFoundException("Bác sĩ (" + doctorId + ")"));
     }
 
     private ResultView buildResultView(MedicalResult medicalResult, String doctorName) {

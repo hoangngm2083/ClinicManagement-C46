@@ -1,7 +1,9 @@
 package com.clinic.c46.ExaminationFlowService.domain.aggregate;
 
+import com.clinic.c46.ExaminationFlowService.domain.command.CompleteQueueItemCommand;
 import com.clinic.c46.ExaminationFlowService.domain.command.CreateQueueItemCommand;
 import com.clinic.c46.ExaminationFlowService.domain.command.TakeNextItemCommand;
+import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCompletedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCreatedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemTakenEvent;
 import com.clinic.c46.ExaminationFlowService.domain.exception.TakeItemConflictException;
@@ -44,9 +46,8 @@ public class QueueItemAggregate {
     @CommandHandler
     public void handle(TakeNextItemCommand cmd) {
         if (QueueItemStatus.IN_PROGRESS.equals(this.status)) {
-            throw new TakeItemConflictException("This medical form is being processed.");
+            throw new TakeItemConflictException("Hồ sơ này đang được xử lý.");
         }
-        // TODO: apply event
         AggregateLifecycle.apply(QueueItemTakenEvent.builder()
                 .queueItemId(cmd.queueItemId())
                 .queueId(this.queueId)
@@ -60,7 +61,7 @@ public class QueueItemAggregate {
         this.status = QueueItemStatus.IN_PROGRESS;
     }
 
-//    // 3. Lệnh "Bác sĩ yêu cầu thêm dịch vụ" (Re-schedule)
+    //    // 3. Lệnh "Bác sĩ yêu cầu thêm dịch vụ" (Re-schedule)
 //    @CommandHandler
 //    public void handle(RequestSupplementalServiceCommand cmd) {
 //        // ... (Kiểm tra logic)
@@ -73,18 +74,21 @@ public class QueueItemAggregate {
 //        apply(new QueueItemRescheduledEvent(this.queueItemId, "PENDING_SUPPLEMENT"));
 //    }
 //
-//    // 4. Lệnh "Hoàn thành khám"
-//    @CommandHandler
-//    public void handle(CompleteQueueItemCommand cmd) {
-//        if (!"IN_PROGRESS".equals(this.status)) {
-//            throw new IllegalStateException("Không thể hoàn thành phiếu khám chưa được xử lý.");
-//        }
-//        apply(new QueueItemCompletedEvent(this.queueItemId, cmd.getResultData(), // Kết quả khám (JSON/Text)
-//                this.doctorId));
-//    }
-//
-//    @EventSourcingHandler
-//    public void on(QueueItemCompletedEvent evt) {
-//        this.status = "PENDING_PAYMENT";
-//    }
+    // 4. Lệnh "Hoàn thành khám"
+    @CommandHandler
+    public void handle(CompleteQueueItemCommand cmd) {
+        if (this.status == QueueItemStatus.COMPLETED) {
+            return;
+        }
+
+        if (this.status == QueueItemStatus.WAITING) {
+            throw new IllegalStateException("Không thể hoàn thành phiếu khám chưa được xử lý.");
+        }
+        AggregateLifecycle.apply(new QueueItemCompletedEvent(cmd.queueItemId(), cmd.staffId(), this.serviceId));
+    }
+
+    @EventSourcingHandler
+    public void on(QueueItemCompletedEvent evt) {
+        this.status = QueueItemStatus.COMPLETED;
+    }
 }

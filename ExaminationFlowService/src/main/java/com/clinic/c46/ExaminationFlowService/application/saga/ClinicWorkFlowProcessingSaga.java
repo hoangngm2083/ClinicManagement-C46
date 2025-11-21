@@ -9,8 +9,8 @@ import com.clinic.c46.ExaminationFlowService.application.query.GetAllServicesOfP
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
 import com.clinic.c46.ExaminationFlowService.domain.command.CreateQueueItemCommand;
 import com.clinic.c46.ExaminationFlowService.domain.event.MedicalFormCreatedEvent;
+import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCompletedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemCreatedEvent;
-import com.clinic.c46.ExaminationFlowService.domain.event.QueueItemProcessedEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
@@ -85,7 +85,6 @@ public class ClinicWorkFlowProcessingSaga {
             SagaLifecycle.end();
             return;
         }
-        this.requestServiceSorted.addAll(services);
 
         // Send command add Create Examination: patientId, examinationId
         SagaLifecycle.associateWith("examinationId", this.examinationId);
@@ -139,7 +138,7 @@ public class ClinicWorkFlowProcessingSaga {
     }
 
     @SagaEventHandler(associationProperty = "queueItemId")
-    private void handle(QueueItemProcessedEvent event) {
+    private void handle(QueueItemCompletedEvent event) {
         this.stateMachine = ClinicWorkFlowProcessingStateMachine.QUEUE_ITEM_PROCESSED;
         debugTrace(event);
         if (this.completedServices.contains(event.serviceId())) {
@@ -155,10 +154,12 @@ public class ClinicWorkFlowProcessingSaga {
             return;
         }
 
-        this.completedServices.add(this.requestServiceSorted.poll()
-                .serviceId());
+        ServiceRepDto serviceRepDto = this.requestServiceSorted.poll();
 
-        // Nếu không phải
+        log.warn("Processed service: {}", serviceRepDto.serviceId());
+
+        this.completedServices.add(serviceRepDto.serviceId());
+
         processNextServiceOrPayment();
     }
 
@@ -166,7 +167,7 @@ public class ClinicWorkFlowProcessingSaga {
         // Dịch vụ vừa xử lý xong không phải là PAYMENT_REQUEST-> tiếp tục
         if (this.requestServiceSorted.isEmpty()) // Nếu hàng đợi rỗng -> đầy vào hàng đợi thanh toán.
         {
-            // TODO:  đầy vào hàng đợi thanh toán.
+            // TODO: đầy vào hàng đợi thanh toán.
             ServiceRepDto paymentService = ServiceRepDto.builder()
                     .serviceId("PAYMENT_REQUEST")
                     .name("PAYMENT_REQUEST")
@@ -177,7 +178,7 @@ public class ClinicWorkFlowProcessingSaga {
         }
 
         ServiceRepDto serviceToProcess = this.requestServiceSorted.peek();
-
+        log.warn("Next service: {}", serviceToProcess.serviceId());
         this.queueItemProcessingId = UUID.randomUUID()
                 .toString();
         SagaLifecycle.associateWith("queueItemId", this.queueItemProcessingId);
@@ -194,7 +195,6 @@ public class ClinicWorkFlowProcessingSaga {
         setCreateQueueItemDeadline(cmd);
     }
 
-
     private void sendCmd(Object cmd) {
         commandGateway.send(cmd)
                 .whenComplete((result, throwable) -> {
@@ -205,7 +205,6 @@ public class ClinicWorkFlowProcessingSaga {
                     }
                 });
     }
-
 
     private void debugTrace(Object obj) {
         log.debug("[ExamWorkFlowProcessingSaga] State Machine: {}", this.stateMachine);
@@ -229,4 +228,3 @@ public class ClinicWorkFlowProcessingSaga {
     }
 
 }
-
