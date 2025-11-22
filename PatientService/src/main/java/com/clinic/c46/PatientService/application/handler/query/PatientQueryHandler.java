@@ -6,7 +6,6 @@ import com.clinic.c46.CommonService.query.patient.ExistsPatientByIdQuery;
 import com.clinic.c46.CommonService.query.patient.GetAllPatientsQuery;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import com.clinic.c46.PatientService.application.repository.PatientViewRepository;
-import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.queryhandling.QueryHandler;
@@ -33,9 +32,16 @@ public class PatientQueryHandler {
     }
 
     @QueryHandler
-    public List<PatientView> handle(GetAllPatientsQuery query) {
-        log.debug("Handling GetAllPatientsQuery");
-        return repository.findAll();
+    public List<PatientDto> handle(GetAllPatientsQuery query) {
+        return repository.findAll()
+                .stream()
+                .map(view -> PatientDto.builder()
+                        .name(view.getName())
+                        .phone(view.getPhone())
+                        .patientId(view.getId())
+                        .email(view.getEmail())
+                        .build())
+                .toList();
     }
 
     @QueryHandler

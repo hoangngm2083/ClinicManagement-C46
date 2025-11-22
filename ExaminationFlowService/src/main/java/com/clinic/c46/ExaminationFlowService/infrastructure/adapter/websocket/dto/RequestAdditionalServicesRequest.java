@@ -1,6 +1,9 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto;
 
+import lombok.Builder;
+
 import java.util.Set;
 
-public record RequestAdditionalServicesRequest(String medicalFormId, Set<String> additionalServiceIds) {
+@Builder
+public record RequestAdditionalServicesRequest(String queueItemId, Set<String> additionalServiceIds) {
 }
