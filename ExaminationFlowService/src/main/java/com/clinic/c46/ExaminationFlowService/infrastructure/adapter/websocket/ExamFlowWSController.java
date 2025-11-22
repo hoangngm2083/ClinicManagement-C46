@@ -4,15 +4,12 @@ import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.queue.QueueService;
 import com.clinic.c46.ExaminationFlowService.application.service.queue.dto.ExamResultDto;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
-import com.clinic.c46.ExaminationFlowService.domain.event.TakeNextItemRequestedEvent;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.CompleteItemRequest;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.RequestAdditionalServicesRequest;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.TakeNextItemRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.eventhandling.gateway.EventGateway;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -27,9 +24,6 @@ import java.security.Principal;
 @Validated
 @Slf4j
 public class ExamFlowWSController {
-
-    private final CommandGateway commandGateway;
-    private final EventGateway eventGateway;
     private final QueryGateway queryGateway;
     private final WebSocketNotifier WSNotifier;
     private final QueueService queueService;
@@ -38,12 +32,13 @@ public class ExamFlowWSController {
     public void handle(@Payload @Valid TakeNextItemRequest request, Principal principal) {
         String staffId = principal.getName();
         String queueId = request.queueId();
-        eventGateway.publish(new TakeNextItemRequestedEvent(staffId, queueId));
+        queueService.requestGetQueueItem(staffId, queueId);
     }
 
     @MessageMapping("/exam-workflow/item/complete")
     public void handle(@Payload @Valid CompleteItemRequest request, Principal principal) {
-        // TODO: nhận payload của người dùng -> gọi queue service (injected)  để queue service thực hiện
+        // TODO: nhận payload của người dùng -> gọi queue service (injected) để queue
+        // service thực hiện
         String staffId = principal.getName();
         queueService.completeItem(request.queueItemId(), ExamResultDto.builder()
                 .examId(request.examId())
@@ -55,8 +50,15 @@ public class ExamFlowWSController {
 
     @MessageMapping("/exam-workflow/item/request-additional-services")
     public void handle(@Payload RequestAdditionalServicesRequest request, Principal principal) {
-        // TODO: nhận payload của người dùng -> gọi queue service (injected)  để queue service thực hiện
+        // TODO: nhận payload của người dùng -> gọi queue service (injected) để queue
+        // service thực hiện
         String staffId = principal.getName();
+    }
+
+    @MessageMapping("/exam-workflow/item/in-process")
+    public void handleGetInProgressItem(Principal principal) {
+        String staffId = principal.getName();
+        queueService.getInProgressItem(staffId);
     }
 
     @MessageMapping("/exam-workflow/query/queue-size")
@@ -71,6 +73,5 @@ public class ExamFlowWSController {
 
         WSNotifier.sendToUser(principal.getName(), WebSocketNotifierImpl.STAFF_SPECIFIC_GET_QUEUE_SIZE_URL, qSize);
     }
-
 
 }

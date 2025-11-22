@@ -24,15 +24,16 @@
     
     <h2>1. Hành động</h2>
     <label for="doctor-token">JWT Token:</label>
-    <input type="text" id="doctor-token" size="60" value="c70892d3-5ee0-4cff-a606-7251885fdd7f" placeholder="Nhập JWT Token hợp lệ">
-    
+    <input type="text" id="doctor-token" size="60" value="" placeholder="Nhập JWT Token hợp lệ">
+    <br><br>
     <label for="department-id">Dept ID:</label>
-    <input type="text" id="department-id" size="10" value="a1ab0cce-bb0c-4604-adc1-05c6c5a15ea4" placeholder="Ví dụ: ULTRASOUND">
+    <input type="text" id="department-id" size="60" value="" placeholder="queue id">
     <br><br>
     
     <button onclick="attemptConnect()">Kết nối WebSocket</button>
     <button onclick="takeNextPatient()" id="take-next-btn" disabled>Lấy Phiếu Khám Tiếp Theo</button>
     <button onclick="requestInitialQueueState(currentDepartmentId)" id="take-queue-size-btn" disabled>Lấy queue size</button>
+    <button onclick="getInProgressPatient()" id="get-in-progress-btn" disabled>Lấy Phiếu Đang Xử Lý</button>
     
     <hr>
 
@@ -81,6 +82,7 @@
     // Các kênh giao tiếp STOMP nội bộ đã được cấu hình
     const COMMAND_TAKE_ITEM = '/app/exam-workflow/queue/take-next';
     const COMMAND_COMPLETE_ITEM = '/app/exam-workflow/item/complete'; // BỔ SUNG COMMAND MỚI
+    const COMMAND_GET_IN_PROGRESS = '/app/exam-workflow/item/in-process'; // BỔ SUNG COMMAND LẤY PHIẾU ĐANG XỬ LÝ
     const SUBSCRIBE_QUEUE_LIST = '/topic/exam-workflow/queue/'; 
     const SUBSCRIBE_ITEM_DETAILS = '/user/queue/exam-workflow/item/details'; 
     const SUBSCRIBE_QUEUE_SIZE_REPLY = '/user/queue/query-size-reply';
@@ -127,6 +129,7 @@
                 document.getElementById('take-next-btn').disabled = false;
                 document.getElementById('take-queue-size-btn').disabled = false;
                 document.getElementById('complete-btn').disabled = false; // BẬT NÚT MỚI
+                document.getElementById('get-in-progress-btn').disabled = false; // BẬT NÚT LẤY PHIẾU ĐANG XỬ LÝ
                 logMessage('Kết nối thành công. Bắt đầu đăng ký kênh.', 'success');
                 subscribeToChannels(currentDepartmentId);
             }, 
@@ -136,6 +139,7 @@
                 document.getElementById('take-next-btn').disabled = true;
                 document.getElementById('take-queue-size-btn').disabled = true;
                 document.getElementById('complete-btn').disabled = true; // TẮT NÚT MỚI
+                document.getElementById('get-in-progress-btn').disabled = true; // TẮT NÚT LẤY PHIẾU ĐANG XỬ LÝ
                 logMessage('Lỗi kết nối WebSocket: ' + error, 'error');
                 console.error(error);
             }
@@ -181,7 +185,7 @@
             logMessage(`[ERROR] Lỗi từ Server: ${errorText}`, 'error');
             
             // Xóa chi tiết phiếu khám nếu lỗi liên quan đến việc lấy phiếu
-            document.getElementById('item-details').textContent = "Không thể lấy phiếu: " + errorText;
+            document.getElementById('item-details').textContent =  errorText;
             document.getElementById('take-next-btn').disabled = false; // Bật lại nút
         }, {id: 'error-sub'}); // Đặt ID cho Subscription
 
@@ -242,11 +246,23 @@
         stompClient.send(COMMAND_COMPLETE_ITEM,{},JSON.stringify(payload));
         logMessage("Đã gửi CompleteItemRequest","success");
     }
+
+    // --- BỔ SUNG: Hàm Gửi Command Lấy Phiếu Đang Xử Lý ---
+    function getInProgressPatient(){
+        if (!stompClient || !stompClient.connected) {
+            logMessage("Kết nối chưa sẵn sàng. Vui lòng kết nối trước.", 'error');
+            return;
+        }
+
+        stompClient.send(COMMAND_GET_IN_PROGRESS, {});
+        logMessage("Đã gửi yêu cầu lấy phiếu đang xử lý", "info");
+    }
     
     // Đảm bảo nút "Lấy phiếu" và "Hoàn Thành" sẵn sàng
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('take-next-btn').disabled = true;
         document.getElementById('complete-btn').disabled = true; // BỔ SUNG
+        document.getElementById('get-in-progress-btn').disabled = true; // BỔ SUNG NÚT LẤY PHIẾU ĐANG XỬ LÝ
     });
 
 </script>
