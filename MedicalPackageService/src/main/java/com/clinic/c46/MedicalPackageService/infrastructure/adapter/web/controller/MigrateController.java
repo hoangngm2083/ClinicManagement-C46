@@ -123,8 +123,15 @@ public class MigrateController {
         Set<String> selectedIds = new HashSet<>();
         int count = Math.min(requestedCount, allServiceIds.size());
 
+        // Tạo bản sao để không thay đổi danh sách gốc
+        List<String> copyList = new ArrayList<>(allServiceIds);
+
+        // Trộn ngẫu nhiên
+        Collections.shuffle(copyList);
+
+        // Lấy count phần tử đầu tiên sau khi trộn
         for (int i = 0; i < count; i++) {
-            selectedIds.add(allServiceIds.get(i));
+            selectedIds.add(copyList.get(i));
         }
 
         return selectedIds;

@@ -43,6 +43,7 @@ public class QueueItemProjector {
         QueueItemView itemView = itemViewOpt.get();
         if (itemView.getStatus() == QueueItemStatus.IN_PROGRESS) return;
         itemView.setStatus(QueueItemStatus.IN_PROGRESS);
+        itemView.setStaffId(event.staffId());
         itemView.markUpdated();
         queryItemViewRepository.save(itemView);
     }
@@ -56,7 +57,6 @@ public class QueueItemProjector {
         QueueItemView itemView = itemViewOpt.get();
         if (itemView.getStatus() == QueueItemStatus.COMPLETED) return;
         itemView.setStatus(QueueItemStatus.COMPLETED);
-        itemView.setStaffId(event.staffId());
         itemView.markUpdated();
         queryItemViewRepository.save(itemView);
     }
