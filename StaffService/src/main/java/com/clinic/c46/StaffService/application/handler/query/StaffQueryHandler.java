@@ -3,6 +3,7 @@ package com.clinic.c46.StaffService.application.handler.query;
 
 import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
+import com.clinic.c46.CommonService.query.staff.ExistsStaffByIdQuery;
 import com.clinic.c46.CommonService.query.staff.GetIdOfAllStaffQuery;
 import com.clinic.c46.StaffService.application.dto.StaffDto;
 import com.clinic.c46.StaffService.application.dto.StaffsPagedDTO;
@@ -45,7 +46,8 @@ public class StaffQueryHandler {
 
         Specification<StaffView> spec1 = specificationBuilder.keyword(q.keyword(), List.of("name", "description"));
         Specification<StaffView> spec2 = specificationBuilder.fieldEquals("departmentId", q.departmentId());
-        Specification<StaffView> spec3 = specificationBuilder.fieldEquals("role", q.role() == null ? null : Role.findByCode(q.role()));
+        Specification<StaffView> spec3 = specificationBuilder.fieldEquals("role",
+                q.role() == null ? null : Role.findByCode(q.role()));
         Specification<StaffView> spec4 = (root, query, cb) -> cb.isNull(root.get("deletedAt"));
 
         Specification<StaffView> finalSpec = Specification.allOf(spec1)
@@ -78,8 +80,12 @@ public class StaffQueryHandler {
         log.info("Handling FindStaffByIdQuery for staffId: {}", query.staffId());
 
         return staffViewRepository.findById(query.staffId())
-                .filter(staff -> !staff.isDeleted())
                 .map(this::toStaffDto);
+    }
+
+    @QueryHandler
+    public boolean handle(ExistsStaffByIdQuery query) {
+        return staffViewRepository.existsById(query.staffId());
     }
 
     @QueryHandler
