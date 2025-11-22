@@ -3,12 +3,13 @@ package com.clinic.c46.ExaminationService.domain.aggregate;
 import com.clinic.c46.CommonService.command.examination.AddResultCommand;
 import com.clinic.c46.CommonService.command.examination.CreateExaminationCommand;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
+import com.clinic.c46.CommonService.event.examination.ResultAddedEvent;
 import com.clinic.c46.CommonService.exception.ResourceExistedException;
+import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.ExaminationService.domain.command.DeleteExaminationCommand;
 import com.clinic.c46.ExaminationService.domain.command.RemoveResultCommand;
 import com.clinic.c46.ExaminationService.domain.command.UpdateResultStatusCommand;
 import com.clinic.c46.ExaminationService.domain.event.ExaminationDeletedEvent;
-import com.clinic.c46.CommonService.event.examination.ResultAddedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultRemovedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultStatusUpdatedEvent;
 import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
@@ -56,7 +57,7 @@ public class ExaminationAggregate {
                 .serviceId(cmd.serviceId())
                 .build();
         if (this.results.contains(medicalResult)) {
-            throw new ResourceExistedException("Kết quả dịch vụ " + cmd.serviceId());
+            throw new ResourceExistedException("Kết quả dịch vụ khám");
         }
         AggregateLifecycle.apply(new ResultAddedEvent(cmd.examId(), cmd.doctorId(), cmd.serviceId(), cmd.data()));
     }
@@ -127,6 +128,6 @@ public class ExaminationAggregate {
                 .filter(r -> r.getServiceId()
                         .equals(serviceId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Result with serviceId " + serviceId + " not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Kết quả khám"));
     }
 }
