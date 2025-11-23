@@ -3,12 +3,12 @@ package com.clinic.c46.ExaminationFlowService.application.service.queue;
 import com.clinic.c46.CommonService.command.examination.AddResultCommand;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.staff.ExistsStaffByIdQuery;
+import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemDto;
 import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemResponse;
-import com.clinic.c46.ExaminationFlowService.application.query.ExistProcessingItemQuery;
-import com.clinic.c46.ExaminationFlowService.application.query.GetInProgressQueueItemByStaffIdQuery;
-import com.clinic.c46.ExaminationFlowService.application.query.GetItemIdOfTopQueueQuery;
+import com.clinic.c46.ExaminationFlowService.application.query.*;
 import com.clinic.c46.ExaminationFlowService.application.service.queue.dto.ExamResultDto;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
+import com.clinic.c46.ExaminationFlowService.domain.command.ApproveAdditionalServicesCommand;
 import com.clinic.c46.ExaminationFlowService.domain.command.TakeNextItemCommand;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.CommandExecutionException;
@@ -44,12 +44,9 @@ public class QueueServiceImpl implements QueueService {
     @Override
     public void requestGetQueueItem(String doctorId, String queueId) {
 
-        Boolean isStaffExisted = queryGateway.query(new ExistsStaffByIdQuery(doctorId),
-                        ResponseTypes.instanceOf(Boolean.class))
-                .join();
 
-        if (Boolean.FALSE.equals(isStaffExisted)) {
-            handleException(doctorId, new ResourceNotFoundException("Mã nhân viên (" + doctorId + ")"));
+        if (isStaffExisted(doctorId)) {
+            handleException(doctorId, new ResourceNotFoundException("Mã nhân viên"));
             return;
         }
 
@@ -81,42 +78,62 @@ public class QueueServiceImpl implements QueueService {
     @Override
     public CompletableFuture<Void> requestAdditionalServices(String doctorId, String queueItemId,
             Set<String> additionalServiceIds) {
-        return null;
+        if (isStaffExisted(doctorId)) {
+            throw new ResourceNotFoundException("Mã nhân viên");
+        }
+
+        Boolean isPackageExisted = queryGateway.query(new ExistsAllPackageByIdsQuery(additionalServiceIds),
+                        ResponseTypes.instanceOf(Boolean.class))
+                .join();
+
+        if (Boolean.FALSE.equals(isPackageExisted)) {
+            throw new ResourceNotFoundException("Các dịch vụ yêu cầu bổ sung");
+        }
+
+
+        Optional<QueueItemDto> queueItemDto = queryGateway.query(new GetQueueItemByIdQuery(queueItemId),
+                        ResponseTypes.optionalInstanceOf(QueueItemDto.class))
+                .join();
+
+        if (queueItemDto.isEmpty()) {
+            throw new ResourceNotFoundException("Hồ sơ khám");
+        }
+
+        QueueItemDto queueItem = queueItemDto.get();
+
+        ApproveAdditionalServicesCommand command = ApproveAdditionalServicesCommand.builder()
+                .medicalFormId(queueItem.medicalFormId())
+                .additionalServiceIds(additionalServiceIds)
+                .build();
+
+        return commandGateway.send(command);
     }
 
     @Override
     public CompletableFuture<Void> completeItem(String queueItemId, ExamResultDto examResultDto) {
 
-        Boolean isStaffExisted = queryGateway.query(new ExistsStaffByIdQuery(examResultDto.doctorId()),
-                        ResponseTypes.instanceOf(Boolean.class))
-                .join();
-
-        if (Boolean.FALSE.equals(isStaffExisted)) {
-            throw new ResourceNotFoundException("Mã nhân viên (" + examResultDto.doctorId() + ")");
-        }
+        // TODO: check queue item, exam, doctor, service existed?
 
         AddResultCommand cmd = new AddResultCommand(examResultDto.examId(), examResultDto.doctorId(),
                 examResultDto.serviceId(), examResultDto.data());
-
 
         return commandGateway.send(cmd);
     }
 
 
     @Override
-    public void getInProgressItem(String staffId) {
-        Optional<QueueItemResponse> queueItemResponseOpt = queryGateway.query(
-                        new GetInProgressQueueItemByStaffIdQuery(staffId),
-                        ResponseTypes.optionalInstanceOf(QueueItemResponse.class))
+    public CompletableFuture<Optional<QueueItemResponse>> getInProgressItem(String staffId) {
+        return queryGateway.query(new GetInProgressQueueItemByStaffIdQuery(staffId),
+                ResponseTypes.optionalInstanceOf(QueueItemResponse.class));
+
+    }
+
+    private boolean isStaffExisted(String staffId) {
+        Boolean isStaffExisted = queryGateway.query(new ExistsStaffByIdQuery(staffId),
+                        ResponseTypes.instanceOf(Boolean.class))
                 .join();
 
-        if (queueItemResponseOpt.isEmpty()) {
-            handleException(staffId, new ResourceNotFoundException("Phiếu khám đang xử lý"));
-            return;
-        }
-
-        QueueItemResponse queueItemResponse = queueItemResponseOpt.get();
-        webSocketNotifier.sendToUser(staffId, queueItemResponse);
+        return Boolean.FALSE.equals(isStaffExisted);
     }
 
     private void handleException(String staffId, Throwable throwable) {
