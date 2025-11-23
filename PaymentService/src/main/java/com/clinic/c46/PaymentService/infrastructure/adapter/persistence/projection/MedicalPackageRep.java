@@ -1,12 +1,22 @@
 package com.clinic.c46.PaymentService.infrastructure.adapter.persistence.projection;
 
-import lombok.Builder;
+import jakarta.persistence.Embeddable;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
-@Builder
+@Embeddable
 public record MedicalPackageRep(String id, String name, BigDecimal price) {
-    public boolean equals(MedicalPackageRep another) {
-        return this.id.equals(another.id);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MedicalPackageRep other)) return false;
+        return Objects.equals(this.id, other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.id);
     }
 }
+

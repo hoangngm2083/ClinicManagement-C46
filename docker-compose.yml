@@ -319,6 +319,33 @@ services:
       retries: 5
     networks:
       - c46-net
+  payment-service:
+    build: ./PaymentService
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    ports:
+      - "9098:9098"
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      # - SPRING_PROFILES_ACTIVE=docker
+      - VNP_TMN_CODE=V7Y4V0R8
+      - VNP_SECRET_KEY=U6EHCUWU4R3MTE50997GPHLTJAXEOXXA
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=booking
+      - SPRING_DATASOURCE_PASSWORD=booking
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - TZ=Asia/Ho_Chi_Minh
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:9098/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - c46-net
 
   python-server:
     image: python:3.11-alpine

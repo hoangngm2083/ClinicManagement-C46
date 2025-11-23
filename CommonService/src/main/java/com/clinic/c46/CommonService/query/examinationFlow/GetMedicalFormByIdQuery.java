@@ -1,4 +1,4 @@
-package com.clinic.c46.ExaminationFlowService.application.query;
+package com.clinic.c46.CommonService.query.examinationFlow;
 
 public record GetMedicalFormByIdQuery(String medicalFormId) {
 }
