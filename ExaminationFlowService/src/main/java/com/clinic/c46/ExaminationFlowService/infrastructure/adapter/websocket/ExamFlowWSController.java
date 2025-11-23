@@ -41,7 +41,7 @@ public class ExamFlowWSController {
     }
 
     @MessageMapping("/item/complete")
-    public CompletableFuture<Void> handleComplete(@Payload @Valid CompleteItemRequest request, Principal principal) {
+    public CompletableFuture<Void> handle(@Payload @Valid CompleteItemRequest request, Principal principal) {
         String staffId = principal.getName();
 
         return wrapper(staffId, () -> queueService.completeItem(request.queueItemId(), ExamResultDto.builder()
@@ -64,9 +64,17 @@ public class ExamFlowWSController {
 
 
     @MessageMapping("item/in-process")
-    public void handleGetInProgressItem(Principal principal) {
+    public CompletableFuture<Void> handle(Principal principal) {
         String staffId = principal.getName();
-        queueService.getInProgressItem(staffId);
+
+        return wrapper(staffId, () -> queueService.getInProgressItem(staffId)
+                .thenAccept(result -> {
+
+                    result.ifPresentOrElse((value) -> wSNotifier.sendToUser(staffId, value),
+                            () -> wSNotifier.notifyErrorToUser(staffId, "Bạn không có phiếu khám nào đang xử lý."));
+                }));
+
+
     }
 
     @MessageMapping("query/queue-size")
@@ -94,13 +102,13 @@ public class ExamFlowWSController {
 
     private void handleException(String staffId, Throwable throwable) {
         if (throwable == null) return;
+
         Throwable actual = throwable;
-        if (actual instanceof CompletionException && actual.getCause() != null) {
+
+        while ((actual instanceof CompletionException || actual instanceof CommandExecutionException) && actual.getCause() != null) {
             actual = actual.getCause();
         }
-        if (actual instanceof CommandExecutionException && actual.getCause() != null) {
-            actual = actual.getCause();
-        }
+
 
         wSNotifier.notifyErrorToUser(staffId, actual.getMessage());
     }

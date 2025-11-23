@@ -1,7 +1,9 @@
 package com.clinic.c46.ExaminationFlowService.application.service.queue;
 
+import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemResponse;
 import com.clinic.c46.ExaminationFlowService.application.service.queue.dto.ExamResultDto;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,5 +19,5 @@ public interface QueueService {
 
     CompletableFuture<Void> completeItem(String queueItemId, ExamResultDto examResultDto);
 
-    void getInProgressItem(String staffId);
+    CompletableFuture<Optional<QueueItemResponse>> getInProgressItem(String staffId);
 }
