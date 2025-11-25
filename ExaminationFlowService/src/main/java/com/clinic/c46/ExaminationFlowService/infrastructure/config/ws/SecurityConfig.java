@@ -78,8 +78,8 @@ public class SecurityConfig {
                         .permitAll()
 
                         // Cấp quyền cho các API REST và Swagger (giữ nguyên)
-                        .requestMatchers("/api/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                                "/webjars/**")
+                        .requestMatchers("/api/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                "/swagger-resources/**", "/webjars/**")
                         .permitAll()
 
                         // 4. CHẶN TẤT CẢ CÁC REQUEST KHÁC
