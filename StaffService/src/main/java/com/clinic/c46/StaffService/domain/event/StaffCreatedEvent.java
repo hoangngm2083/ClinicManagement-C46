@@ -6,5 +6,6 @@ import lombok.Builder;
 
 @Builder
 public record StaffCreatedEvent(String staffId, String name, String email, String phone, String description,
-                                String image, Role role, String eSignature, String departmentId) {
+                                String image, Role role, String eSignature, String departmentId,
+                                String accountName, String password) {
 }
