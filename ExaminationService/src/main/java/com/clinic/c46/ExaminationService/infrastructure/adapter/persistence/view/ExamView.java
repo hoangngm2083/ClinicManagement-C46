@@ -6,6 +6,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
+import com.clinic.c46.ExaminationService.domain.valueObject.ExaminationStatus;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,12 +28,13 @@ public class ExamView extends BaseView implements Serializable {
     private String patientName;
     private String patientEmail;
     private String medicalFormId;
+    @Enumerated(EnumType.STRING)
+    private ExaminationStatus status;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "exam_result_view", joinColumns = @JoinColumn(name = "exam_id"))
     @Builder.Default
     private Set<ResultView> results = new HashSet<>();
-
 
     public void addResultView(ResultView resultView) {
         if (this.results.contains(resultView)) {
@@ -56,6 +59,5 @@ public class ExamView extends BaseView implements Serializable {
                 .anyMatch(result -> result.getServiceId()
                         .equals(serviceId));
     }
-
 
 }

@@ -1,7 +1,9 @@
 package com.clinic.c46.ExaminationService.domain.aggregate;
 
 import com.clinic.c46.CommonService.command.examination.AddResultCommand;
+import com.clinic.c46.CommonService.command.examination.CompleteExaminationCommand;
 import com.clinic.c46.CommonService.command.examination.CreateExaminationCommand;
+import com.clinic.c46.CommonService.event.examination.ExaminationCompletedEvent;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.event.examination.ResultAddedEvent;
 import com.clinic.c46.CommonService.exception.ResourceExistedException;
@@ -10,6 +12,7 @@ import com.clinic.c46.ExaminationService.domain.command.DeleteExaminationCommand
 import com.clinic.c46.ExaminationService.domain.command.RemoveResultCommand;
 import com.clinic.c46.ExaminationService.domain.event.ExaminationDeletedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultRemovedEvent;
+import com.clinic.c46.ExaminationService.domain.valueObject.ExaminationStatus;
 import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
 import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import lombok.AccessLevel;
@@ -35,6 +38,8 @@ public class ExaminationAggregate {
     @AggregateIdentifier
     private String examinationId;
     private String patientId;
+    private String patientEmail;
+    private ExaminationStatus status;
     @AggregateMember(routingKey = "serviceId")
     private Set<MedicalResult> results = new HashSet<>();
 
@@ -48,6 +53,7 @@ public class ExaminationAggregate {
     protected void on(ExaminationCreatedEvent event) {
         this.examinationId = event.examinationId();
         this.patientId = event.patientId();
+        this.status = ExaminationStatus.PENDING;
         this.results = new HashSet<>();
     }
 
@@ -102,6 +108,21 @@ public class ExaminationAggregate {
     @EventSourcingHandler
     protected void on(ExaminationDeletedEvent event) {
         AggregateLifecycle.markDeleted();
+    }
+
+    @CommandHandler
+    public void handle(CompleteExaminationCommand cmd) {
+        if (this.status == ExaminationStatus.COMPLETED) {
+            log.warn("Examination already completed: {}", cmd.examinationId());
+            return;
+        }
+
+        AggregateLifecycle.apply(new ExaminationCompletedEvent(cmd.examinationId(), this.patientEmail));
+    }
+
+    @EventSourcingHandler
+    protected void on(ExaminationCompletedEvent event) {
+        this.status = ExaminationStatus.COMPLETED;
     }
 
     private MedicalResult findResultOrThrow(String serviceId) {

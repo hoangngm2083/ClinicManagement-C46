@@ -5,9 +5,11 @@ import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.event.examination.ResultAddedEvent;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
+import com.clinic.c46.CommonService.event.examination.ExaminationCompletedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ExaminationDeletedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultRemovedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultStatusUpdatedEvent;
+import com.clinic.c46.ExaminationService.domain.valueObject.ExaminationStatus;
 import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
 import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.DoctorRepViewRepository;
@@ -40,6 +42,7 @@ public class ExaminationViewProjection {
                 .id(event.examinationId())
                 .patientId(event.patientId())
                 .medicalFormId(event.medicalFormId())
+                .status(ExaminationStatus.PENDING)
                 .build();
 
         GetPatientByIdQuery query = new GetPatientByIdQuery(event.patientId());
@@ -129,6 +132,17 @@ public class ExaminationViewProjection {
         examViewRepository.findById(event.examId())
                 .ifPresent(view -> {
                     view.markDeleted();
+                    examViewRepository.save(view);
+                });
+    }
+
+    @EventHandler
+    public void on(ExaminationCompletedEvent event) {
+        log.info("Handling ExaminationCompletedEvent: {}", event.examinationId());
+        examViewRepository.findById(event.examinationId())
+                .ifPresent(view -> {
+                    view.setStatus(ExaminationStatus.COMPLETED);
+                    view.markUpdated();
                     examViewRepository.save(view);
                 });
     }
