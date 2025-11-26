@@ -1,8 +1,11 @@
 package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view;
 
+import com.clinic.c46.CommonService.converter.JsonNodeConverter;
 import com.clinic.c46.CommonService.domain.BaseView;
 import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 
@@ -19,7 +22,8 @@ public class ResultView extends BaseView implements Serializable {
     private String doctorId;
     private String serviceId;
     @Column(columnDefinition = "TEXT")
-    private String data;
+    @Convert(converter = JsonNodeConverter.class)
+    private JsonNode data;
     private String pdfUrl;
     private ResultStatus status;
     private String doctorName;
