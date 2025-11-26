@@ -4,7 +4,7 @@ import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.query.examination.GetExaminationByIdQuery;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
-import com.clinic.c46.ExaminationFlowService.application.dto.MedicalFormDetailsDto;
+import com.clinic.c46.ExaminationFlowService.application.dto.MedicalFormWithExamDetailsDto;
 import com.clinic.c46.CommonService.dto.MedicalFormDto;
 import com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery;
 import com.clinic.c46.CommonService.query.examinationFlow.GetAllMedicalFormsQuery;
@@ -48,7 +48,7 @@ public class MedicalFormQueryHandler {
         }
 
         @QueryHandler
-        public CompletableFuture<Optional<MedicalFormDetailsDto>> handle(GetMedicalFormDetailsByIdQuery query) {
+        public CompletableFuture<Optional<MedicalFormWithExamDetailsDto>> handle(GetMedicalFormDetailsByIdQuery query) {
                 log.info("[MedicalFormQueryHandler.handle] START: Getting medical form details for medicalFormId={}",
                                 query.medicalFormId());
 
@@ -102,10 +102,11 @@ public class MedicalFormQueryHandler {
                                 getExaminationByIdQuery,
                                 ResponseTypes.optionalInstanceOf(ExamDetailsDto.class));
 
-                return examinationFuture.thenApply((examinationOpt) -> Optional.of(MedicalFormDetailsDto.builder()
-                                .id(view.getId())
-                                .medicalFormStatus(view.getMedicalFormStatus())
-                                .examination(examinationOpt)
-                                .build()));
+                return examinationFuture
+                                .thenApply((examinationOpt) -> Optional.of(MedicalFormWithExamDetailsDto.builder()
+                                                .id(view.getId())
+                                                .medicalFormStatus(view.getMedicalFormStatus())
+                                                .examination(examinationOpt)
+                                                .build()));
         }
 }

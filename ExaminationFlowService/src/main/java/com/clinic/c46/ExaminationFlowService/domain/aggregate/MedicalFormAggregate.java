@@ -1,6 +1,8 @@
 package com.clinic.c46.ExaminationFlowService.domain.aggregate;
 
+import com.clinic.c46.ExaminationFlowService.domain.command.CompleteMedicalFormCommand;
 import com.clinic.c46.ExaminationFlowService.domain.command.CreateMedicalFormCommand;
+import com.clinic.c46.ExaminationFlowService.domain.event.MedicalFormCompletedEvent;
 import com.clinic.c46.ExaminationFlowService.domain.event.MedicalFormCreatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
@@ -12,7 +14,6 @@ import org.axonframework.spring.stereotype.Aggregate;
 import java.util.HashSet;
 import java.util.Set;
 
-
 @Aggregate
 @NoArgsConstructor
 public class MedicalFormAggregate {
@@ -23,7 +24,6 @@ public class MedicalFormAggregate {
     private String examinationId;
     private Set<String> packageIds = new HashSet<>();
     private MedicalFormStatus status;
-
 
     @CommandHandler
     public MedicalFormAggregate(CreateMedicalFormCommand cmd) {
@@ -45,6 +45,19 @@ public class MedicalFormAggregate {
         this.invoiceId = event.invoiceId();
         this.packageIds = Set.copyOf(event.packageIds());
         this.examinationId = event.examinationId();
+        this.status = MedicalFormStatus.valueOf(event.status());
+    }
+
+    @CommandHandler
+    public void handle(CompleteMedicalFormCommand cmd) {
+        AggregateLifecycle.apply(MedicalFormCompletedEvent.builder()
+                .medicalFormId(cmd.medicalFormId())
+                .status(MedicalFormStatus.COMPLETED.name())
+                .build());
+    }
+
+    @EventSourcingHandler
+    public void on(MedicalFormCompletedEvent event) {
         this.status = MedicalFormStatus.valueOf(event.status());
     }
 

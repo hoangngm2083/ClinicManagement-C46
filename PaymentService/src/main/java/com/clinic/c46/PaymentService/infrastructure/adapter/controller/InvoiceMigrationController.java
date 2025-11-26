@@ -4,7 +4,7 @@ import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.examinationFlow.GetAllMedicalFormsQuery;
 import com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery;
 import com.clinic.c46.CommonService.dto.MedicalFormDto;
-import com.clinic.c46.PaymentService.domain.command.CreateInvoiceCommand;
+import com.clinic.c46.CommonService.command.payment.CreateInvoiceCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;

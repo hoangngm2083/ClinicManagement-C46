@@ -7,7 +7,7 @@ import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesInIdsQuery;
 import com.clinic.c46.PaymentService.domain.aggregate.InvoiceStatus;
-import com.clinic.c46.PaymentService.domain.event.InvoiceCreatedEvent;
+import com.clinic.c46.CommonService.event.payment.InvoiceCreatedEvent;
 import com.clinic.c46.PaymentService.domain.event.InvoicePaidEvent;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.projection.InvoiceProjection;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.projection.MedicalPackageRep;

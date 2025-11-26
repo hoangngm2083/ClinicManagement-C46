@@ -1,4 +1,4 @@
-package com.clinic.c46.PaymentService.domain.event;
+package com.clinic.c46.CommonService.event.payment;
 
 import lombok.Builder;
 
