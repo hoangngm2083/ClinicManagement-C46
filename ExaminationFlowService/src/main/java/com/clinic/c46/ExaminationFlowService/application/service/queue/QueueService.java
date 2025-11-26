@@ -8,9 +8,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface QueueService {
-    // void schedule(QueueItem queueItem);
 
-    void dequeue(String queueId);
 
     void requestGetQueueItem(String doctorId, String queueId);
 

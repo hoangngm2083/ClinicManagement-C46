@@ -13,7 +13,6 @@ import com.clinic.c46.ExaminationFlowService.domain.command.TakeNextItemCommand;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.eventhandling.gateway.EventGateway;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.stereotype.Service;
@@ -29,21 +28,11 @@ public class QueueServiceImpl implements QueueService {
 
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
-    private final EventGateway eventGateway;
     private final WebSocketNotifier webSocketNotifier;
 
-    @Override
-    public void dequeue(String queueId) {
-        // TODO: Controller phát event TakeQueueItemRequestedEvent -> kích hoạt ExamFlow
-        // Saga
-        // TODO: ExamFlow Saga gửi command dequeue vào aggregate
-        // TODO: Aggregate phát event Taken
-        // TODO: Saga gửi command
-    }
 
     @Override
     public void requestGetQueueItem(String doctorId, String queueId) {
-
 
         if (isStaffExisted(doctorId)) {
             handleException(doctorId, new ResourceNotFoundException("Mã nhân viên"));
@@ -63,7 +52,7 @@ public class QueueServiceImpl implements QueueService {
                 .join();
 
         if (itemId.isEmpty()) {
-            handleException(doctorId, new ResourceNotFoundException("Bệnh nhân nào đang chờ"));
+            handleException(doctorId, new ResourceNotFoundException("Bệnh nhân đang chờ"));
             return;
         }
 
@@ -89,7 +78,6 @@ public class QueueServiceImpl implements QueueService {
         if (Boolean.FALSE.equals(isPackageExisted)) {
             throw new ResourceNotFoundException("Các dịch vụ yêu cầu bổ sung");
         }
-
 
         Optional<QueueItemDto> queueItemDto = queryGateway.query(new GetQueueItemByIdQuery(queueItemId),
                         ResponseTypes.optionalInstanceOf(QueueItemDto.class))
@@ -119,7 +107,6 @@ public class QueueServiceImpl implements QueueService {
 
         return commandGateway.send(cmd);
     }
-
 
     @Override
     public CompletableFuture<Optional<QueueItemResponse>> getInProgressItem(String staffId) {

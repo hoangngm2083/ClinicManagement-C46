@@ -2,7 +2,7 @@ package com.clinic.c46.PaymentService.infrastructure.adapter.persistence.project
 
 import com.clinic.c46.PaymentService.domain.aggregate.PaymentMethod;
 import com.clinic.c46.PaymentService.domain.aggregate.TransactionStatus;
-import com.clinic.c46.PaymentService.domain.event.TransactionCompletedEvent;
+import com.clinic.c46.CommonService.event.payment.TransactionCompletedEvent;
 import com.clinic.c46.PaymentService.domain.event.TransactionCreatedEvent;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.projection.TransactionProjection;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.repository.TransactionRepository;

@@ -1,8 +1,11 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
+import com.clinic.c46.CommonService.dto.InvoiceDetailsDto;
+import com.clinic.c46.CommonService.query.invoice.GetInvoiceDetailsByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetServiceByIdQuery;
 import com.clinic.c46.ExaminationFlowService.application.dto.*;
 import com.clinic.c46.ExaminationFlowService.application.query.*;
+import com.clinic.c46.ExaminationFlowService.domain.aggregate.QueueItemAggregate;
 import com.clinic.c46.ExaminationFlowService.domain.aggregate.QueueItemStatus;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.helper.QueueItemMapper;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection.QueueItemView;
@@ -14,6 +17,7 @@ import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -48,7 +52,9 @@ public class QueueItemQueryHandler {
 
         QueueItemDto queueItemDto = queueItemDtoOpt.get();
 
-        Optional<MedicalFormDetailsDto> medicalFormDetailsDtoOpt = getMedicalFormDetails(queueItemDto.medicalFormId());
+        // Get type-specific medical form details based on queue item type
+        Optional<MedicalFormDetailsBase> medicalFormDetailsDtoOpt = getMedicalFormDetailsBase(
+                queueItemDto.medicalFormId(), queueItemDto.type());
 
         Optional<ServiceRepDto> serviceRepDtoOpt = getService(queueItemDto.serviceId());
 
@@ -56,6 +62,7 @@ public class QueueItemQueryHandler {
                 .queueItemId(queueItemDto.queueItemId())
                 .medicalForm(medicalFormDetailsDtoOpt)
                 .requestedService(serviceRepDtoOpt)
+                .type(queueItemDto.type())
                 .build();
 
         return Optional.of(queueItem);
@@ -76,25 +83,90 @@ public class QueueItemQueryHandler {
             return Optional.empty();
         }
         QueueItemView queueItemView = queueItemViewOpt.get();
-        Optional<MedicalFormDetailsDto> medicalFormDetailsDtoOpt = getMedicalFormDetails(
-                queueItemView.getMedicalFormId());
+
+        // Get type-specific medical form details based on queue item type
+        Optional<MedicalFormDetailsBase> medicalFormDetailsDtoOpt = getMedicalFormDetailsBase(
+                queueItemView.getMedicalFormId(), queueItemView.getType());
+
         Optional<ServiceRepDto> serviceRepDtoOpt = getService(queueItemView.getServiceId());
 
         QueueItemResponse queueItem = QueueItemResponse.builder()
                 .queueItemId(queueItemView.getId())
                 .medicalForm(medicalFormDetailsDtoOpt)
                 .requestedService(serviceRepDtoOpt)
+                .type(queueItemView.getType())
                 .build();
 
         return Optional.of(queueItem);
     }
 
-    private Optional<MedicalFormDetailsDto> getMedicalFormDetails(String medicalFormId) {
-        GetMedicalFormDetailsByIdQuery getMedicalFormDetailsByIdQuery = new GetMedicalFormDetailsByIdQuery(
-                medicalFormId);
-        return queryGateway.query(getMedicalFormDetailsByIdQuery,
-                        ResponseTypes.optionalInstanceOf(MedicalFormDetailsDto.class))
+    /**
+     * Get medical form details based on queue item type.
+     * Returns MedicalFormWithExamDetailsDto for EXAM_SERVICE.
+     * Returns MedicalFormWithInvoiceDetailsDto for RECEPTION_PAYMENT.
+     */
+    private Optional<MedicalFormDetailsBase> getMedicalFormDetailsBase(String medicalFormId,
+            com.clinic.c46.ExaminationFlowService.domain.aggregate.QueueItemType type) {
+
+        switch (type) {
+            case EXAM_SERVICE:
+                return getMedicalFormWithExamDetails(medicalFormId).map(dto -> (MedicalFormDetailsBase) dto);
+
+            case RECEPTION_PAYMENT:
+                return getMedicalFormWithInvoiceDetails(medicalFormId).map(dto -> (MedicalFormDetailsBase) dto);
+
+            default:
+                log.warn("[QueueItemQueryHandler] Unknown queue item type: {}", type);
+                return Optional.empty();
+        }
+    }
+
+    private Optional<MedicalFormWithExamDetailsDto> getMedicalFormWithExamDetails(String medicalFormId) {
+        GetMedicalFormDetailsByIdQuery query = new GetMedicalFormDetailsByIdQuery(medicalFormId);
+        return queryGateway.query(query, ResponseTypes.optionalInstanceOf(MedicalFormWithExamDetailsDto.class))
                 .join();
+    }
+
+    private Optional<MedicalFormWithInvoiceDetailsDto> getMedicalFormWithInvoiceDetails(String medicalFormId) {
+        // Step 1: Get medical form to retrieve status and invoice ID
+        com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery getMedicalFormQuery = new com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery(
+                medicalFormId);
+        Optional<com.clinic.c46.CommonService.dto.MedicalFormDto> medicalFormOpt = queryGateway.query(
+                        getMedicalFormQuery,
+                        ResponseTypes.optionalInstanceOf(com.clinic.c46.CommonService.dto.MedicalFormDto.class))
+                .join();
+
+        if (medicalFormOpt.isEmpty()) {
+            log.warn("[QueueItemQueryHandler] Medical form not found for id: {}", medicalFormId);
+            return Optional.empty();
+        }
+
+        com.clinic.c46.CommonService.dto.MedicalFormDto medicalForm = medicalFormOpt.get();
+
+        // Step 2: Get invoice details
+        // For RECEPTION_PAYMENT, the invoice is associated with the medical form
+        String invoiceId = medicalForm.invoiceId();
+
+        if (invoiceId == null || invoiceId.isEmpty()) {
+            log.warn("[QueueItemQueryHandler] No invoice associated with medical form: {}", medicalFormId);
+            // Return medical form without invoice details
+            return Optional.of(MedicalFormWithInvoiceDetailsDto.builder()
+                    .id(medicalForm.id())
+                    .medicalFormStatus(medicalForm.medicalFormStatus())
+                    .invoice(Optional.empty())
+                    .build());
+        }
+
+        GetInvoiceDetailsByIdQuery getInvoiceQuery = new GetInvoiceDetailsByIdQuery(invoiceId);
+        Optional<InvoiceDetailsDto> invoiceDetailsOpt = queryGateway.query(getInvoiceQuery,
+                        ResponseTypes.optionalInstanceOf(InvoiceDetailsDto.class))
+                .join();
+
+        return Optional.of(MedicalFormWithInvoiceDetailsDto.builder()
+                .id(medicalForm.id())
+                .medicalFormStatus(medicalForm.medicalFormStatus())
+                .invoice(invoiceDetailsOpt)
+                .build());
     }
 
     private Optional<QueueItemDto> getQueueItem(String queueItemId) {
@@ -104,8 +176,20 @@ public class QueueItemQueryHandler {
     }
 
     private Optional<ServiceRepDto> getService(String serviceId) {
+
+        if (Objects.equals(serviceId, "PAYMENT_REQUEST")) {
+            return Optional.of(ServiceRepDto.builder()
+                    .serviceId("PAYMENT_REQUEST")
+                    .name("PAYMENT_REQUEST")
+                    .departmentId(QueueItemAggregate.RECEPTION_QUEUE_ID)
+                    .processingPriority(9999)
+                    .formTemplate("")
+                    .build());
+        }
+
         GetServiceByIdQuery getServiceByIdQuery = new GetServiceByIdQuery(serviceId);
         return queryGateway.query(getServiceByIdQuery, ResponseTypes.optionalInstanceOf(ServiceRepDto.class))
                 .join();
     }
+
 }

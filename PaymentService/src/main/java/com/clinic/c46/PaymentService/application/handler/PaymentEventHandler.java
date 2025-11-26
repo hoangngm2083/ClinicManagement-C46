@@ -2,7 +2,7 @@ package com.clinic.c46.PaymentService.application.handler;
 
 import com.clinic.c46.PaymentService.domain.aggregate.TransactionStatus;
 import com.clinic.c46.PaymentService.domain.command.MarkInvoicePaidCommand;
-import com.clinic.c46.PaymentService.domain.event.TransactionCompletedEvent;
+import com.clinic.c46.CommonService.event.payment.TransactionCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;

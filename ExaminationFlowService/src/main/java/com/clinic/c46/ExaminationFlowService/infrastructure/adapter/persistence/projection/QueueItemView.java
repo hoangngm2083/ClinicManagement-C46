@@ -1,8 +1,8 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection;
 
-
 import com.clinic.c46.CommonService.domain.BaseView;
 import com.clinic.c46.ExaminationFlowService.domain.aggregate.QueueItemStatus;
+import com.clinic.c46.ExaminationFlowService.domain.aggregate.QueueItemType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -24,5 +24,6 @@ public class QueueItemView extends BaseView {
     private String serviceId;
     private String queueId; // Department ID
     private String staffId;
+    private QueueItemType type; // EXAM_SERVICE hoặc RECEPTION_PAYMENT
     private QueueItemStatus status; // WAITING, IN_PROGRESS, COMPLETED
 }
