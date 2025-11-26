@@ -1,4 +1,4 @@
-package com.clinic.c46.ExaminationFlowService.application.service.queue.dto;
+package com.clinic.c46.ExaminationService.application.service.examination.dto;
 
 
 import lombok.Builder;

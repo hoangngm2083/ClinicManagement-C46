@@ -31,10 +31,10 @@ public class TransactionServiceImpl implements TransactionService {
     private final PaymentGatewayFactory paymentGatewayFactory;
 
     @Override
-    public CompletableFuture<CreateTransactionResponse> createTransaction(CreateTransactionRequest request,
-            String clientIp) {
+    public CompletableFuture<CreateTransactionResponse> createTransaction(String staffId,
+            CreateTransactionRequest request, String clientIp) {
         // 1. Prepare Async Checks (Run in parallel to optimize performance)
-        CompletableFuture<Void> staffCheck = checkStaffExists(request.getStaffId());
+        CompletableFuture<Void> staffCheck = checkStaffExists(staffId);
         CompletableFuture<InvoiceDto> invoiceFetch = getInvoice(request.getInvoiceId());
 
         // 2. Combine the results and process the main logic
@@ -43,7 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
                     if (InvoiceStatus.valueOf(invoice.status()) == InvoiceStatus.PAYED) {
                         throw new IllegalStateException("Hóa đơn này đã được thanh toán!");
                     }
-                    return processTransactionPayment(invoice, request, clientIp);
+                    return processTransactionPayment(staffId,invoice, request, clientIp);
                 });
     }
 
@@ -88,7 +88,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .thenApply(opt -> opt.orElseThrow(() -> new ResourceNotFoundException("Hóa đơn")));
     }
 
-    private CompletableFuture<CreateTransactionResponse> processTransactionPayment(InvoiceDto invoice,
+    private CompletableFuture<CreateTransactionResponse> processTransactionPayment(String staffId, InvoiceDto invoice,
             CreateTransactionRequest request, String clientIp) {
         String transactionId = UUID.randomUUID()
                 .toString();
@@ -97,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService {
         CreateTransactionCommand createCommand = CreateTransactionCommand.builder()
                 .transactionId(transactionId)
                 .invoiceId(request.getInvoiceId())
-                .staffId(request.getStaffId())
+                .staffId(staffId)
                 .amount(invoice.totalAmount())
                 .paymentMethod(request.getPaymentMethod())
                 .build();

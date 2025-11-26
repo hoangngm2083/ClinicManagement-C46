@@ -10,6 +10,10 @@
         .output { margin-top: 15px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; height: 300px; overflow-y: scroll; }
         .log-entry { margin-bottom: 5px; border-bottom: 1px dotted #eee; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        .exam-form, .payment-form { display: none; padding: 15px; border: 2px solid #ddd; border-radius: 5px; margin-top: 10px; }
+        .exam-form { border-color: #4CAF50; background-color: #f1f8f4; }
+        .payment-form { border-color: #2196F3; background-color: #e3f2fd; }
+        .form-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
@@ -23,8 +27,8 @@
     <hr>
     
     <h2>1. Hành động</h2>
-    <label for="doctor-token">JWT Token:</label>
-    <input type="text" id="doctor-token" size="60" value="" placeholder="Nhập JWT Token hợp lệ">
+    <label for="doctor-token">Staff ID (for testing):</label>
+    <input type="text" id="doctor-token" size="60" value="" placeholder="Nhập Staff ID để test">
     <br><br>
     <label for="department-id">Dept ID:</label>
     <input type="text" id="department-id" size="60" value="" placeholder="queue id">
@@ -52,6 +56,7 @@
 <p class="detail-line"><strong>Dịch vụ:</strong> <span id="service-name">N/A</span> (<span id="service-id-view">N/A</span>)</p>
 <p class="detail-line"><strong>Queue Item ID:</strong> <span id="queueItemIdView">N/A</span></p>
 <p class="detail-line"><strong>Exam ID:</strong> <span id="examIdView">N/A</span></p>
+<p class="detail-line"><strong>Type:</strong> <span id="queueItemType">N/A</span></p>
 </div>
 
 
@@ -60,29 +65,45 @@
 <hr>
 
 
-<h2>3. Hoàn thành Phiếu Khám</h2>
-<label>Queue Item ID:</label>
-<input id="queueItemIdInput" size="40" disabled>
-<br><label>Exam ID:</label>
-<input id="examIdInput" size="40" disabled>
-<br><label>Service ID:</label>
-<input id="serviceIdInput" size="40" disabled>
-<br><br>
-<label>Exam Data (JSON):</label>
-<textarea id="examData" rows="4" cols="60">{"diagnosis": "Chưa có kết quả"}</textarea>
-<br><br>
-<button id="complete-btn" onclick="completePatient()" disabled>Hoàn Thành</button>
+<h2>3. Hoàn thành Phiếu</h2>
+
+<!-- Form for EXAM_SERVICE -->
+<div id="exam-form" class="exam-form">
+    <div class="form-title">📋 Hoàn Thành Khám Bệnh</div>
+    <label>Queue Item ID:</label>
+    <input id="queueItemIdInput" size="40" disabled>
+    <br><label>Exam ID:</label>
+    <input id="examIdInput" size="40" disabled>
+    <br><label>Service ID:</label>
+    <input id="serviceIdInput" size="40" disabled>
+    <br><br>
+    <label>Exam Data (JSON):</label>
+    <textarea id="examData" rows="4" cols="60">{"diagnosis": "Chưa có kết quả"}</textarea>
+    <br><br>
+    <button onclick="completeExam()">Hoàn Thành Khám</button>
+</div>
+
+<!-- Form for RECEPTION_PAYMENT -->
+<div id="payment-form" class="payment-form">
+    <div class="form-title">💳 Tạo Giao Dịch Thanh Toán</div>
+    <label>Invoice ID:</label>
+    <input id="invoiceIdInput" size="40" disabled>
+    <br><label>Payment Method:</label>
+    <input id="paymentMethodInput" size="40" value="VNPAY">
+    <br><br>
+    <button onclick="createPaymentTransaction()">Tạo Giao Dịch</button>
 </div>
 
 <script>
     // --- Cấu hình Server ---
     const SERVER_URL = 'http://localhost:9093'; 
     const HANDSHAKE_ENDPOINT = '/ws/exam-workflow'; 
+    const EXAMINATION_SERVICE_URL = 'http://localhost:9094';
+    const PAYMENT_SERVICE_URL = 'http://localhost:9098';
     
     // Các kênh giao tiếp STOMP nội bộ đã được cấu hình
     const COMMAND_TAKE_ITEM = '/app/exam-workflow/queue/take-next';
-    const COMMAND_COMPLETE_ITEM = '/app/exam-workflow/item/complete'; // BỔ SUNG COMMAND MỚI
-    const COMMAND_GET_IN_PROGRESS = '/app/exam-workflow/item/in-process'; // BỔ SUNG COMMAND LẤY PHIẾU ĐANG XỬ LÝ
+    const COMMAND_GET_IN_PROGRESS = '/app/exam-workflow/item/in-process';
     const SUBSCRIBE_QUEUE_LIST = '/topic/exam-workflow/queue/'; 
     const SUBSCRIBE_ITEM_DETAILS = '/user/queue/exam-workflow/item/details'; 
     const SUBSCRIBE_QUEUE_SIZE_REPLY = '/user/queue/query-size-reply';
@@ -91,6 +112,7 @@
 
     let stompClient = null;
     let currentDepartmentId = null; 
+    let currentQueueItemType = null;
 
     // Hàm ghi log ra giao diện
     function logMessage(message, type = 'info') {
@@ -107,7 +129,7 @@
         const departmentId = document.getElementById('department-id').value;
         
         if (!token || !departmentId) {
-            logMessage("Vui lòng nhập Token và Dept ID.", 'error');
+            logMessage("Vui lòng nhập Staff ID và Dept ID.", 'error');
             return;
         }
 
@@ -128,8 +150,7 @@
                 document.getElementById('status').style.color = 'green';
                 document.getElementById('take-next-btn').disabled = false;
                 document.getElementById('take-queue-size-btn').disabled = false;
-                document.getElementById('complete-btn').disabled = false; // BẬT NÚT MỚI
-                document.getElementById('get-in-progress-btn').disabled = false; // BẬT NÚT LẤY PHIẾU ĐANG XỬ LÝ
+                document.getElementById('get-in-progress-btn').disabled = false;
                 logMessage('Kết nối thành công. Bắt đầu đăng ký kênh.', 'success');
                 subscribeToChannels(currentDepartmentId);
             }, 
@@ -138,8 +159,7 @@
                 document.getElementById('status').style.color = 'red';
                 document.getElementById('take-next-btn').disabled = true;
                 document.getElementById('take-queue-size-btn').disabled = true;
-                document.getElementById('complete-btn').disabled = true; // TẮT NÚT MỚI
-                document.getElementById('get-in-progress-btn').disabled = true; // TẮT NÚT LẤY PHIẾU ĐANG XỬ LÝ
+                document.getElementById('get-in-progress-btn').disabled = true;
                 logMessage('Lỗi kết nối WebSocket: ' + error, 'error');
                 console.error(error);
             }
@@ -153,10 +173,10 @@
         stompClient.subscribe(queueListDestination, (message) => {
             const payload = JSON.parse(message.body);
             logMessage(`[PUB/SUB] Cập nhật Queue (${departmentId}): Size = ${payload}`, 'info');
-            document.getElementById('queue-size').textContent = payload; // Nhận size là Integer
+            document.getElementById('queue-size').textContent = payload;
         });
 
-        // 2. Subscribe kênh cá nhân (ĐÃ SỬA URL)
+        // 2. Subscribe kênh cá nhân
         stompClient.subscribe(SUBSCRIBE_ITEM_DETAILS, (message) => {
             const details = JSON.parse(message.body);
             logMessage(`[PRIVATE] Nhận Chi tiết Phiếu khám cho ID: ${details.queueItemId}`, 'success');
@@ -164,48 +184,60 @@
             updateDynamicDisplay(details);
         },{id: 'item-details-sub'});
 
-        // 3. Subscribe Kênh Nhận Phản hồi Query Kích thước Hàng đợi (ĐÃ SỬA URL)
+        // 3. Subscribe Kênh Nhận Phản hồi Query Kích thước Hàng đợi
         stompClient.subscribe(SUBSCRIBE_QUEUE_SIZE_REPLY, (message) => {
             const currentSize = JSON.parse(message.body);
             logMessage(`[REPLY] Nhận kích thước hàng đợi ban đầu: ${currentSize}`, 'success');
             document.getElementById('queue-size').textContent = currentSize;
         },{id: 'queue-size-reply-sub'});
 
-        // 4. BỔ SUNG: Subscribe kênh nhận lỗi
+        // 4. Subscribe kênh nhận lỗi
         stompClient.subscribe(SUBSCRIBE_ERROR_CHANNEL, (message) => {
             let errorText = message.body;
             try {
-                // Thử phân tích JSON (Spring thường gửi lỗi dưới dạng JSON)
                 const errorObj = JSON.parse(message.body);
                 errorText = errorObj.message || errorObj.error || JSON.stringify(errorObj);
             } catch (e) {
-                // Nếu không phải JSON, dùng body thô
                 errorText = message.body;
             }
             logMessage(`[ERROR] Lỗi từ Server: ${errorText}`, 'error');
-            
-            // Xóa chi tiết phiếu khám nếu lỗi liên quan đến việc lấy phiếu
-            document.getElementById('item-details').textContent =  errorText;
-            document.getElementById('take-next-btn').disabled = false; // Bật lại nút
-        }, {id: 'error-sub'}); // Đặt ID cho Subscription
+            document.getElementById('item-details').textContent = errorText;
+            document.getElementById('take-next-btn').disabled = false;
+        }, {id: 'error-sub'});
 
         // Sau khi SUBSCRIBE xong, gửi yêu cầu lấy trạng thái ban đầu
         requestInitialQueueState(departmentId);
     }
 
-    function updateDynamicDisplay(details){
-        document.getElementById('patient-status').textContent=details?.medicalForm?.medicalFormStatus;
-        document.getElementById('patient-name').textContent=details?.medicalForm?.examination?.patientName;
-        document.getElementById('patient-id').textContent=details?.medicalForm?.examination?.patientId;
-        document.getElementById('service-name').textContent=details?.requestedService?.name;
-        document.getElementById('service-id-view').textContent=details?.requestedService?.serviceId;
-        document.getElementById('queueItemIdView').textContent=details?.queueItemId;
-        document.getElementById('examIdView').textContent=details?.medicalForm?.examination?.id;
+    function updateDynamicDisplay(details) {
+        document.getElementById('patient-status').textContent = details?.medicalForm?.medicalFormStatus;
+        document.getElementById('patient-name').textContent = details?.medicalForm?.examination?.patientName || details?.medicalForm?.patientName;
+        document.getElementById('patient-id').textContent = details?.medicalForm?.examination?.patientId || details?.medicalForm?.patientId;
+        document.getElementById('service-name').textContent = details?.requestedService?.name;
+        document.getElementById('service-id-view').textContent = details?.requestedService?.serviceId;
+        document.getElementById('queueItemIdView').textContent = details?.queueItemId;
+        document.getElementById('examIdView').textContent = details?.medicalForm?.examination?.id;
+        document.getElementById('queueItemType').textContent = details?.type;
 
+        // Store current type
+        currentQueueItemType = details?.type;
 
-        document.getElementById('queueItemIdInput').value=details.queueItemId;
-        document.getElementById('examIdInput').value=details.medicalForm.examination.id;
-        document.getElementById('serviceIdInput').value=details.requestedService.serviceId;
+        // Hide both forms first
+        document.getElementById('exam-form').style.display = 'none';
+        document.getElementById('payment-form').style.display = 'none';
+
+        // Show appropriate form based on type
+        if (details?.type === 'EXAM_SERVICE') {
+            // Show exam form
+            document.getElementById('exam-form').style.display = 'block';
+            document.getElementById('queueItemIdInput').value = details.queueItemId;
+            document.getElementById('examIdInput').value = details.medicalForm.examination.id;
+            document.getElementById('serviceIdInput').value = details.requestedService.serviceId;
+        } else if (details?.type === 'RECEPTION_PAYMENT') {
+            // Show payment form
+            document.getElementById('payment-form').style.display = 'block';
+            document.getElementById('invoiceIdInput').value = details.medicalForm?.invoice?.invoiceId || '';
+        }
     }
 
     function requestInitialQueueState(queueId) {
@@ -214,7 +246,6 @@
             return;
         }
 
-        // Gửi tên phòng ban làm payload (ví dụ: "ULTRASOUND")
         stompClient.send(COMMAND_QUERY_QUEUE_SIZE, {}, JSON.stringify(queueId));
         logMessage(`[SEND] Gửi yêu cầu lấy Queue Size hiện tại cho phòng: ${queueId}`, 'info');
     }
@@ -228,27 +259,114 @@
 
         const payload = {
             queueId: currentDepartmentId
-            // Các trường khác nếu cần (ví dụ: deviceId, kioskId)
         };
 
         stompClient.send(COMMAND_TAKE_ITEM, {}, JSON.stringify(payload));
         logMessage(`[SEND] Gửi lệnh lấy phiếu cho phòng: ${currentDepartmentId}`, 'info');
     }
 
-    // --- BỔ SUNG: Hàm Gửi Command Hoàn Thành Phiếu Khám ---
-    function completePatient(){
-        const payload={
-        queueItemId:document.getElementById('queueItemIdInput').value,
-        examId:document.getElementById('examIdInput').value,
-        serviceId:document.getElementById('serviceIdInput').value,
-        data:document.getElementById('examData').value
+    // --- Hàm Hoàn Thành Khám (HTTP POST) ---
+    function completeExam() {
+        const examId = document.getElementById('examIdInput').value;
+        const serviceId = document.getElementById('serviceIdInput').value;
+        const data = document.getElementById('examData').value;
+        const staffId = document.getElementById('doctor-token').value;
+
+        if (!examId || !serviceId || !staffId) {
+            logMessage("Thiếu thông tin để hoàn thành khám", 'error');
+            return;
+        }
+
+        const payload = {
+            serviceId: serviceId,
+            data: data
         };
-        stompClient.send(COMMAND_COMPLETE_ITEM,{},JSON.stringify(payload));
-        logMessage("Đã gửi CompleteItemRequest","success");
+
+        const url = `${EXAMINATION_SERVICE_URL}/api/examination/${examId}/result`;
+
+        logMessage(`[HTTP POST] Gửi yêu cầu hoàn thành khám tới: ${url}`, 'info');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Staff-Id': staffId
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (response.ok) {
+                logMessage("✅ Hoàn thành khám thành công!", 'success');
+                return response.text();
+            } else {
+                return response.text().then(text => {
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                });
+            }
+        })
+        .then(data => {
+            logMessage(`Response: ${data || 'No content'}`, 'success');
+        })
+        .catch(error => {
+            logMessage(`❌ Lỗi hoàn thành khám: ${error.message}`, 'error');
+            console.error(error);
+        });
     }
 
-    // --- BỔ SUNG: Hàm Gửi Command Lấy Phiếu Đang Xử Lý ---
-    function getInProgressPatient(){
+    // --- Hàm Tạo Giao Dịch Thanh Toán (HTTP POST) ---
+    function createPaymentTransaction() {
+        const invoiceId = document.getElementById('invoiceIdInput').value;
+        const paymentMethod = document.getElementById('paymentMethodInput').value;
+        const staffId = document.getElementById('doctor-token').value;
+
+        if (!invoiceId || !paymentMethod || !staffId) {
+            logMessage("Thiếu thông tin để tạo giao dịch thanh toán", 'error');
+            return;
+        }
+
+        const payload = {
+            invoiceId: invoiceId,
+            paymentMethod: paymentMethod
+        };
+
+        const url = `${PAYMENT_SERVICE_URL}/api/payment/transactions`;
+
+        logMessage(`[HTTP POST] Gửi yêu cầu tạo giao dịch tới: ${url}`, 'info');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Staff-Id': staffId
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.text().then(text => {
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                });
+            }
+        })
+        .then(data => {
+            logMessage(`✅ Tạo giao dịch thành công! Transaction ID: ${data.transactionId || 'N/A'}`, 'success');
+            logMessage(`Payment URL: ${data.paymentUrl || 'N/A'}`, 'info');
+            
+            // Optionally open payment URL
+            if (data.paymentUrl) {
+                window.open(data.paymentUrl, '_blank');
+            }
+        })
+        .catch(error => {
+            logMessage(`❌ Lỗi tạo giao dịch: ${error.message}`, 'error');
+            console.error(error);
+        });
+    }
+
+    // --- Hàm Gửi Command Lấy Phiếu Đang Xử Lý ---
+    function getInProgressPatient() {
         if (!stompClient || !stompClient.connected) {
             logMessage("Kết nối chưa sẵn sàng. Vui lòng kết nối trước.", 'error');
             return;
@@ -258,11 +376,10 @@
         logMessage("Đã gửi yêu cầu lấy phiếu đang xử lý", "info");
     }
     
-    // Đảm bảo nút "Lấy phiếu" và "Hoàn Thành" sẵn sàng
+    // Đảm bảo nút sẵn sàng
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('take-next-btn').disabled = true;
-        document.getElementById('complete-btn').disabled = true; // BỔ SUNG
-        document.getElementById('get-in-progress-btn').disabled = true; // BỔ SUNG NÚT LẤY PHIẾU ĐANG XỬ LÝ
+        document.getElementById('get-in-progress-btn').disabled = true;
     });
 
 </script>

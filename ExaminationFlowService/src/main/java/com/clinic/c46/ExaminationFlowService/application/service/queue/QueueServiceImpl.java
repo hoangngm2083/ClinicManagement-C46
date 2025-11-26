@@ -1,12 +1,10 @@
 package com.clinic.c46.ExaminationFlowService.application.service.queue;
 
-import com.clinic.c46.CommonService.command.examination.AddResultCommand;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.staff.ExistsStaffByIdQuery;
 import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemDto;
 import com.clinic.c46.ExaminationFlowService.application.dto.QueueItemResponse;
 import com.clinic.c46.ExaminationFlowService.application.query.*;
-import com.clinic.c46.ExaminationFlowService.application.service.queue.dto.ExamResultDto;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
 import com.clinic.c46.ExaminationFlowService.domain.command.ApproveAdditionalServicesCommand;
 import com.clinic.c46.ExaminationFlowService.domain.command.TakeNextItemCommand;
@@ -30,7 +28,6 @@ public class QueueServiceImpl implements QueueService {
     private final QueryGateway queryGateway;
     private final WebSocketNotifier webSocketNotifier;
 
-
     @Override
     public void requestGetQueueItem(String doctorId, String queueId) {
 
@@ -48,7 +45,7 @@ public class QueueServiceImpl implements QueueService {
         }
 
         Optional<String> itemId = queryGateway.query(new GetItemIdOfTopQueueQuery(queueId),
-                        ResponseTypes.optionalInstanceOf(String.class))
+                ResponseTypes.optionalInstanceOf(String.class))
                 .join();
 
         if (itemId.isEmpty()) {
@@ -72,7 +69,7 @@ public class QueueServiceImpl implements QueueService {
         }
 
         Boolean isPackageExisted = queryGateway.query(new ExistsAllPackageByIdsQuery(additionalServiceIds),
-                        ResponseTypes.instanceOf(Boolean.class))
+                ResponseTypes.instanceOf(Boolean.class))
                 .join();
 
         if (Boolean.FALSE.equals(isPackageExisted)) {
@@ -80,7 +77,7 @@ public class QueueServiceImpl implements QueueService {
         }
 
         Optional<QueueItemDto> queueItemDto = queryGateway.query(new GetQueueItemByIdQuery(queueItemId),
-                        ResponseTypes.optionalInstanceOf(QueueItemDto.class))
+                ResponseTypes.optionalInstanceOf(QueueItemDto.class))
                 .join();
 
         if (queueItemDto.isEmpty()) {
@@ -98,17 +95,6 @@ public class QueueServiceImpl implements QueueService {
     }
 
     @Override
-    public CompletableFuture<Void> completeItem(String queueItemId, ExamResultDto examResultDto) {
-
-        // TODO: check queue item, exam, doctor, service existed?
-
-        AddResultCommand cmd = new AddResultCommand(examResultDto.examId(), examResultDto.doctorId(),
-                examResultDto.serviceId(), examResultDto.data());
-
-        return commandGateway.send(cmd);
-    }
-
-    @Override
     public CompletableFuture<Optional<QueueItemResponse>> getInProgressItem(String staffId) {
         return queryGateway.query(new GetInProgressQueueItemByStaffIdQuery(staffId),
                 ResponseTypes.optionalInstanceOf(QueueItemResponse.class));
@@ -117,7 +103,7 @@ public class QueueServiceImpl implements QueueService {
 
     private boolean isStaffExisted(String staffId) {
         Boolean isStaffExisted = queryGateway.query(new ExistsStaffByIdQuery(staffId),
-                        ResponseTypes.instanceOf(Boolean.class))
+                ResponseTypes.instanceOf(Boolean.class))
                 .join();
 
         return Boolean.FALSE.equals(isStaffExisted);

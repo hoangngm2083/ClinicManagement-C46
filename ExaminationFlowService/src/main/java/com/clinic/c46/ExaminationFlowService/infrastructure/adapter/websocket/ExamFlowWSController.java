@@ -2,9 +2,7 @@ package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket;
 
 import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.queue.QueueService;
-import com.clinic.c46.ExaminationFlowService.application.service.queue.dto.ExamResultDto;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
-import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.CompleteItemRequest;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.RequestAdditionalServicesRequest;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.websocket.dto.TakeNextItemRequest;
 import jakarta.validation.Valid;
@@ -40,19 +38,6 @@ public class ExamFlowWSController {
         queueService.requestGetQueueItem(staffId, queueId);
     }
 
-    @MessageMapping("/item/complete")
-    public CompletableFuture<Void> handle(@Payload @Valid CompleteItemRequest request, Principal principal) {
-        String staffId = principal.getName();
-
-        return wrapper(staffId, () -> queueService.completeItem(request.queueItemId(), ExamResultDto.builder()
-                .examId(request.examId())
-                .doctorId(staffId)
-                .serviceId(request.serviceId())
-                .data(request.data())
-                .build()));
-    }
-
-
     @MessageMapping("item/request-additional-services")
     public CompletableFuture<Void> handle(@Payload RequestAdditionalServicesRequest request, Principal principal) {
 
@@ -61,7 +46,6 @@ public class ExamFlowWSController {
         return wrapper(staffId, () -> queueService.requestAdditionalServices(staffId, request.queueItemId(),
                 request.additionalServiceIds()));
     }
-
 
     @MessageMapping("item/in-process")
     public CompletableFuture<Void> handle(Principal principal) {
@@ -74,7 +58,6 @@ public class ExamFlowWSController {
                             () -> wSNotifier.notifyErrorToUser(staffId, "Bạn không có phiếu khám nào đang xử lý."));
                 }));
 
-
     }
 
     @MessageMapping("query/queue-size")
@@ -85,7 +68,6 @@ public class ExamFlowWSController {
 
         wSNotifier.sendToUser(principal.getName(), WebSocketNotifierImpl.STAFF_SPECIFIC_GET_QUEUE_SIZE_URL, qSize);
     }
-
 
     private <T> CompletableFuture<T> wrapper(String staffId, Supplier<CompletableFuture<T>> func) {
         try {
@@ -101,14 +83,15 @@ public class ExamFlowWSController {
     }
 
     private void handleException(String staffId, Throwable throwable) {
-        if (throwable == null) return;
+        if (throwable == null)
+            return;
 
         Throwable actual = throwable;
 
-        while ((actual instanceof CompletionException || actual instanceof CommandExecutionException) && actual.getCause() != null) {
+        while ((actual instanceof CompletionException || actual instanceof CommandExecutionException)
+                && actual.getCause() != null) {
             actual = actual.getCause();
         }
-
 
         wSNotifier.notifyErrorToUser(staffId, actual.getMessage());
     }

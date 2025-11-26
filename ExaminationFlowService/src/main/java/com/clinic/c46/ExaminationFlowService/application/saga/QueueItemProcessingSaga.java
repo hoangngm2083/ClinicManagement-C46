@@ -83,7 +83,8 @@ public class QueueItemProcessingSaga {
     public void on(QueueItemTakenEvent event) {
         try {
             log.info(
-                    "[QueueItemProcessingSaga] START: Received QueueItemTakenEvent. " + "QueueItemId: {}, StaffId: {}, Type: {}",
+                    "[QueueItemProcessingSaga] START: Received QueueItemTakenEvent. "
+                            + "QueueItemId: {}, StaffId: {}, Type: {}",
                     event.queueItemId(), event.staffId(), event.type());
 
             // Store common state
@@ -127,7 +128,7 @@ public class QueueItemProcessingSaga {
             // Query queue item details
             GetQueueItemResponseByIdQuery query = new GetQueueItemResponseByIdQuery(event.queueItemId());
             Optional<QueueItemResponse> queueItemResponseOpt = queryGateway.query(query,
-                            ResponseTypes.optionalInstanceOf(QueueItemResponse.class))
+                    ResponseTypes.optionalInstanceOf(QueueItemResponse.class))
                     .join();
 
             QueueItemResponse queueItem = require(queueItemResponseOpt, "Phiếu chờ của bệnh nhân");
@@ -151,7 +152,7 @@ public class QueueItemProcessingSaga {
                     SagaLifecycle.associateWith("examinationId", examId);
                     log.info("[QueueItemProcessingSaga] Associated with examinationId: {}", examId);
                 } else {
-                    throw new ResourceNotFoundException("Thông tin lượt khám không tồn tại trong phiếu khám");
+                    throw new ResourceNotFoundException("Thông tin lượt khám trong phiếu khám");
                 }
             } else {
                 log.warn(
@@ -165,7 +166,8 @@ public class QueueItemProcessingSaga {
             this.stateMachine = QueueItemProcessingStateMachine.PENDING_CREATE_RESULT;
 
             log.info(
-                    "[QueueItemProcessingSaga] EXAM_SERVICE flow ready. " + "Waiting for ResultAddedEvent. QueueItemId: {}",
+                    "[QueueItemProcessingSaga] EXAM_SERVICE flow ready. "
+                            + "Waiting for ResultAddedEvent. QueueItemId: {}",
                     event.queueItemId());
 
         } catch (Exception e) {
@@ -186,7 +188,7 @@ public class QueueItemProcessingSaga {
             // Query queue item details
             GetQueueItemResponseByIdQuery query = new GetQueueItemResponseByIdQuery(event.queueItemId());
             Optional<QueueItemResponse> queueItemResponseOpt = queryGateway.query(query,
-                            ResponseTypes.optionalInstanceOf(QueueItemResponse.class))
+                    ResponseTypes.optionalInstanceOf(QueueItemResponse.class))
                     .join();
 
             QueueItemResponse queueItem = require(queueItemResponseOpt, "Phiếu chờ thanh toán không tồn tại");
@@ -224,7 +226,8 @@ public class QueueItemProcessingSaga {
             this.stateMachine = QueueItemProcessingStateMachine.WAITING_FOR_PAYMENT;
 
             log.info(
-                    "[QueueItemProcessingSaga] RECEPTION_PAYMENT flow ready. " + "Waiting for TransactionCompletedEvent. InvoiceId: {}",
+                    "[QueueItemProcessingSaga] RECEPTION_PAYMENT flow ready. "
+                            + "Waiting for TransactionCompletedEvent. InvoiceId: {}",
                     this.invoiceId);
 
         } catch (Exception e) {
@@ -294,13 +297,15 @@ public class QueueItemProcessingSaga {
     public void handle(TransactionCompletedEvent event) {
         try {
             log.info(
-                    "[QueueItemProcessingSaga] Received TransactionCompletedEvent. " + "InvoiceId: {}, TransactionId: {}",
+                    "[QueueItemProcessingSaga] Received TransactionCompletedEvent. "
+                            + "InvoiceId: {}, TransactionId: {}",
                     event.invoiceId(), event.transactionId());
 
             // Only process if this is a RECEPTION_PAYMENT item
             if (this.queueItemType != QueueItemType.RECEPTION_PAYMENT) {
                 log.warn(
-                        "[QueueItemProcessingSaga] Ignoring TransactionCompletedEvent for non-RECEPTION_PAYMENT item. " + "Type: {}",
+                        "[QueueItemProcessingSaga] Ignoring TransactionCompletedEvent for non-RECEPTION_PAYMENT item. "
+                                + "Type: {}",
                         this.queueItemType);
                 return;
             }
@@ -316,7 +321,8 @@ public class QueueItemProcessingSaga {
                                     throwable.getMessage());
                         } else {
                             log.info(
-                                    "[QueueItemProcessingSaga] Queue item completed after payment. " + "QueueItemId: {}",
+                                    "[QueueItemProcessingSaga] Queue item completed after payment. "
+                                            + "QueueItemId: {}",
                                     queueItemId);
                         }
                     });

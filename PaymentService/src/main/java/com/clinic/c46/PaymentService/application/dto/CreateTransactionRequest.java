@@ -14,6 +14,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreateTransactionRequest {
     private String invoiceId;
-    private String staffId;
     private String paymentMethod;
 }

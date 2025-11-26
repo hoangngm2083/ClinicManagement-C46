@@ -30,15 +30,15 @@ public class TransactionController {
 
     @PostMapping
     public CompletableFuture<ResponseEntity<CreateTransactionResponse>> createTransaction(
-            @RequestBody CreateTransactionRequest request, HttpServletRequest servletRequest) {
+            @RequestHeader("Staff-Id") String staffId, @RequestBody CreateTransactionRequest request,
+            HttpServletRequest servletRequest) {
         log.info("Creating transaction for invoice: {}", request.getInvoiceId());
         String clientIp = this.getClientIp(servletRequest);
-        return transactionServiceImpl.createTransaction(request, clientIp)
+        return transactionServiceImpl.createTransaction(staffId, request, clientIp)
                 .thenApply(createTransactionResponse -> ResponseEntity.status(HttpStatus.CREATED)
                         .body(createTransactionResponse));
 
     }
-
 
     @GetMapping("/{transactionId}")
     public CompletableFuture<ResponseEntity<TransactionDto>> getTransaction(@PathVariable String transactionId) {
@@ -53,7 +53,6 @@ public class TransactionController {
                     return ResponseEntity.ok(transactionDto);
                 });
     }
-
 
     @GetMapping("/{transactionId}/status")
     public CompletableFuture<ResponseEntity<TransactionStatusDto>> getTransactionStatus(
@@ -83,6 +82,5 @@ public class TransactionController {
         }
         return ip;
     }
-
 
 }
