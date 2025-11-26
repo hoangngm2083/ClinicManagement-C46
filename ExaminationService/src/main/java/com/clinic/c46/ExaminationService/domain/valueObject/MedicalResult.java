@@ -12,7 +12,5 @@ import lombok.*;
 public class MedicalResult {
     private String doctorId;
     private String serviceId;
-    private String data;
-    private String pdfUrl;
     private ResultStatus status;
 }

@@ -51,7 +51,6 @@ public class ExaminationAggregate {
         this.results = new HashSet<>();
     }
 
-
     @CommandHandler
     public void handle(AddResultCommand cmd) {
         MedicalResult potentialNewResult = MedicalResult.builder()
@@ -71,7 +70,6 @@ public class ExaminationAggregate {
                 .serviceId(event.serviceId())
                 .doctorId(event.doctorId())
                 .status(ResultStatus.CREATED)
-                .data(event.data())
                 .build();
         this.results.add(newResult);
     }
@@ -89,10 +87,10 @@ public class ExaminationAggregate {
                 .equals(event.serviceId()));
     }
 
-
     @CommandHandler
     public void handle(DeleteExaminationCommand cmd) {
-        // TODO: Check business rules before deleting (e.g., must not have SIGNED results)
+        // TODO: Check business rules before deleting (e.g., must not have SIGNED
+        // results)
         if (this.results.stream()
                 .anyMatch(r -> r.getStatus()
                         .equals(ResultStatus.SIGNED))) {
@@ -105,7 +103,6 @@ public class ExaminationAggregate {
     protected void on(ExaminationDeletedEvent event) {
         AggregateLifecycle.markDeleted();
     }
-
 
     private MedicalResult findResultOrThrow(String serviceId) {
         return this.results.stream()
