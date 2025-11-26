@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Validated
@@ -23,11 +24,12 @@ public class MedicalFormController {
     private final MedicalFormMapper medicalFormMapper;
 
     @PostMapping
-    public CompletableFuture<ResponseEntity<String>> createMedicalForm(
+    public CompletableFuture<ResponseEntity<Map<String, String>>> createMedicalForm(
             @RequestBody @Valid CreateMedicalFormRequest request) {
         return medicalFormService.createMedicalForm(medicalFormMapper.toDto(request))
-                .thenApply(response -> ResponseEntity.status(HttpStatus.CREATED)
-                        .body(response));
+                .thenApply(id -> ResponseEntity.status(HttpStatus.CREATED)
+                        .body(Map.of("medicalFormId", id)));
+
     }
 
     @GetMapping

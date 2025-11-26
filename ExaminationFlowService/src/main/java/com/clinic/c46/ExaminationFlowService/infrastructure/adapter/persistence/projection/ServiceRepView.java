@@ -1,7 +1,10 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection;
 
 import com.clinic.c46.CommonService.domain.BaseView;
+import com.clinic.c46.CommonService.converter.JsonNodeConverter;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Cacheable;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -27,5 +30,7 @@ public class ServiceRepView extends BaseView {
     private String name;
     private int processingPriority;
     private String departmentId;
-    private String formTemplate;
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
+    @Convert(converter = JsonNodeConverter.class)
+    private JsonNode formTemplate;
 }

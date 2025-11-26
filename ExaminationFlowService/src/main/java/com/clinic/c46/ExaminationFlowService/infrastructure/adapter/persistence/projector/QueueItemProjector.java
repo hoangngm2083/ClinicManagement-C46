@@ -18,16 +18,17 @@ import java.util.Optional;
 public class QueueItemProjector {
     private final QueueItemViewRepository queryItemViewRepository;
 
-
     @EventHandler
     public void handle(QueueItemCreatedEvent event) {
-        if (queryItemViewRepository.existsById(event.queueItemId())) return;
+        if (queryItemViewRepository.existsById(event.queueItemId()))
+            return;
         QueueItemView itemView = QueueItemView.builder()
                 .queueId(event.queueId())
                 .id(event.queueItemId())
                 .medicalFormId(event.medicalFormId())
                 .serviceId(event.serviceId())
                 .status(QueueItemStatus.valueOf(event.status()))
+                .type(event.type())
                 .build();
 
         itemView.markCreated();
@@ -41,7 +42,8 @@ public class QueueItemProjector {
             throw new ResourceNotFoundException("Hồ sơ không tồn tại!");
         }
         QueueItemView itemView = itemViewOpt.get();
-        if (itemView.getStatus() == QueueItemStatus.IN_PROGRESS) return;
+        if (itemView.getStatus() == QueueItemStatus.IN_PROGRESS)
+            return;
         itemView.setStatus(QueueItemStatus.IN_PROGRESS);
         itemView.setStaffId(event.staffId());
         itemView.markUpdated();
@@ -55,7 +57,8 @@ public class QueueItemProjector {
             throw new ResourceNotFoundException("Hồ sơ không tồn tại!");
         }
         QueueItemView itemView = itemViewOpt.get();
-        if (itemView.getStatus() == QueueItemStatus.COMPLETED) return;
+        if (itemView.getStatus() == QueueItemStatus.COMPLETED)
+            return;
         itemView.setStatus(QueueItemStatus.COMPLETED);
         itemView.markUpdated();
         queryItemViewRepository.save(itemView);
