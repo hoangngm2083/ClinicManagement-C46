@@ -1,10 +1,10 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
-
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -23,13 +23,12 @@ public class MedicalServiceAggregate {
     private String name;
     private String description;
     private String departmentId;
-    private String formTemplate;
+    private JsonNode formTemplate;
     private int processingPriority;
 
     @CommandHandler
     public MedicalServiceAggregate(CreateMedicalServiceCommand cmd) {
-        if (cmd.name() == null || cmd.name()
-                .isBlank()) {
+        if (cmd.name() == null || cmd.name().isBlank()) {
             throw new IllegalArgumentException("Tên dịch vụ không được để trống");
         }
 
@@ -59,17 +58,20 @@ public class MedicalServiceAggregate {
     public void handle(UpdateMedicalServiceInfoCommand cmd) {
         boolean changed = false;
 
-        if (cmd.name() != null && !cmd.name()
-                .equals(this.name)) changed = true;
-        if (cmd.description() != null && !cmd.description()
-                .equals(this.description)) changed = true;
-        if (cmd.departmentId() != null && !cmd.departmentId()
-                .equals(this.departmentId)) changed = true;
+        if (cmd.name() != null && !cmd.name().equals(this.name))
+            changed = true;
+        if (cmd.description() != null && !cmd.description().equals(this.description))
+            changed = true;
+        if (cmd.departmentId() != null && !cmd.departmentId().equals(this.departmentId))
+            changed = true;
 
-        if (!(cmd.processingPriority() == (this.processingPriority))) changed = true;
-        if (!(Objects.equals(cmd.formTemplate(), this.formTemplate))) changed = true;
+        if (cmd.processingPriority() != this.processingPriority)
+            changed = true;
+        if (!Objects.equals(cmd.formTemplate(), this.formTemplate))
+            changed = true;
 
-        if (!changed) return;
+        if (!changed)
+            return;
 
         var event = MedicalServiceInfoUpdatedEvent.builder()
                 .medicalServiceId(cmd.medicalServiceId())
@@ -85,12 +87,14 @@ public class MedicalServiceAggregate {
 
     @EventSourcingHandler
     public void on(MedicalServiceInfoUpdatedEvent event) {
-        if (event.name() != null) this.name = event.name();
-        if (event.description() != null) this.description = event.description();
-        if (event.departmentId() != null) this.departmentId = event.departmentId();
-        if (event.formTemplate() != null) this.formTemplate = event.formTemplate();
+        if (event.name() != null)
+            this.name = event.name();
+        if (event.description() != null)
+            this.description = event.description();
+        if (event.departmentId() != null)
+            this.departmentId = event.departmentId();
+        if (event.formTemplate() != null)
+            this.formTemplate = event.formTemplate();
         this.processingPriority = event.processingPriority();
     }
-
-
 }

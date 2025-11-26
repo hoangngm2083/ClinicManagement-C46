@@ -19,19 +19,28 @@ import org.axonframework.spring.stereotype.Aggregate;
 @NoArgsConstructor
 @ToString
 public class QueueItemAggregate {
+    public static final String RECEPTION_QUEUE_ID = "reception";
     @AggregateIdentifier
     private String queueItemId;
     private String medicalFormId;
     private String serviceId;
     private String queueId; // Department ID
     private String staffId;
+    private QueueItemType type; // EXAM_SERVICE hoặc RECEPTION_PAYMENT
     private QueueItemStatus status; // WAITING, IN_PROGRESS, COMPLETED
 
     @CommandHandler
     public QueueItemAggregate(CreateQueueItemCommand cmd) {
+        // Xác định queueId dựa trên type
+        String finalQueueId = cmd.queueId();
+        if (cmd.type() == QueueItemType.RECEPTION_PAYMENT) {
+            // Áp dụng Hardcode QueueId cho bước thanh toán
+            finalQueueId = RECEPTION_QUEUE_ID;
+        }
+
         AggregateLifecycle.apply(
-                new QueueItemCreatedEvent(cmd.queueItemId(), cmd.medicalFormId(), cmd.serviceId(), cmd.queueId(),
-                        QueueItemStatus.WAITING.name()));
+                new QueueItemCreatedEvent(cmd.queueItemId(), cmd.medicalFormId(), cmd.serviceId(), finalQueueId,
+                        QueueItemStatus.WAITING.name(), cmd.type()));
     }
 
     @EventSourcingHandler
@@ -41,6 +50,7 @@ public class QueueItemAggregate {
         this.serviceId = evt.serviceId();
         this.queueId = evt.queueId();
         this.status = QueueItemStatus.valueOf(evt.status());
+        this.type = evt.type();
     }
 
     @CommandHandler
@@ -52,6 +62,7 @@ public class QueueItemAggregate {
                 .queueItemId(cmd.queueItemId())
                 .queueId(this.queueId)
                 .staffId(cmd.staffId())
+                .type(this.type)
                 .build());
     }
 
@@ -61,19 +72,20 @@ public class QueueItemAggregate {
         this.status = QueueItemStatus.IN_PROGRESS;
     }
 
-    //    // 3. Lệnh "Bác sĩ yêu cầu thêm dịch vụ" (Re-schedule)
-//    @CommandHandler
-//    public void handle(RequestSupplementalServiceCommand cmd) {
-//        // ... (Kiểm tra logic)
-//        apply(new SupplementalServiceRequestedEvent(this.queueItemId, cmd.getNewServiceId(), cmd.getNewServiceRoomId(),
-//                // Phòng ban của dịch vụ mới
-//                this.currentRoom // Phòng ban hiện tại để quay lại
-//        ));
-//
-//        // Cập nhật trạng thái của phiếu hiện tại
-//        apply(new QueueItemRescheduledEvent(this.queueItemId, "PENDING_SUPPLEMENT"));
-//    }
-//
+    // // 3. Lệnh "Bác sĩ yêu cầu thêm dịch vụ" (Re-schedule)
+    // @CommandHandler
+    // public void handle(RequestSupplementalServiceCommand cmd) {
+    // // ... (Kiểm tra logic)
+    // apply(new SupplementalServiceRequestedEvent(this.queueItemId,
+    // cmd.getNewServiceId(), cmd.getNewServiceRoomId(),
+    // // Phòng ban của dịch vụ mới
+    // this.currentRoom // Phòng ban hiện tại để quay lại
+    // ));
+    //
+    // // Cập nhật trạng thái của phiếu hiện tại
+    // apply(new QueueItemRescheduledEvent(this.queueItemId, "PENDING_SUPPLEMENT"));
+    // }
+    //
     // 4. Lệnh "Hoàn thành khám"
     @CommandHandler
     public void handle(CompleteQueueItemCommand cmd) {
