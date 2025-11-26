@@ -1,7 +1,9 @@
 package com.clinic.c46.ExaminationFlowService.application.saga;
 
+import com.clinic.c46.CommonService.command.examination.CompleteExaminationCommand;
 import com.clinic.c46.CommonService.command.examination.CreateExaminationCommand;
 import com.clinic.c46.CommonService.command.payment.CreateInvoiceCommand;
+import com.clinic.c46.CommonService.event.examination.ExaminationCompletedEvent;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.event.payment.InvoiceCreatedEvent;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
@@ -173,16 +175,14 @@ public class ClinicWorkFlowProcessingSaga {
                 .equals("PAYMENT_REQUEST")) {
             log.info("[ClinicWorkFlowProcessingSaga] All services completed for medical form: {}", this.medicalFormId);
 
-            // Send command to complete medical form
-            CompleteMedicalFormCommand completeMedicalFormCommand = CompleteMedicalFormCommand.builder()
-                    .medicalFormId(this.medicalFormId)
+            // Send command to complete examination
+            CompleteExaminationCommand completeExaminationCommand = CompleteExaminationCommand.builder()
+                    .examinationId(this.examinationId)
                     .build();
 
-            this.sendCmd(completeMedicalFormCommand);
-            log.info("[ClinicWorkFlowProcessingSaga] Sent CompleteMedicalFormCommand for medicalFormId: {}",
-                    this.medicalFormId);
-
-            // TODO: có thể yêu cầu build pdf và gửi hồ sơ về email bệnh nhân
+            this.sendCmd(completeExaminationCommand);
+            log.info("[ClinicWorkFlowProcessingSaga] Sent CompleteExaminationCommand for examinationId: {}",
+                    this.examinationId);
             return;
         }
 
@@ -272,6 +272,20 @@ public class ClinicWorkFlowProcessingSaga {
 
     private void clearCreateQueueItemDeadline() {
         deadlineManager.cancelAllWithinScope("queue-item-timeout");
+    }
+
+    @SagaEventHandler(associationProperty = "examinationId")
+    public void handle(ExaminationCompletedEvent event) {
+        log.info("[ClinicWorkFlowProcessingSaga] Examination completed: {}. Completing medical form.",
+                event.examinationId());
+        this.stateMachine = ClinicWorkFlowProcessingStateMachine.EXAMINATION_COMPLETED;
+
+        // Send command to complete medical form
+        CompleteMedicalFormCommand completeMedicalFormCommand = CompleteMedicalFormCommand.builder()
+                .medicalFormId(this.medicalFormId)
+                .build();
+
+        this.sendCmd(completeMedicalFormCommand);
     }
 
     @SagaEventHandler(associationProperty = "medicalFormId")

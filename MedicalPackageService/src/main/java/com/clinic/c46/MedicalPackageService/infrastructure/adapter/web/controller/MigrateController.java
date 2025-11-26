@@ -81,21 +81,13 @@ public class MigrateController {
       String serviceId = UUID.randomUUID()
           .toString();
 
-      JsonNode formTemplateNode = null;
-      try {
-        formTemplateNode = objectMapper.readTree(service.formTemplate);
-      } catch (JsonProcessingException e) {
-        log.error("Error parsing form template for service: {}", service.name, e);
-        // Handle error or continue with null/default
-      }
-
       CreateMedicalServiceCommand cmd = CreateMedicalServiceCommand.builder()
           .medicalServiceId(serviceId)
           .name(service.name)
           .description(service.description)
           .departmentId(departmentId)
           .processingPriority(service.processingPriority)
-          .formTemplate(formTemplateNode)
+          .formTemplate(service.formTemplate)
           .build();
 
       medicalServiceService.create(cmd);
@@ -150,43 +142,183 @@ public class MigrateController {
     return selectedIds;
   }
 
+  private JsonNode parseJsonTemplate(String jsonString) {
+    try {
+      return objectMapper.readTree(jsonString);
+    } catch (JsonProcessingException e) {
+      log.error("Error parsing JSON template", e);
+      return objectMapper.createObjectNode(); // Return empty object node as fallback
+    }
+  }
+
   private List<MedicalServiceData> getDefaultMedicalServices() {
-    return Arrays.asList(new MedicalServiceData("Khám Tổng Quát", "Khám sức khỏe tổng quát cho bệnh nhân", 1, """
-          {
-          "components": [
-            { "key": "description", "label": "Mô tả", "type": "textarea" },
-            { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
-          ]
-        }
-        """), new MedicalServiceData("Xét Nghiệm Máu", "Xét nghiệm máu để chẩn đoán bệnh", 2, """
-          {
-          "components": [
-            { "key": "description", "label": "Mô tả", "type": "textarea" },
-            { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
-          ]
-        }
-        """), new MedicalServiceData("Siêu Âm", "Khám bằng siêu âm các cơ quan trong", 3, """
-          {
-          "components": [
-            { "key": "description", "label": "Mô tả", "type": "textarea" },
-            { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
-          ]
-        }
-        """), new MedicalServiceData("Chụp X-Quang", "Chụp hình X-quang chẩn đoán", 4, """
-          {
-          "components": [
-            { "key": "description", "label": "Mô tả", "type": "textarea" },
-            { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
-          ]
-        }
-        """), new MedicalServiceData("Điện Tim", "Ghi điện tim chẩn đoán bệnh tim", 5, """
-          {
-          "components": [
-            { "key": "description", "label": "Mô tả", "type": "textarea" },
-            { "key": "image1", "label": "Ảnh siêu âm 1", "type": "file" }
-          ]
-        }
-        """));
+    return Arrays.asList(
+        new MedicalServiceData("Khám Tổng Quát", "Khám sức khỏe tổng quát cho bệnh nhân", 1, parseJsonTemplate("""
+              {
+                   "components": [
+                     {
+                       "label": "Mô tả kết quả",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "description",
+                       "type": "textarea",
+                       "input": true
+                     },
+                     {
+                       "label": "Ảnh siêu âm 1",
+                       "image": true,
+                       "tableView": false,
+                       "webcam": false,
+                       "key": "image1",
+                       "type": "file",
+                       "input": true
+                     },
+                     {
+                       "label": "Nhận xét của bác sĩ",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "doctorNote",
+                       "type": "textarea",
+                       "input": true
+                     }
+                   ],
+                   "type": "form",
+                   "tags": [],
+                   "owner": null
+                 }
+            """)), new MedicalServiceData("Xét Nghiệm Máu", "Xét nghiệm máu để chẩn đoán bệnh", 2, parseJsonTemplate("""
+              {
+                   "components": [
+                     {
+                       "label": "Mô tả kết quả",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "description",
+                       "type": "textarea",
+                       "input": true
+                     },
+                     {
+                       "label": "Ảnh siêu âm 1",
+                       "image": true,
+                       "tableView": false,
+                       "webcam": false,
+                       "key": "image1",
+                       "type": "file",
+                       "input": true
+                     },
+                     {
+                       "label": "Nhận xét của bác sĩ",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "doctorNote",
+                       "type": "textarea",
+                       "input": true
+                     }
+                   ],
+                   "type": "form",
+                   "tags": [],
+                   "owner": null
+                 }
+            """)), new MedicalServiceData("Siêu Âm", "Khám bằng siêu âm các cơ quan trong", 3, parseJsonTemplate("""
+              {
+                   "components": [
+                     {
+                       "label": "Mô tả kết quả",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "description",
+                       "type": "textarea",
+                       "input": true
+                     },
+                     {
+                       "label": "Ảnh siêu âm 1",
+                       "image": true,
+                       "tableView": false,
+                       "webcam": false,
+                       "key": "image1",
+                       "type": "file",
+                       "input": true
+                     },
+                     {
+                       "label": "Nhận xét của bác sĩ",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "doctorNote",
+                       "type": "textarea",
+                       "input": true
+                     }
+                   ],
+                   "type": "form",
+                   "tags": [],
+                   "owner": null
+                 }
+            """)), new MedicalServiceData("Chụp X-Quang", "Chụp hình X-quang chẩn đoán", 4, parseJsonTemplate("""
+              {
+                   "components": [
+                     {
+                       "label": "Mô tả kết quả",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "description",
+                       "type": "textarea",
+                       "input": true
+                     },
+                     {
+                       "label": "Ảnh siêu âm 1",
+                       "image": true,
+                       "tableView": false,
+                       "webcam": false,
+                       "key": "image1",
+                       "type": "file",
+                       "input": true
+                     },
+                     {
+                       "label": "Nhận xét của bác sĩ",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "doctorNote",
+                       "type": "textarea",
+                       "input": true
+                     }
+                   ],
+                   "type": "form",
+                   "tags": [],
+                   "owner": null
+                 }
+            """)), new MedicalServiceData("Điện Tim", "Ghi điện tim chẩn đoán bệnh tim", 5, parseJsonTemplate("""
+              {
+                   "components": [
+                     {
+                       "label": "Mô tả kết quả",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "description",
+                       "type": "textarea",
+                       "input": true
+                     },
+                     {
+                       "label": "Ảnh siêu âm 1",
+                       "image": true,
+                       "tableView": false,
+                       "webcam": false,
+                       "key": "image1",
+                       "type": "file",
+                       "input": true
+                     },
+                     {
+                       "label": "Nhận xét của bác sĩ",
+                       "autoExpand": false,
+                       "tableView": true,
+                       "key": "doctorNote",
+                       "type": "textarea",
+                       "input": true
+                     }
+                   ],
+                   "type": "form",
+                   "tags": [],
+                   "owner": null
+                 }
+            """)));
   }
 
   private List<MedicalPackageData> getDefaultMedicalPackages() {
@@ -205,7 +337,7 @@ public class MigrateController {
     private String name;
     private String description;
     private int processingPriority;
-    private String formTemplate;
+    private JsonNode formTemplate;
   }
 
   @lombok.Data
