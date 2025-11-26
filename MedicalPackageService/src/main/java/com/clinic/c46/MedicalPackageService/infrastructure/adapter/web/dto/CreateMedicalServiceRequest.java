@@ -1,6 +1,6 @@
 package com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto;
 
-
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +23,6 @@ public class CreateMedicalServiceRequest {
     private String departmentId;
     @NotBlank
     private int processingPriority;
-    @NotBlank
-    private String formTemplate;
-}
 
+    private JsonNode formTemplate;
+}

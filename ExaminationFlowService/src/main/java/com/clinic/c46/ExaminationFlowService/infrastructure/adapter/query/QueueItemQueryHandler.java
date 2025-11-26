@@ -132,8 +132,8 @@ public class QueueItemQueryHandler {
         com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery getMedicalFormQuery = new com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery(
                 medicalFormId);
         Optional<com.clinic.c46.CommonService.dto.MedicalFormDto> medicalFormOpt = queryGateway.query(
-                        getMedicalFormQuery,
-                        ResponseTypes.optionalInstanceOf(com.clinic.c46.CommonService.dto.MedicalFormDto.class))
+                getMedicalFormQuery,
+                ResponseTypes.optionalInstanceOf(com.clinic.c46.CommonService.dto.MedicalFormDto.class))
                 .join();
 
         if (medicalFormOpt.isEmpty()) {
@@ -159,7 +159,7 @@ public class QueueItemQueryHandler {
 
         GetInvoiceDetailsByIdQuery getInvoiceQuery = new GetInvoiceDetailsByIdQuery(invoiceId);
         Optional<InvoiceDetailsDto> invoiceDetailsOpt = queryGateway.query(getInvoiceQuery,
-                        ResponseTypes.optionalInstanceOf(InvoiceDetailsDto.class))
+                ResponseTypes.optionalInstanceOf(InvoiceDetailsDto.class))
                 .join();
 
         return Optional.of(MedicalFormWithInvoiceDetailsDto.builder()
@@ -183,7 +183,7 @@ public class QueueItemQueryHandler {
                     .name("PAYMENT_REQUEST")
                     .departmentId(QueueItemAggregate.RECEPTION_QUEUE_ID)
                     .processingPriority(9999)
-                    .formTemplate("")
+                    .formTemplate(null)
                     .build());
         }
 

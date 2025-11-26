@@ -2,9 +2,11 @@ package com.clinic.c46.ExaminationFlowService.application.dto;
 
 import lombok.Builder;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 @Builder
 public record ServiceRepDto(String serviceId, String name, int processingPriority, String departmentId,
-                            String formTemplate) implements Comparable<ServiceRepDto> {
+        JsonNode formTemplate) implements Comparable<ServiceRepDto> {
     @Override
     public int compareTo(ServiceRepDto other) {
 
