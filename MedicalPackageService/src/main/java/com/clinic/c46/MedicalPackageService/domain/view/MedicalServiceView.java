@@ -1,8 +1,12 @@
 package com.clinic.c46.MedicalPackageService.domain.view;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Convert;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.clinic.c46.CommonService.converter.JsonNodeConverter;
 import lombok.*;
 
 @Entity
@@ -21,7 +25,7 @@ public class MedicalServiceView {
     private String departmentName;
     private String departmentId;
     private int processingPriority;
-    private String formTemplate;
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = JsonNodeConverter.class)
+    private JsonNode formTemplate;
 }
-
-

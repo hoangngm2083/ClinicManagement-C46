@@ -1,6 +1,5 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
-
 import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
 import com.clinic.c46.ExaminationFlowService.application.query.GetItemIdOfTopQueueQuery;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.QueueViewRepository;
@@ -25,7 +24,6 @@ public class QueueQueryHandler {
 
     @QueryHandler
     public Long handle(GetQueueSizeQuery query) {
-        log.warn("====== handle(GetQueueSizeQuery QueueId = {} =======", query.queueId());
         return queueViewRepository.getQueueSize(query.queueId());
     }
 

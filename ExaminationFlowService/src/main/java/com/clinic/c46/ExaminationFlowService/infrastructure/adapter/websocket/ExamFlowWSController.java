@@ -62,10 +62,15 @@ public class ExamFlowWSController {
 
     @MessageMapping("query/queue-size")
     public void handle(@Payload String queueId, Principal principal) {
+        // Remove quotes if present (due to JSON.stringify on client side)
+        String cleanQueueId = queueId.replace("\"", "");
 
-        Long qSize = queryGateway.query(new GetQueueSizeQuery(queueId), ResponseTypes.instanceOf(Long.class))
+        log.warn("====== [WS] Received queueId from client: '{}', cleaned: '{}' ======", queueId, cleanQueueId);
+
+        Long qSize = queryGateway.query(new GetQueueSizeQuery(cleanQueueId), ResponseTypes.instanceOf(Long.class))
                 .join();
 
+        log.warn("====== [WS] Query returned qSize: {} for queueId: '{}' ======", qSize, cleanQueueId);
         wSNotifier.sendToUser(principal.getName(), WebSocketNotifierImpl.STAFF_SPECIFIC_GET_QUEUE_SIZE_URL, qSize);
     }
 
