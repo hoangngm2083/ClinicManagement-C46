@@ -12,6 +12,7 @@ public enum ClinicWorkFlowProcessingStateMachine {
     QUEUE_ITEM_PROCESSED,
     PENDING_PAYMENT,
     MEDICAL_FORM_COMPLETED,
+    EXAMINATION_COMPLETED,
     COMPLETED,
     FAILED,
 }
