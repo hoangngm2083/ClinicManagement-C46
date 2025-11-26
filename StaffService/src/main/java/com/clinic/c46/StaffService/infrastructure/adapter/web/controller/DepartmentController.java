@@ -71,7 +71,7 @@ public class DepartmentController {
                 .build();
         departmentService.create(cmd);
 
-        return ResponseEntity.created(URI.create("/api/department/" + departmentId))
+        return ResponseEntity.created(URI.create("/department/" + departmentId))
                 .body(Map.of("departmentId", departmentId));
     }
 

@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Validated
 @RestController
-@RequestMapping("/api/medical-form")
+@RequestMapping("/medical-form")
 @RequiredArgsConstructor
 public class MedicalFormController {
 

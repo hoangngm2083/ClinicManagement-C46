@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/api/exam-flow")
+@RequestMapping("/exam-flow")
 public class ExamFlowController {
 
     private final QueryGateway queryGateway;
