@@ -5,150 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết quả khám bệnh</title>
     <style>
+        /* ===========================
+        GLOBAL (Giữ nguyên)
+        =========================== */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
+        font-family: 'DejaVu Sans', "Segoe UI", Tahoma, Geneva, sans-serif;
+        line-height: 1.55;
+        color: #333;
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 25px;
+        background-color: #f4f4f4;
         }
         .container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 35px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Bóng nhẹ hơn */
         }
+        /* ===========================
+        HEADER (Giữ nguyên)
+        =========================== */
         .header {
-            text-align: center;
-            border-bottom: 3px solid #2196F3;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+        text-align: center;
+        border-bottom: 3px solid #2196F3;
+        padding-bottom: 18px;
+        margin-bottom: 28px;
         }
         .header h1 {
-            color: #2196F3;
-            margin: 0;
-            font-size: 28px;
+        margin: 0;
+        font-size: 30px;
+        color: #2196F3;
         }
+        /* ===========================
+        INFO SECTION (Giữ nguyên)
+        =========================== */
         .info-section {
-            margin-bottom: 25px;
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
+        margin-bottom: 30px;
+        background: #f8f9fa;
+        padding: 18px;
+        border-radius: 8px;
         }
         .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
         }
         .info-label {
-            font-weight: 600;
-            color: #555;
+        font-weight: 600;
+        color: #555;
         }
         .info-value {
-            color: #333;
+        font-weight: 500;
+        color: #222;
         }
-        .results-section {
-            margin: 30px 0;
-        }
+        /* ===========================
+        RESULT SECTION (TINH CHỈNH MẠNH)
+        =========================== */
         .results-section h2 {
-            color: #2196F3;
-            border-bottom: 2px solid #2196F3;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .result-content {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            border-left: 4px solid #2196F3;
+        color: #2196F3;
+        border-bottom: 2px solid #2196F3;
+        padding-bottom: 8px;
+        margin-bottom: 25px;
+        font-size: 24px; /* Tăng kích thước tiêu đề chính */
+        font-weight: 700;
         }
         .service-result {
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
+        padding: 25px;
+        border: 1px solid #e0e0e0; /* Viền mỏng, sắc nét */
+        border-radius: 8px;
+        margin-bottom: 25px;
+        background: #ffffff; /* Nền trắng */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Bóng đổ rõ ràng hơn một chút */
         }
-        .service-result h3 {
-            color: #2196F3;
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
+        /* Thông tin Dịch vụ/Bác sĩ */
         .result-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+        font-size: 16px; /* Tăng kích thước */
+        color: #333; /* Chuyển sang màu đen để trông nghiêm túc */
+        padding-bottom: 10px;
         }
-        .result-item:last-child {
-            border-bottom: none;
+ 
+        .doctor-row {
+            /* Đảm bảo border bottom cho item Bác sĩ, cách ly khỏi nội dung bên dưới */
+            padding-bottom: 20px !important; 
+            margin-bottom: 20px !important;
+            border-bottom: 2px solid #2196F3 !important; 
         }
         .label {
-            font-weight: 600;
-            color: #555;
-            margin-right: 10px;
+        font-weight: 500; /* Giảm độ đậm */
+        color: #666; /* Màu xám nhẹ hơn */
+        white-space: nowrap;
         }
         .value {
-            color: #333;
+        color: #222;
+        font-weight: 700; /* Làm đậm giá trị */
         }
+        /* ===========================
+        FORM FIELDS (TINH CHỈNH MẠNH)
+        =========================== */
+        .exam-result-container {
+        font-size: 14px;
+        color: #333;
+        width: 100%;
+        }
+        .form-field {
+        margin-bottom: 18px;
+        }
+        .field-label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+        color: #2196F3; /* Dùng màu xanh để làm nổi bật tên trường */
+        font-size: 14px;
+        }
+        .field-value {
+        /* Đã đơn giản hóa */
+        padding: 12px 15px;
+        background: #fcfcfc; /* Màu trắng gần như tinh khiết */
+        border-radius: 6px;
+        border: 1px solid #eee; /* Viền rất mỏng và nhẹ */
+        white-space: pre-line;
+        font-weight: 500;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Bóng đổ vào nhẹ */
+        }
+        /* ===========================
+        FORM PANEL / SECTION (TINH CHỈNH MẠNH)
+        =========================== */
+        .panel-title {
+        font-size: 20px; /* Tăng kích thước */
+        font-weight: 700;
+        color: #333; /* Chuyển sang màu đen để trông nghiêm túc */
+        margin-bottom: 20px;
+        border-bottom: 2px solid #2196F3; /* Gạch chân màu xanh, đậm hơn */
+        padding-bottom: 10px;
+        }
+        /* ===========================
+        COLUMNS (Giữ nguyên)
+        =========================== */
+        .form-columns {
+        display: flex;
+        gap: 20px; /* Tăng khoảng cách giữa các cột */
+        width: 100%;
+        }
+        .form-column {
+        flex: 1;
+        }
+        /* ===========================
+        IMAGES (Giữ nguyên)
+        =========================== */
+        .medical-image {
+        max-width: 100%;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        padding: 5px;
+        background: #fff;
+        }
+        /* ===========================
+        FOOTER (Đã thêm style cho Lưu ý)
+        =========================== */
         .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            text-align: center;
-            color: #777;
-            font-size: 14px;
+        margin-top: 35px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+        text-align: center;
+        font-size: 14px;
+        color: #777;
         }
-        .completed-badge {
-            display: inline-block;
-            background-color: #2196F3;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .static-content {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #fff3cd;
-            border-left: 3px solid #ffc107;
+        .footer p strong {
+        color: #e65100; /* Màu cam nổi bật cho Lưu ý */
+        font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="completed-badge">✓ Hoàn thành khám</div>
-            <h1>KẾT QUẢ KHÁM BỆNH</h1>
+<div class="container">
+    <div class="header">
+        <h1>KẾT QUẢ KHÁM BỆNH</h1>
+    </div>
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Khách hàng: </span>
+            <span class="info-value" th:text="${patientName}">Nguyễn Văn A</span>
         </div>
-
-        <div class="info-section">
-            <div class="info-row">
-                <span class="info-label">Khách hàng:</span>
-                <span class="info-value" th:text="${patientName}">Nguyễn Văn A</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Mã hồ sơ khám:</span>
-                <span class="info-value" th:text="${examinationId}">EXAM-001</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Ngày hoàn thành:</span>
-                <span class="info-value" th:text="${completionDate}">26/11/2025 20:00</span>
-            </div>
+        <div class="info-row">
+            <span class="info-label">Mã hồ sơ khám: </span>
+            <span class="info-value" th:text="${examinationId}">EXAM-001</span>
         </div>
-
-        <div class="results-section">
-            <h2>Chi tiết kết quả</h2>
-            <div class="result-content" th:utext="${resultHtmlContent}">
+        <div class="info-row">
+            <span class="info-label">Ngày hoàn thành: </span>
+            <span class="info-value" th:text="${completionDate}">26/11/2025 20:00</span>
+        </div>
+    </div>
+    <div class="results-section">
+        <h2>Chi tiết kết quả</h2>
+        <div class="service-result" th:each="item : ${resultItems}">
+            <div class="result-item">
+                <span class="label">Dịch vụ thực hiện: </span>
+                <span class="value" th:text="${item.serviceName}">Khám tổng quát</span>
+            </div>
+            <div class="result-item doctor-row">
+                <span class="label">Bác sĩ thực hiện: </span>
+                <span class="value" th:text="${item.doctorName}">BS. Nguyễn Văn A</span>
+            </div>
+            <div class="result-content" th:utext="${item.resultHtmlContent}">
                 <!-- Dynamic content will be inserted here -->
             </div>
         </div>
-
-        <div class="footer">
-            <p><strong>Lưu ý:</strong> Đây là kết quả khám sơ bộ. Vui lòng liên hệ với bác sĩ để được tư vấn chi tiết.</p>
-            <p>Cảm ơn quý khách đã tin tưởng sử dụng dịch vụ của chúng tôi!</p>
-        </div>
     </div>
+    <div class="footer">
+        <p><strong>Lưu ý:</strong> Đây là kết quả khám sơ bộ. Vui lòng liên hệ với bác sĩ để được tư vấn chi tiết.</p>
+        <p>Cảm ơn quý khách đã tin tưởng sử dụng dịch vụ của chúng tôi!</p>
+    </div>
+</div>
 </body>
 </html>

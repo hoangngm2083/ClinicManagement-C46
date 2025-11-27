@@ -3,15 +3,18 @@ package com.clinic.c46.NotificationService.application.handler;
 import com.clinic.c46.CommonService.command.notification.SendExamResultEmailCommand;
 import com.clinic.c46.CommonService.command.notification.SendInvoiceEmailCommand;
 import com.clinic.c46.CommonService.command.notification.SendOTPVerificationCommand;
+import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.dto.InvoiceDetailsDto;
+import com.clinic.c46.CommonService.query.examination.GetExamDetailsByIdQuery;
 import com.clinic.c46.CommonService.query.invoice.GetInvoiceDetailsByIdQuery;
-import com.clinic.c46.NotificationService.application.dto.ExamResultTemplateVariables;
-import com.clinic.c46.NotificationService.application.dto.InvoiceTemplateVariables;
-import com.clinic.c46.NotificationService.application.service.EmailSender;
-import com.clinic.c46.NotificationService.application.service.EmailTemplateFactory;
-import com.clinic.c46.NotificationService.application.service.EmailVerificationTemplateVariables;
-import com.clinic.c46.NotificationService.domain.type.EmailContentType;
-import com.clinic.c46.NotificationService.domain.type.EmailTemplate;
+import com.clinic.c46.NotificationService.application.service.email.EmailContentType;
+import com.clinic.c46.NotificationService.application.service.email.EmailSender;
+import com.clinic.c46.NotificationService.application.service.email.EmailTemplateFactory;
+import com.clinic.c46.NotificationService.application.service.email.FormTemplateParser;
+import com.clinic.c46.NotificationService.application.service.email.variables.EmailTemplate;
+import com.clinic.c46.NotificationService.application.service.email.variables.EmailVerificationTemplateVariables;
+import com.clinic.c46.NotificationService.application.service.email.variables.ExamResultTemplateVariables;
+import com.clinic.c46.NotificationService.application.service.email.variables.InvoiceTemplateVariables;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
@@ -33,6 +36,7 @@ public class NotificationCommandHandler {
     private final EmailSender emailSender;
     private final EmailTemplateFactory emailTemplateFactory;
     private final QueryGateway queryGateway;
+    private final FormTemplateParser formTemplateParser;
 
     @CommandHandler
     public void handle(SendOTPVerificationCommand command) {
@@ -77,6 +81,7 @@ public class NotificationCommandHandler {
                     .items(items)
                     .build();
 
+
             // Render template
             String htmlContent = emailTemplateFactory.renderTemplate(EmailTemplate.INVOICE_RECEIPT, variables);
 
@@ -93,32 +98,50 @@ public class NotificationCommandHandler {
 
     @CommandHandler
     public void handle(SendExamResultEmailCommand command) {
-        log.info("[NotificationCommandHandler] Handling SendExamResultEmailCommand for examination: {}",
-                command.examinationId());
+
 
         try {
-            // For now, we'll send a simple notification
-            // In a full implementation, you would query examination details and parse
-            // Form.io templates
+
+
+            GetExamDetailsByIdQuery query = new GetExamDetailsByIdQuery(command.examinationId());
+            Optional<ExamDetailsDto> examOpt = queryGateway.query(query,
+                            ResponseTypes.optionalInstanceOf(ExamDetailsDto.class))
+                    .join();
+
+            if (examOpt.isEmpty()) {
+                log.warn("[NotificationCommandHandler] Exam not found: {}", command.examinationId());
+                return;
+            }
+
+            ExamDetailsDto exam = examOpt.get();
+
+            // Build list of result items with service name, doctor name, and parsed content
+            List<ExamResultTemplateVariables.ResultItem> resultItems = exam.results()
+                    .stream()
+                    .map(result -> ExamResultTemplateVariables.ResultItem.builder()
+                            .serviceName(result.serviceName())
+                            .doctorName(result.doctorName())
+                            .resultHtmlContent(formTemplateParser.parse(result.serviceFormTemplate(), result.data()))
+                            .build())
+                    .collect(Collectors.toList());
 
             ExamResultTemplateVariables variables = ExamResultTemplateVariables.builder()
-                    .patientName("Bệnh nhân") // Would be fetched from query
-                    .examinationId(command.examinationId())
+                    .patientName(exam.patientName())
+                    .examinationId(exam.id())
                     .completionDate(LocalDateTime.now()
                             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
-                    .resultHtmlContent(
-                            "<p>Kết quả khám của bạn đã hoàn thành. Vui lòng liên hệ phòng khám để biết thêm chi tiết.</p>")
+                    .resultItems(resultItems)
                     .build();
+
 
             // Render template
             String htmlContent = emailTemplateFactory.renderTemplate(EmailTemplate.EXAM_RESULT, variables);
 
             // Send email
-            emailSender.sendEmail(command.recipientEmail(), EmailTemplate.EXAM_RESULT.getSubject(), htmlContent,
+            emailSender.sendEmail(exam.patientEmail(), EmailTemplate.EXAM_RESULT.getSubject(), htmlContent,
                     EmailContentType.HTML);
 
-            log.info("[NotificationCommandHandler] Exam result email sent successfully to: {}",
-                    command.recipientEmail());
+            log.info("[NotificationCommandHandler] Exam result email sent successfully to: {}", exam.patientEmail());
 
         } catch (Exception e) {
             log.error("[NotificationCommandHandler] Failed to send exam result email for: {}", command.examinationId(),

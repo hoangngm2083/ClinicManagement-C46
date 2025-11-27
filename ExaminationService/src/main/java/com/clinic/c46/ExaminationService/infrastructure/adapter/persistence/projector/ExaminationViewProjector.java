@@ -1,22 +1,21 @@
 package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projector;
 
 import com.clinic.c46.CommonService.dto.PatientDto;
+import com.clinic.c46.CommonService.event.examination.ExaminationCompletedEvent;
 import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.event.examination.ResultAddedEvent;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
-import com.clinic.c46.CommonService.event.examination.ExaminationCompletedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ExaminationDeletedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultRemovedEvent;
 import com.clinic.c46.ExaminationService.domain.event.ResultStatusUpdatedEvent;
 import com.clinic.c46.ExaminationService.domain.valueObject.ExaminationStatus;
-import com.clinic.c46.ExaminationService.domain.valueObject.MedicalResult;
 import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.DoctorRepViewRepository;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.ExamViewRepository;
-import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.DoctorRepView;
-import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.ExamView;
-import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.view.ResultView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.DoctorRepView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.ExamView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.ResultView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
@@ -29,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class ExaminationViewProjection {
+public class ExaminationViewProjector {
 
     private final ExamViewRepository examViewRepository;
     private final DoctorRepViewRepository doctorViewRepository;
@@ -141,7 +140,7 @@ public class ExaminationViewProjection {
         log.info("Handling ExaminationCompletedEvent: {}", event.examinationId());
         examViewRepository.findById(event.examinationId())
                 .ifPresent(view -> {
-                    view.setStatus(ExaminationStatus.COMPLETED);
+                    view.setStatus(ExaminationStatus.valueOf(event.status()));
                     view.markUpdated();
                     examViewRepository.save(view);
                 });
