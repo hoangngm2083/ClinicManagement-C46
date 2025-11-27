@@ -1,4 +1,4 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.in.controller;
+package com.clinic.c46.NotificationService.infrastructure.adapter.rest.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;

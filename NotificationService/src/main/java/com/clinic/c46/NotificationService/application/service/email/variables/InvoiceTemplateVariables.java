@@ -1,6 +1,5 @@
-package com.clinic.c46.NotificationService.application.dto;
+package com.clinic.c46.NotificationService.application.service.email.variables;
 
-import com.clinic.c46.NotificationService.application.service.EmailTemplateVariables;
 import lombok.Builder;
 
 import java.util.List;

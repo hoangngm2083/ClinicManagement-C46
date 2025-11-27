@@ -1,9 +1,5 @@
-package com.clinic.c46.NotificationService.domain.type;
+package com.clinic.c46.NotificationService.application.service.email.variables;
 
-import com.clinic.c46.NotificationService.application.service.EmailTemplateVariables;
-import com.clinic.c46.NotificationService.application.dto.EmailVerificationTemplateVariables;
-import com.clinic.c46.NotificationService.application.dto.ExamResultTemplateVariables;
-import com.clinic.c46.NotificationService.application.dto.InvoiceTemplateVariables;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

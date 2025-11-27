@@ -1,12 +1,14 @@
-package com.clinic.c46.NotificationService.application.service;
+package com.clinic.c46.NotificationService.infrastructure.adapter.factory;
 
-import com.clinic.c46.NotificationService.domain.type.EmailTemplate;
+import com.clinic.c46.NotificationService.application.service.email.EmailTemplateFactory;
+import com.clinic.c46.NotificationService.application.service.email.variables.EmailTemplate;
+import com.clinic.c46.NotificationService.application.service.email.variables.EmailTemplateVariables;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class EmailTemplateFactoryImpl implements EmailTemplateFactory {
 

@@ -1,8 +1,8 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.out;
+package com.clinic.c46.NotificationService.infrastructure.adapter.sender;
 
-import com.clinic.c46.NotificationService.application.service.EmailSender;
+import com.clinic.c46.NotificationService.application.service.email.EmailContentType;
+import com.clinic.c46.NotificationService.application.service.email.EmailSender;
 import com.clinic.c46.NotificationService.domain.exception.EmailSendingException;
-import com.clinic.c46.NotificationService.domain.type.EmailContentType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +13,11 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class EmailSenderImpl implements EmailSender {
