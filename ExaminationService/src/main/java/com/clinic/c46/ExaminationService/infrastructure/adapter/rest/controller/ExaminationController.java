@@ -1,7 +1,7 @@
 package com.clinic.c46.ExaminationService.infrastructure.adapter.rest.controller;
 
 import com.clinic.c46.CommonService.dto.ExamDetailsDto;
-import com.clinic.c46.CommonService.query.examination.GetExaminationByIdQuery;
+import com.clinic.c46.CommonService.query.examination.GetExamDetailsByIdQuery;
 import com.clinic.c46.ExaminationService.application.dto.ExamsPagedDto;
 import com.clinic.c46.ExaminationService.application.service.examination.ExaminationService;
 import com.clinic.c46.ExaminationService.application.service.examination.dto.ExamResultDto;
@@ -46,7 +46,7 @@ public class ExaminationController {
     @GetMapping("/{examId}")
     public CompletableFuture<ResponseEntity<ExamDetailsDto>> getExaminationById(@PathVariable String examId) {
 
-        GetExaminationByIdQuery query = GetExaminationByIdQuery.builder()
+        GetExamDetailsByIdQuery query = GetExamDetailsByIdQuery.builder()
                 .examinationId(examId)
                 .build();
         return queryGateway.query(query, ResponseTypes.instanceOf(ExamDetailsDto.class))

@@ -1,12 +1,13 @@
-package com.clinic.c46.NotificationService.application.service;
+package com.clinic.c46.NotificationService.infrastructure.adapter.parser;
 
+import com.clinic.c46.NotificationService.application.service.email.FormTemplateParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+//@Component
 @Slf4j
-public class FormIoTemplateParser {
+public class FormIoTemplateParserImpl implements FormTemplateParser {
 
     public String parse(JsonNode formTemplate, JsonNode resultData) {
         if (formTemplate == null || resultData == null) {
@@ -28,9 +29,12 @@ public class FormIoTemplateParser {
     }
 
     private void processComponent(JsonNode component, JsonNode resultData, StringBuilder htmlBuilder) {
-        String type = component.has("type") ? component.get("type").asText() : "";
-        String key = component.has("key") ? component.get("key").asText() : "";
-        String label = component.has("label") ? component.get("label").asText() : "";
+        String type = component.has("type") ? component.get("type")
+                .asText() : "";
+        String key = component.has("key") ? component.get("key")
+                .asText() : "";
+        String label = component.has("label") ? component.get("label")
+                .asText() : "";
 
         // Skip if no key or data
         if (key.isEmpty() || !resultData.has(key)) {
@@ -38,7 +42,9 @@ public class FormIoTemplateParser {
             // fields
             if ("htmlelement".equals(type) || "content".equals(type)) {
                 if (component.has("content")) {
-                    htmlBuilder.append("<div class='static-content'>").append(component.get("content").asText())
+                    htmlBuilder.append("<div class='static-content'>")
+                            .append(component.get("content")
+                                    .asText())
                             .append("</div>");
                 }
                 return;
@@ -62,8 +68,12 @@ public class FormIoTemplateParser {
         String value = valueNode.asText();
 
         htmlBuilder.append("<div class='result-item'>");
-        htmlBuilder.append("<span class='label'>").append(label).append(": </span>");
-        htmlBuilder.append("<span class='value'>").append(value).append("</span>");
+        htmlBuilder.append("<span class='label'>")
+                .append(label)
+                .append(": </span>");
+        htmlBuilder.append("<span class='value'>")
+                .append(value)
+                .append("</span>");
         htmlBuilder.append("</div>");
     }
 }

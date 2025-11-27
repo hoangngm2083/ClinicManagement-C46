@@ -7,7 +7,7 @@
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 800px; margin: auto; }
         #status { font-weight: bold; }
-        .output { margin-top: 15px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; height: 300px; overflow-y: scroll; }
+        .output { margin-top: 15px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; height: 300px; overflow-y: scroll; word-wrap: break-word; }
         .log-entry { margin-bottom: 5px; border-bottom: 1px dotted #eee; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
         .exam-form, .payment-form { display: none; padding: 15px; border: 2px solid #ddd; border-radius: 5px; margin-top: 10px; }
@@ -78,7 +78,7 @@
     <input id="serviceIdInput" size="40" disabled>
     <br><br>
     <label>Exam Data (JSON):</label>
-    <textarea id="examData" rows="4" cols="60">{"diagnosis": "Chưa có kết quả"}</textarea>
+    <textarea id="examData" rows="4" cols="60">{"description": "Thai phát triển bình thường, không phát hiện bất thường.", "image1": "https://s3.amazonaws.com/clinic/uploads/ultra_001.png", "doctorNote": "Tiếp tục theo dõi định kỳ, sức khỏe ổn định."}</textarea>
     <br><br>
     <button onclick="completeExam()">Hoàn Thành Khám</button>
 </div>
@@ -180,7 +180,7 @@
         stompClient.subscribe(SUBSCRIBE_ITEM_DETAILS, (message) => {
             const details = JSON.parse(message.body);
             logMessage(`[PRIVATE] Nhận Chi tiết Phiếu khám cho ID: ${details.queueItemId}`, 'success');
-            document.getElementById('item-details').textContent = JSON.stringify(details, null, 2);
+            document.getElementById('item-details').textContent = JSON.stringify(details);
             updateDynamicDisplay(details);
         },{id: 'item-details-sub'});
 
@@ -277,9 +277,20 @@
             return;
         }
 
+        // Parse data from textarea (if provided)
+        let parsedData = {};
+        if (data && data.trim()) {
+            try {
+                parsedData = JSON.parse(data);
+            } catch (e) {
+                logMessage("Lỗi: Dữ liệu JSON không hợp lệ", 'error');
+                return;
+            }
+        }
+
         const payload = {
             serviceId: serviceId,
-            data: data
+            data: parsedData
         };
 
         const url = `${EXAMINATION_SERVICE_URL}/api/examination/${examId}/result`;
