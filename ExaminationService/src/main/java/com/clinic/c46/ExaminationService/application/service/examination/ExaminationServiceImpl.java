@@ -3,7 +3,7 @@ package com.clinic.c46.ExaminationService.application.service.examination;
 import com.clinic.c46.CommonService.command.examination.AddResultCommand;
 import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
-import com.clinic.c46.CommonService.query.examination.GetExaminationByIdQuery;
+import com.clinic.c46.CommonService.query.examination.GetExamDetailsByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.ExistsServiceByIdQuery;
 import com.clinic.c46.CommonService.query.staff.ExistsStaffByIdQuery;
 import com.clinic.c46.ExaminationService.application.service.examination.dto.ExamResultDto;
@@ -56,7 +56,7 @@ public class ExaminationServiceImpl implements ExaminationService {
 
     private CompletableFuture<Void> validateExaminationExists(String examId) {
         CompletableFuture<Optional<ExamDetailsDto>> examFeature = queryGateway.query(
-                new GetExaminationByIdQuery(examId), ResponseTypes.optionalInstanceOf(ExamDetailsDto.class));
+                new GetExamDetailsByIdQuery(examId), ResponseTypes.optionalInstanceOf(ExamDetailsDto.class));
         return examFeature.thenAccept(examOtp -> {
             if (examOtp.isEmpty()) {
                 log.warn("[ExaminationService] Examination not found: {}", examId);

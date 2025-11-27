@@ -3,7 +3,7 @@ package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.dto.InvoiceDetailsDto;
 import com.clinic.c46.CommonService.dto.MedicalFormDto;
-import com.clinic.c46.CommonService.query.examination.GetExaminationByIdQuery;
+import com.clinic.c46.CommonService.query.examination.GetExamDetailsByIdQuery;
 import com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery;
 import com.clinic.c46.CommonService.query.invoice.GetInvoiceDetailsByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetServiceByIdQuery;
@@ -149,12 +149,12 @@ public class QueueItemQueryHandler {
 
             MedicalFormDto medicalFormDto = medicalFormDtoOpt.get();
 
-            GetExaminationByIdQuery getExaminationByIdQuery = GetExaminationByIdQuery.builder()
+            GetExamDetailsByIdQuery getExamDetailsByIdQuery = GetExamDetailsByIdQuery.builder()
                     .examinationId(medicalFormDto.examinationId())
                     .build();
 
             // 3. Make an Examination call via the Query Gateway
-            CompletableFuture<Optional<ExamDetailsDto>> examinationFuture = queryGateway.query(getExaminationByIdQuery,
+            CompletableFuture<Optional<ExamDetailsDto>> examinationFuture = queryGateway.query(getExamDetailsByIdQuery,
                     ResponseTypes.optionalInstanceOf(ExamDetailsDto.class));
 
             // 4. When examinationFuture completes, use the result to combine with 'view'

@@ -18,15 +18,16 @@ public class BaseGlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
         Throwable root = unwrap(ex);
         if (root.getCause() instanceof ResourceNotFoundException) {
-            return buildError(HttpStatus.NOT_FOUND, "Runtime Error", root.getMessage(), ex);
+            return buildError(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên!", root.getMessage(), ex);
         }
-        return buildError(HttpStatus.BAD_REQUEST, "Runtime Error", root.getMessage(), ex);
+        return buildError(HttpStatus.BAD_REQUEST, "Yêu cầu không hợp lệ!", root.getMessage(), ex);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception ex) {
         Throwable root = unwrap(ex);
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", root.getMessage(), ex);
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Hệ thống tạm gián đoạn, vui lòng thử lại sau.",
+                root.getMessage(), ex);
     }
 
     /* ==================== UTILS ==================== */

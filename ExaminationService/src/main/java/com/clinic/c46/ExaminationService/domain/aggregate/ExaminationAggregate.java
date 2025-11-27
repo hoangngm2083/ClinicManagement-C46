@@ -38,7 +38,6 @@ public class ExaminationAggregate {
     @AggregateIdentifier
     private String examinationId;
     private String patientId;
-    private String patientEmail;
     private ExaminationStatus status;
     @AggregateMember(routingKey = "serviceId")
     private Set<MedicalResult> results = new HashSet<>();
@@ -117,12 +116,13 @@ public class ExaminationAggregate {
             return;
         }
 
-        AggregateLifecycle.apply(new ExaminationCompletedEvent(cmd.examinationId(), this.patientEmail));
+        AggregateLifecycle.apply(
+                new ExaminationCompletedEvent(cmd.examinationId(), ExaminationStatus.COMPLETED.name()));
     }
 
     @EventSourcingHandler
     protected void on(ExaminationCompletedEvent event) {
-        this.status = ExaminationStatus.COMPLETED;
+        this.status = ExaminationStatus.valueOf(event.status());
     }
 
     private MedicalResult findResultOrThrow(String serviceId) {
