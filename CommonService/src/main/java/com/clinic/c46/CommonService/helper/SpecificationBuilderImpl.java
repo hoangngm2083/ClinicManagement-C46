@@ -1,7 +1,6 @@
 package com.clinic.c46.CommonService.helper;
 
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,33 @@ public class SpecificationBuilderImpl implements SpecificationBuilder {
                 predicates.add(cb.like(cb.lower(root.get(field)), lowerKeyword));
             }
             return cb.or(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+
+    @Override
+    public <T, V> Specification<T> in(String field, List<V> values) {
+        return (Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
+
+            if (values == null || values.isEmpty()) {
+                return criteriaBuilder.disjunction(); // ensures that no records are returned (since the condition is always false).
+            }
+
+            // 1. Get the Expression of the field.
+            // Cast the Expression to type V (Unchecked Cast is necessary here)
+            @SuppressWarnings("unchecked") jakarta.persistence.criteria.Expression<V> expression = (jakarta.persistence.criteria.Expression<V>) root.get(
+                    field);
+
+            // 2. Create the IN condition with the correct type V
+            // Since expression is now Expression<V>, in must also be In<V>
+            CriteriaBuilder.In<V> in = criteriaBuilder.in(expression);
+
+            // 3. Add the values. NO more error because in.value(V) matches exactly.
+            for (V value : values) {
+                in.value(value);
+            }
+
+            return in;
         };
     }
 

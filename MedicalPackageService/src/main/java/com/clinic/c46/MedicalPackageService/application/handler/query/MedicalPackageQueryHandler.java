@@ -5,6 +5,7 @@ import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
 import com.clinic.c46.CommonService.query.medicalPackage.FindMedicalPackageByIdQuery;
+import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesInIdsQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetailDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
@@ -19,6 +20,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,5 +78,19 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
                                 .toList())
                         .build())
                 .orElse(null);
+    }
+
+    @QueryHandler
+    public Set<MedicalPackageDTO> handle(GetAllPackagesInIdsQuery q) {
+        return packageRepo.findAllById(q.ids())
+                .stream()
+                .map(view -> MedicalPackageDTO.builder()
+                        .medicalPackageId(view.getId())
+                        .name(view.getName())
+                        .description(view.getDescription())
+                        .image(view.getImage())
+                        .price(view.getPrice())
+                        .build())
+                .collect(Collectors.toSet());
     }
 }
