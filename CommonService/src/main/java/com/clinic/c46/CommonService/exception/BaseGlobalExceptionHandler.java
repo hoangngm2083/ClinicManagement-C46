@@ -1,80 +1,71 @@
 package com.clinic.c46.CommonService.exception;
 
-import org.axonframework.commandhandling.CommandExecutionException;
-import org.axonframework.queryhandling.QueryExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.concurrent.CompletionException;
 
 @RestControllerAdvice
+@Slf4j
 public class BaseGlobalExceptionHandler {
+    /* ====== GENERIC EXCEPTIONS ==================== */
 
-    @ExceptionHandler(BaseDomainException.class)
-    public ResponseEntity<Map<String, String>> handleDomainException(BaseDomainException ex) {
-        Map<String, String> body = new HashMap<>();
-        body.put("error", ex.getClass()
-                .getSimpleName());
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(body);
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        Throwable root = unwrap(ex);
+        if (root.getCause() instanceof ResourceNotFoundException) {
+            return buildError(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên!", root.getMessage(), ex);
+        }
+        return buildError(HttpStatus.BAD_REQUEST, "Yêu cầu không hợp lệ!", root.getMessage(), ex);
     }
-
-    @ExceptionHandler({QueryExecutionException.class, CompletionException.class})
-    public ResponseEntity<?> handleQueryException(Exception ex) {
-        Throwable cause = ex.getCause();
-        String message = (cause != null ? cause.getMessage() : ex.getMessage());
-
-        return ResponseEntity.badRequest()
-                .body(Map.of("error", "Command failed", "message-global", message));
-    }
-
-
-    @ExceptionHandler(CommandExecutionException.class)
-    public ResponseEntity<?> handleCommandExecution(CommandExecutionException ex) {
-        Throwable cause = ex.getCause();
-        String message = (cause != null ? cause.getMessage() : ex.getMessage());
-
-        return ResponseEntity.badRequest()
-                .body(Map.of("error", "Command failed", "message-global", message));
-    }
-
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
-        Map<String, String> body = new HashMap<>();
-        body.put("error", "InternalServerError");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(body);
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        Throwable root = unwrap(ex);
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Hệ thống tạm gián đoạn, vui lòng thử lại sau.",
+                root.getMessage(), ex);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+    /* ==================== UTILS ==================== */
 
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult()
-                .getAllErrors()
-                .forEach((error) -> {
-                    String fieldName = error instanceof FieldError ?
-                            ((FieldError) error).getField() : error.getObjectName();
-                    String errorMessage = error.getDefaultMessage();
-                    errors.put(fieldName, errorMessage);
-                });
+    /**
+     * Always retrieve the root cause (unwrap all nested/wrapper exceptions).
+     */
+    private Throwable unwrap(Throwable ex) {
+        Throwable cause = ex;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        return cause;
+    }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        response.put("message", "Validation failed");
-        response.put("errors", errors);
+    private ResponseEntity<ErrorResponse> buildError(HttpStatus status, String error, String message, Exception ex) {
+        log.error("{}: {}", error, message, ex);
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(error)
+                .message(message)
+                .build();
+
+        return ResponseEntity.status(status)
+                .body(response);
+    }
+
+    /* ====== DTO ==================== */
+
+    @lombok.Data
+    @lombok.Builder
+    public static class ErrorResponse {
+        private LocalDateTime timestamp;
+        private int status;
+        private String error;
+        private String message;
+        private Map<String, String> details;
     }
 }

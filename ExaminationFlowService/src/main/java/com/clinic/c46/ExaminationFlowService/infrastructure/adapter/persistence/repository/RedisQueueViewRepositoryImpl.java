@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit;
 public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
 
     /**
-     * Nếu hàng đợi source hiện đang rỗng, lệnh sẽ chờ trong khoảng thời gian xác định (TIMEOUT_SECONDS).
+     * Nếu hàng đợi source hiện đang rỗng, lệnh sẽ chờ trong khoảng thời gian xác
+     * định (TIMEOUT_SECONDS).
      * Nếu có item xuất hiện trong thời gian chờ, nó sẽ được lấy đi;
      * Nếu hết thời gian chờ mà không có item nào, lệnh sẽ trả về null.
      *
@@ -38,7 +39,6 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     private String historyKey(String queueId) {
         return "queue:" + queueId + ":history";
     }
-
 
     @Override
     public void createQueue(String queueId) {
@@ -101,7 +101,6 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     @Override
     public Long getQueueSize(String queueId) {
         String queueKey = mainKey(queueId);
-        log.warn("====== queueKey = {} =======", queueKey);
         return redisTemplate.opsForList()
                 .size(queueKey);
     }
@@ -115,7 +114,8 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
         String source = mainKey(queueId);
         String dest = procKey();
         /**
-         * moved: Biến này sẽ chứa item đã được di chuyển (thường là một chuỗi) nếu thao tác thành công,
+         * moved: Biến này sẽ chứa item đã được di chuyển (thường là một chuỗi) nếu thao
+         * tác thành công,
          * hoặc chứa null nếu hết thời gian chờ mà không có item nào.
          */
         redisTemplate.opsForList()
@@ -123,7 +123,8 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     }
 
     /**
-     * Complete an item: remove it from processing list (LREM), and optionally push to history.
+     * Complete an item: remove it from processing list (LREM), and optionally push
+     * to history.
      */
     public void complete(String queueId, String itemId) {
         String proc = procKey();
@@ -136,7 +137,8 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     }
 
     /**
-     * Rollback an item: remove from processing and push to HEAD of main queue (leftPush)
+     * Rollback an item: remove from processing and push to HEAD of main queue
+     * (leftPush)
      * so it will be next processed (2-way queue requirement).
      */
     public boolean rollbackToHead(String queueId, String itemId) {
@@ -169,7 +171,8 @@ public class RedisQueueViewRepositoryImpl implements QueueViewRepository {
     public void enqueueToTail(String queueId, String itemId) {
         redisTemplate.opsForList()
                 .leftPush(mainKey(queueId), itemId); // push to head = newest on left
-        // If you prefer pushing to tail for FIFO, use rightPush. Here design uses right as oldest.
+        // If you prefer pushing to tail for FIFO, use rightPush. Here design uses right
+        // as oldest.
     }
 
     @Override

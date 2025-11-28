@@ -19,6 +19,7 @@
     <module>StaffService</module>
     <module>ExaminationService</module>
     <module>ExaminationFlowService</module>
+    <module>PaymentService</module>
   </modules>
 
   <properties>
