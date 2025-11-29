@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận lịch hẹn</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+    <!-- Main container table -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Content wrapper -->
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; max-width: 600px;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px 30px 20px 30px; text-align: center; border-bottom: 3px solid #2196F3;">
+                            <!-- Conditional badge for CREATED -->
+                            <div th:if="${appointmentState == 'CREATED'}" style="display: inline-block; background-color: #4CAF50; color: #ffffff; padding: 8px 20px; margin-bottom: 15px; font-size: 14px; font-weight: bold;">
+                                ✓ Đặt lịch thành công
+                            </div>
+                            <!-- Conditional badge for CANCELED -->
+                            <div th:if="${appointmentState == 'CANCELED'}" style="display: inline-block; background-color: #f44336; color: #ffffff; padding: 8px 20px; margin-bottom: 15px; font-size: 14px; font-weight: bold;">
+                                ✗ Hủy lịch thành công
+                            </div>
+                            <h1 style="margin: 10px 0 0 0; color: #2196F3; font-size: 28px; font-weight: bold;">XÁC NHẬN LỊCH HẸN</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Info section -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <!-- Patient name -->
+                                <tr>
+                                    <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Bệnh nhân:</td>
+                                                <td align="right" style="color: #333333; font-size: 14px;" th:text="${patientName}">Nguyễn Văn A</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Appointment ID -->
+                                <tr>
+                                    <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Mã lịch hẹn:</td>
+                                                <td align="right" style="color: #333333; font-size: 14px;" th:text="${appointmentId}">APT-001</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Appointment date -->
+                                <tr>
+                                    <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Ngày hẹn:</td>
+                                                <td align="right" style="color: #333333; font-size: 14px;" th:text="${appointmentDate}">26/11/2025</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Shift -->
+                                <tr>
+                                    <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Ca khám:</td>
+                                                <td align="right">
+                                                    <span style="display: inline-block; background-color: #FF9800; color: #ffffff; padding: 5px 12px; font-size: 13px; font-weight: 600;" th:text="'Ca ' + (${shift == 0 ? 'sáng (8 am - 12 pm)' : 'chiều (13 pm - 17 pm)'})">Ca 1</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Medical package -->
+                                <tr>
+                                    <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Gói khám:</td>
+                                                <td align="right" style="color: #333333; font-size: 14px;" th:text="${medicalPackageName}">Gói khám tổng quát</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Services section -->
+                    <tr>
+                        <td style="padding: 0 30px 30px 30px;">
+                            <h3 style="color: #2196F3; margin: 0 0 15px 0; font-size: 18px;">Dịch vụ bao gồm:</h3>
+                            
+                            <!-- Service items -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr th:each="service : ${services}">
+                                    <td style="padding: 12px; background-color: #f9f9f9; border-left: 3px solid #2196F3; margin-bottom: 8px; font-size: 14px; color: #333333;">
+                                        <span th:text="${service.name}">Xét nghiệm máu</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 30px 30px 30px; border-top: 1px solid #eeeeee; text-align: center;">
+                            <p th:if="${appointmentState == 'CREATED'}" style="margin: 0 0 10px 0; color: #777777; font-size: 14px; line-height: 1.6;">
+                                Vui lòng đến phòng khám đúng giờ. Nếu có bất kỳ thay đổi nào, vui lòng liên hệ với chúng tôi.
+                            </p>
+                            <p th:if="${appointmentState == 'CANCELED'}" style="margin: 0 0 10px 0; color: #777777; font-size: 14px; line-height: 1.6;">
+                                Lịch hẹn của bạn đã được hủy thành công. Nếu cần đặt lịch mới, vui lòng liên hệ với chúng tôi.
+                            </p>
+                            <p style="margin: 0; color: #777777; font-size: 14px; line-height: 1.6;">
+                                Cảm ơn quý khách đã tin tưởng sử dụng dịch vụ của chúng tôi!
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
