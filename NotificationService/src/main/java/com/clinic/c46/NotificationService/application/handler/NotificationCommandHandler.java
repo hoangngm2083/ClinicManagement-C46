@@ -1,5 +1,6 @@
 package com.clinic.c46.NotificationService.application.handler;
 
+import com.clinic.c46.CommonService.command.notification.SendAppointmentInfoCommand;
 import com.clinic.c46.CommonService.command.notification.SendExamResultEmailCommand;
 import com.clinic.c46.CommonService.command.notification.SendInvoiceEmailCommand;
 import com.clinic.c46.CommonService.command.notification.SendOTPVerificationCommand;
@@ -7,6 +8,8 @@ import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.dto.InvoiceDetailsDto;
 import com.clinic.c46.CommonService.query.examination.GetExamDetailsByIdQuery;
 import com.clinic.c46.CommonService.query.invoice.GetInvoiceDetailsByIdQuery;
+import com.clinic.c46.CommonService.query.appointment.GetAppointmentDetailsByIdQuery;
+import com.clinic.c46.CommonService.dto.AppointmentDetailsDto;
 import com.clinic.c46.NotificationService.application.service.email.EmailContentType;
 import com.clinic.c46.NotificationService.application.service.email.EmailSender;
 import com.clinic.c46.NotificationService.application.service.email.EmailTemplateFactory;
@@ -15,6 +18,7 @@ import com.clinic.c46.NotificationService.application.service.email.variables.Em
 import com.clinic.c46.NotificationService.application.service.email.variables.EmailVerificationTemplateVariables;
 import com.clinic.c46.NotificationService.application.service.email.variables.ExamResultTemplateVariables;
 import com.clinic.c46.NotificationService.application.service.email.variables.InvoiceTemplateVariables;
+import com.clinic.c46.NotificationService.application.service.email.variables.AppointmentTemplateVariables;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
@@ -146,6 +150,67 @@ public class NotificationCommandHandler {
         } catch (Exception e) {
             log.error("[NotificationCommandHandler] Failed to send exam result email for: {}", command.examinationId(),
                     e);
+        }
+    }
+
+    @CommandHandler
+    public void handle(SendAppointmentInfoCommand command) {
+        log.info("[NotificationCommandHandler] Handling SendAppointmentInfoCommand for appointment: {}", 
+                command.appointmentId());
+
+        try {
+            // Query appointment details
+            GetAppointmentDetailsByIdQuery query = new GetAppointmentDetailsByIdQuery(command.appointmentId());
+            queryGateway.query(query, ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class))
+                    .thenAccept(appointmentOpt -> {
+                        if (appointmentOpt.isEmpty()) {
+                            log.warn("[NotificationCommandHandler] Appointment not found: {}", command.appointmentId());
+                            return;
+                        }
+
+                        AppointmentDetailsDto appointment = appointmentOpt.get();
+
+                        // Build list of service items
+                        List<AppointmentTemplateVariables.ServiceItem> serviceItems = appointment.getServices()
+                                .stream()
+                                .map(service -> AppointmentTemplateVariables.ServiceItem.builder()
+                                        .name(service.getName())
+                                        .build())
+                                .collect(Collectors.toList());
+
+                        // Build template variables
+                        AppointmentTemplateVariables variables = AppointmentTemplateVariables.builder()
+                                .patientName(appointment.getPatientName())
+                                .appointmentId(appointment.getId())
+                                .appointmentDate(appointment.getDate()
+                                        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                                .shift(appointment.getShift())
+                                .appointmentState(appointment.getState())
+                                .medicalPackageName(appointment.getMedicalPackageName())
+                                .services(serviceItems)
+                                .build();
+
+                        // Render template
+                        String htmlContent = emailTemplateFactory.renderTemplate(
+                                EmailTemplate.APPOINTMENT_CONFIRMATION, variables);
+
+                        // Send email
+                        emailSender.sendEmail(appointment.getPatientEmail(),
+                                EmailTemplate.APPOINTMENT_CONFIRMATION.getSubject(), htmlContent,
+                                EmailContentType.HTML);
+
+                        log.info("[NotificationCommandHandler] Appointment email sent successfully to: {}",
+                                appointment.getPatientEmail());
+                    })
+                    .exceptionally(ex -> {
+                        log.error("[NotificationCommandHandler] Failed to send appointment email for: {}",
+                                command.appointmentId(), ex);
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            log.error("[NotificationCommandHandler] Failed to send appointment email for: {}",
+                    command.appointmentId(), e);
         }
     }
 }
