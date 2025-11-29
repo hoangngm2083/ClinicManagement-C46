@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhắc nhở lịch hẹn</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+    <!-- Main container table -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Content wrapper -->
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; max-width: 600px;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px 30px 20px 30px; text-align: center; border-bottom: 3px solid #FF9800;">
+                            <div style="display: inline-block; background-color: #FF9800; color: #ffffff; padding: 8px 20px; margin-bottom: 15px; font-size: 14px; font-weight: bold;">
+                                ⏰ Nhắc nhở lịch hẹn
+                            </div>
+                            <h1 style="margin: 10px 0 0 0; color: #FF9800; font-size: 28px; font-weight: bold;">CHUẨN BỊ TRƯỚC KHI KHÁM</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Greeting section -->
+                    <tr>
+                        <td style="padding: 25px 30px 15px 30px;">
+                            <p style="margin: 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                                Kính gửi <strong th:text="${patientName}">Quý khách</strong>,
+                            </p>
+                            <p style="margin: 15px 0 0 0; font-size: 15px; color: #555555; line-height: 1.6;">
+                                Lịch hẹn của quý khách tại phòng khám sẽ diễn ra vào <strong style="color: #FF9800;" th:text="${appointmentDate}">ngày mai</strong>. 
+                                Để đảm bảo quá trình khám bệnh diễn ra thuận lợi và kết quả chính xác nhất, vui lòng lưu ý các hướng dẫn chuẩn bị dưới đây.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Appointment info section -->
+                    <tr>
+                        <td style="padding: 0 30px 20px 30px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8f9fa; padding: 18px; border-radius: 8px;">
+                                <!-- Appointment date -->
+                                <tr>
+                                    <td style="padding: 6px 0;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Ngày hẹn:</td>
+                                                <td align="right" style="font-weight: 500; color: #222222; font-size: 14px;" th:text="${appointmentDate}">26/11/2025</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Shift -->
+                                <tr>
+                                    <td style="padding: 6px 0;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Ca khám:</td>
+                                                <td align="right">
+                                                    <span style="display: inline-block; background-color: #FF9800; color: #ffffff; padding: 5px 12px; font-size: 13px; font-weight: 600;" th:text="'Ca ' + (${shift == 0 ? 'sáng (8 am - 12 pm)' : 'chiều (13 pm - 17 pm)'})">Ca sáng</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Medical package -->
+                                <tr>
+                                    <td style="padding: 6px 0;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-weight: 600; color: #555555; font-size: 14px;">Gói khám:</td>
+                                                <td align="right" style="font-weight: 500; color: #222222; font-size: 14px;" th:text="${medicalPackageName}">Gói khám tổng quát</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Preparation instructions header -->
+                    <tr>
+                        <td style="padding: 0 30px 15px 30px;">
+                            <h2 style="color: #FF9800; border-bottom: 2px solid #FF9800; padding-bottom: 8px; margin: 0; font-size: 22px; font-weight: 700;">Hướng dẫn chuẩn bị</h2>
+                        </td>
+                    </tr>
+
+                    <!-- Preparation instructions content -->
+                    <tr>
+                        <td style="padding: 0 30px 25px 30px;">
+                            <div style="background-color: #fff3e0; border-left: 4px solid #FF9800; padding: 20px; font-size: 14px; color: #333333; line-height: 1.8;">
+                                <p style="margin: 0 0 12px 0;">
+                                    Nhịn ăn ít nhất 6 giờ trước khi khám, chỉ uống nước lọc. Đối với một số xét nghiệm, đặc biệt là đường huyết, thời gian nhịn ăn cần kéo dài từ 8 – 10 tiếng, do đó thời điểm khám lý tưởng nhất là vào buổi sáng sau khi nhịn ăn qua đêm.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Tránh rượu bia và thuốc lá từ tối hôm trước để tránh ảnh hưởng đến kết quả xét nghiệm.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Tiếp tục dùng thuốc huyết áp hoặc tim mạch nếu đang điều trị, nhưng nếu dùng thuốc điều trị đái tháo đường, hãy ngưng sử dụng vào ngày khám để tránh ảnh hưởng đến kết quả.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Phụ nữ nên chọn khám phụ khoa sau sạch kinh từ 3 – 5 ngày. Không sử dụng thuốc đặt âm đạo, thụt rửa hoặc quan hệ tình dục trong vòng 2 ngày trước khi khám để đảm bảo độ chính xác.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Chọn trang phục thoải mái, rộng rãi, tốt nhất là áo tay ngắn hoặc có thể xắn lên để dễ dàng trong quá trình đo huyết áp và lấy máu.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Nếu có vấn đề về thị lực, hãy mang theo kính mắt thay vì kính áp tròng để kiểm tra thị lực chính xác hơn.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Trước khi nội soi dạ dày hoặc đại tràng, hạn chế các thực phẩm cứng, nhiều chất xơ hoặc có màu đỏ, tím, cam. Sử dụng thực phẩm mềm và dễ tiêu hóa một ngày trước khi khám.
+                                </p>
+                                <p style="margin: 0 0 12px 0;">
+                                    Mang theo các kết quả khám gần đây nhất cùng đơn thuốc đang sử dụng, nếu có, để bác sĩ có cái nhìn toàn diện hơn về tình trạng sức khỏe của bạn.
+                                </p>
+                                <p style="margin: 0;">
+                                    Giữ tinh thần thoải mái và đừng căng thẳng; sự bình tĩnh giúp quá trình khám diễn ra suôn sẻ hơn.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Important note -->
+                    <tr>
+                        <td style="padding: 0 30px 25px 30px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff9c4; border: 1px solid #fbc02d; padding: 15px;">
+                                <tr>
+                                    <td>
+                                        <p style="margin: 0; font-size: 14px; color: #f57f17; font-weight: 600;">
+                                            ⚠️ LƯU Ý QUAN TRỌNG:
+                                        </p>
+                                        <p style="margin: 10px 0 0 0; font-size: 14px; color: #555555; line-height: 1.6;">
+                                            Vui lòng đến phòng khám đúng giờ và tuân thủ các hướng dẫn chuẩn bị để đảm bảo kết quả khám chính xác nhất.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 30px 30px 30px; border-top: 1px solid #eeeeee; text-align: center;">
+                            <p style="margin: 0 0 10px 0; color: #777777; font-size: 14px; line-height: 1.6;">
+                                Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi trước khi đến khám.
+                            </p>
+                            <p style="margin: 0; color: #777777; font-size: 14px; line-height: 1.6;">
+                                Chúc quý khách có một buổi khám bệnh thuận lợi!
+                            </p>
+                            <p style="margin: 15px 0 0 0; color: #999999; font-size: 12px;">
+                                Trân trọng,<br>
+                                <strong style="color: #FF9800;">Phòng khám Đa khoa</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

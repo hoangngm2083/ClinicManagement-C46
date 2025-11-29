@@ -1,5 +1,6 @@
 package com.clinic.c46.NotificationService.application.handler;
 
+import com.clinic.c46.CommonService.command.notification.RemindAppointmentCommand;
 import com.clinic.c46.CommonService.command.notification.SendAppointmentInfoCommand;
 import com.clinic.c46.CommonService.command.notification.SendExamResultEmailCommand;
 import com.clinic.c46.CommonService.command.notification.SendInvoiceEmailCommand;
@@ -18,6 +19,7 @@ import com.clinic.c46.NotificationService.application.service.email.variables.Em
 import com.clinic.c46.NotificationService.application.service.email.variables.EmailVerificationTemplateVariables;
 import com.clinic.c46.NotificationService.application.service.email.variables.ExamResultTemplateVariables;
 import com.clinic.c46.NotificationService.application.service.email.variables.InvoiceTemplateVariables;
+import com.clinic.c46.NotificationService.application.service.email.variables.AppointmentReminderTemplateVariables;
 import com.clinic.c46.NotificationService.application.service.email.variables.AppointmentTemplateVariables;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -210,6 +212,56 @@ public class NotificationCommandHandler {
 
         } catch (Exception e) {
             log.error("[NotificationCommandHandler] Failed to send appointment email for: {}",
+                    command.appointmentId(), e);
+        }
+    }
+
+    @CommandHandler
+    public void handle(RemindAppointmentCommand command) {
+        log.info("[NotificationCommandHandler] Handling RemindAppointmentCommand for appointment: {}", 
+                command.appointmentId());
+
+        try {
+            // Query appointment details
+            GetAppointmentDetailsByIdQuery query = new GetAppointmentDetailsByIdQuery(command.appointmentId());
+            queryGateway.query(query, ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class))
+                    .thenAccept(appointmentOpt -> {
+                        if (appointmentOpt.isEmpty()) {
+                            log.warn("[NotificationCommandHandler] Appointment not found: {}", command.appointmentId());
+                            return;
+                        }
+
+                        AppointmentDetailsDto appointment = appointmentOpt.get();
+
+                        // Build template variables (preparation instructions are now in HTML template)
+                        AppointmentReminderTemplateVariables variables = AppointmentReminderTemplateVariables.builder()
+                                .patientName(appointment.getPatientName())
+                                .appointmentDate(appointment.getDate()
+                                        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                                .shift(appointment.getShift())
+                                .medicalPackageName(appointment.getMedicalPackageName())
+                                .build();
+
+                        // Render template
+                        String htmlContent = emailTemplateFactory.renderTemplate(
+                                EmailTemplate.APPOINTMENT_REMINDER, variables);
+
+                        // Send email
+                        emailSender.sendEmail(appointment.getPatientEmail(),
+                                EmailTemplate.APPOINTMENT_REMINDER.getSubject(), htmlContent,
+                                EmailContentType.HTML);
+
+                        log.info("[NotificationCommandHandler] Appointment reminder email sent successfully to: {}",
+                                appointment.getPatientEmail());
+                    })
+                    .exceptionally(ex -> {
+                        log.error("[NotificationCommandHandler] Failed to send appointment reminder email for: {}",
+                                command.appointmentId(), ex);
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            log.error("[NotificationCommandHandler] Failed to send appointment reminder email for: {}",
                     command.appointmentId(), e);
         }
     }
