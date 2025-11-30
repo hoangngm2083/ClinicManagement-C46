@@ -2,6 +2,7 @@ package com.clinic.c46.BookingService.application.handler.query;
 
 
 import com.clinic.c46.BookingService.application.repository.SlotViewRepository;
+import com.clinic.c46.BookingService.domain.query.ExistsBySlotIdQuery;
 import com.clinic.c46.BookingService.domain.query.FindSlotByIdQuery;
 import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
 import com.clinic.c46.BookingService.domain.view.SlotView;
@@ -14,11 +15,9 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +61,11 @@ public class SlotQueryHandler extends BaseQueryHandler {
         return slotRepository.findById(query.slotId())
                 .orElse(null);
 
+    }
+
+    @QueryHandler
+    public Boolean handle(ExistsBySlotIdQuery query) {
+        return slotRepository.existsById(query.slotId());
     }
 
 

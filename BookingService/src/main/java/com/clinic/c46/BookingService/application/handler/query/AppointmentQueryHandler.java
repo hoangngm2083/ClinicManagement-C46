@@ -19,9 +19,9 @@ import com.clinic.c46.CommonService.query.appointment.GetAppointmentDetailsByIdQ
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.queryhandling.QueryHandler;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
+import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -48,8 +48,8 @@ public class AppointmentQueryHandler {
     @QueryHandler
     public AppointmentsPagedResponse handle(SearchAppointmentsQuery q) {
 
-        int page = Math.max(q.getPage(), 0);
-        Pageable pageable = pageAndSortHelper.buildPageable(page, q.getSortBy(), SortDirection.valueOf(q.getSort()));
+        Pageable pageable = pageAndSortHelper.buildPageable(q.getPage(), q.getSortBy(),
+                SortDirection.valueOf(q.getSort()));
 
         Specification<AppointmentView> specKeyword = specificationBuilder.keyword(q.getKeyword(),
                 List.of("patientName"));
@@ -116,13 +116,14 @@ public class AppointmentQueryHandler {
     }
 
     @QueryHandler
-    public CompletableFuture<Optional<com.clinic.c46.CommonService.dto.AppointmentDetailsDto>> handle(GetAppointmentDetailsByIdQuery q) {
+    public CompletableFuture<Optional<com.clinic.c46.CommonService.dto.AppointmentDetailsDto>> handle(
+            GetAppointmentDetailsByIdQuery q) {
         Optional<AppointmentView> viewOpt = appointmentViewRepository.findById(q.appointmentId());
-        
+
         if (viewOpt.isEmpty()) {
             return CompletableFuture.completedFuture(Optional.empty());
         }
-        
+
         AppointmentView view = viewOpt.get();
         MedicalPackageView medicalPackage = view.getMedicalPackage();
         Set<com.clinic.c46.CommonService.dto.AppointmentDetailsDto.ServiceDto> services = medicalPackage.getServices()
@@ -132,18 +133,18 @@ public class AppointmentQueryHandler {
                         .name(serviceRepView.getName())
                         .build())
                 .collect(Collectors.toSet());
-        
+
         // Query patient email asynchronously
         GetPatientByIdQuery patientQuery = GetPatientByIdQuery.builder()
                 .patientId(view.getPatientId())
                 .build();
-        
+
         return queryGateway.query(patientQuery, ResponseTypes.optionalInstanceOf(PatientDto.class))
                 .thenApply(patientOpt -> {
-                    String patientEmail = patientOpt.map(PatientDto::email).orElse(null);
-                    
-                    com.clinic.c46.CommonService.dto.AppointmentDetailsDto dto = 
-                            com.clinic.c46.CommonService.dto.AppointmentDetailsDto.builder()
+                    String patientEmail = patientOpt.map(PatientDto::email)
+                            .orElse(null);
+
+                    com.clinic.c46.CommonService.dto.AppointmentDetailsDto dto = com.clinic.c46.CommonService.dto.AppointmentDetailsDto.builder()
                             .id(view.getId())
                             .patientId(view.getPatientId())
                             .patientName(view.getPatientName())
@@ -155,11 +156,10 @@ public class AppointmentQueryHandler {
                             .state(view.getState())
                             .services(services)
                             .build();
-                    
+
                     return Optional.of(dto);
                 });
     }
-
 
 
 }

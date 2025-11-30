@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 public interface BookingService {
     void lockSlot(LockSlotCommand command);
 
-    CompletableFuture<Object> createAppointment(CreateAppointmentCommand command);
+    CompletableFuture<Void> createAppointment(CreateAppointmentCommand command);
 
     CompletableFuture<Object> updateAppointmentState(UpdateAppointmentStateCommand command);
 
