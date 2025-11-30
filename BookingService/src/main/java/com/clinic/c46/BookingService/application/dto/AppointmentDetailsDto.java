@@ -11,4 +11,5 @@ import java.util.Set;
 @NoArgsConstructor
 public class AppointmentDetailsDto extends AppointmentDto {
     private Set<ServiceDto> services;
+    private String patientEmail;
 }
