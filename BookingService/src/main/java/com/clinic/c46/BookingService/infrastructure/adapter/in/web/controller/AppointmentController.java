@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
@@ -32,7 +33,7 @@ public class AppointmentController {
     @GetMapping
     public CompletableFuture<AppointmentsPagedResponse> getAllAppointments(
             @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sort,
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(required = false) String keyword, @RequestParam(required = false) String state,
             @RequestParam(required = false) LocalDate dateFrom, @RequestParam(required = false) LocalDate dateTo) {
 
@@ -66,7 +67,7 @@ public class AppointmentController {
                 .build();
 
         return bookingService.createAppointment(cmd)
-                .thenApply(r -> ResponseEntity.accepted()
+                .thenApply(r -> ResponseEntity.created(URI.create("/appointments/" + appointmentId))
                         .body(Map.of("appointmentId", appointmentId)));
     }
 

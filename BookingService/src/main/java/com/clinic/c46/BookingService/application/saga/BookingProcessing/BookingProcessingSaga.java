@@ -153,10 +153,27 @@ public class BookingProcessingSaga {
     private void handle(AppointmentCreatedEvent event) {
         this.stateMachine = BookingProcessingStateMachine.PENDING_RELEASE_SLOT_LOCKED;
         SagaLifecycle.associateWith("fingerprint", this.fingerprint);
+        
+        // Send ReleaseFingerprintCommand asynchronously
         this.commandGateway.send(ReleaseFingerprintCommand.builder()
                 .slotId(this.slotId)
                 .fingerprint(this.fingerprint)
-                .build());
+                .build())
+                .thenCompose(result -> {
+                    // After releasing fingerprint, send appointment email notification
+                    String notificationId = UUID.randomUUID().toString();
+                    return this.commandGateway.send(
+                            com.clinic.c46.CommonService.command.notification.SendAppointmentInfoCommand.builder()
+                                    .notificationId(notificationId)
+                                    .appointmentId(this.appointmentId)
+                                    .build()
+                    );
+                })
+                .exceptionally(ex -> {
+                    log.error("Failed to send appointment notification email for appointmentId: {}", 
+                            this.appointmentId, ex);
+                    return null;
+                });
 
     }
 

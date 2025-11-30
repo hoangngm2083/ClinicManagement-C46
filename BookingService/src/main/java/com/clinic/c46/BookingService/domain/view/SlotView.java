@@ -48,4 +48,9 @@ public class SlotView extends BaseView {
         }
         this.remainingQuantity++;
     }
+
+    public void updateMaxQuantity(int newMaxQuantity, int difference) {
+        this.maxQuantity = newMaxQuantity;
+        this.remainingQuantity += difference;
+    }
 }
