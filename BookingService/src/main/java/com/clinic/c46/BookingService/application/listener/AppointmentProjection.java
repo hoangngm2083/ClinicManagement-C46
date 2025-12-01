@@ -80,4 +80,14 @@ public class AppointmentProjection {
                     appointmentRepository.save(view);
                 });
     }
+
+    @EventHandler
+    public void on(com.clinic.c46.BookingService.domain.event.AppointmentRemindedEvent event) {
+        appointmentRepository.findById(event.appointmentId())
+                .ifPresent(view -> {
+                    view.setReminded(true);
+                    view.markUpdated();
+                    appointmentRepository.save(view);
+                });
+    }
 }

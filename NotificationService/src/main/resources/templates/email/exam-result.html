@@ -2,221 +2,219 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết quả khám bệnh</title>
     <style>
         /* ===========================
-        GLOBAL (Giữ nguyên)
-        =========================== */
-        body {
-        font-family: 'DejaVu Sans', "Segoe UI", Tahoma, Geneva, sans-serif;
-        line-height: 1.55;
-        color: #333;
-        max-width: 780px;
-        margin: 0 auto;
-        padding: 25px;
-        background-color: #f4f4f4;
-        }
-        .container {
-        background-color: #fff;
-        border-radius: 10px;
-        padding: 35px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Bóng nhẹ hơn */
-        }
-        /* ===========================
-        HEADER (Giữ nguyên)
-        =========================== */
-        .header {
-        text-align: center;
-        border-bottom: 3px solid #2196F3;
-        padding-bottom: 18px;
-        margin-bottom: 28px;
-        }
-        .header h1 {
-        margin: 0;
-        font-size: 30px;
-        color: #2196F3;
-        }
-        /* ===========================
-        INFO SECTION (Giữ nguyên)
-        =========================== */
-        .info-section {
-        margin-bottom: 30px;
-        background: #f8f9fa;
-        padding: 18px;
-        border-radius: 8px;
-        }
-        .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        }
-        .info-label {
-        font-weight: 600;
-        color: #555;
-        }
-        .info-value {
-        font-weight: 500;
-        color: #222;
-        }
-        /* ===========================
-        RESULT SECTION (TINH CHỈNH MẠNH)
-        =========================== */
-        .results-section h2 {
-        color: #2196F3;
-        border-bottom: 2px solid #2196F3;
-        padding-bottom: 8px;
-        margin-bottom: 25px;
-        font-size: 24px; /* Tăng kích thước tiêu đề chính */
-        font-weight: 700;
-        }
-        .service-result {
-        padding: 25px;
-        border: 1px solid #e0e0e0; /* Viền mỏng, sắc nét */
-        border-radius: 8px;
-        margin-bottom: 25px;
-        background: #ffffff; /* Nền trắng */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Bóng đổ rõ ràng hơn một chút */
-        }
-        /* Thông tin Dịch vụ/Bác sĩ */
-        .result-item {
-        font-size: 16px; /* Tăng kích thước */
-        color: #333; /* Chuyển sang màu đen để trông nghiêm túc */
-        padding-bottom: 10px;
-        }
- 
-        .doctor-row {
-            /* Đảm bảo border bottom cho item Bác sĩ, cách ly khỏi nội dung bên dưới */
-            padding-bottom: 20px !important; 
-            margin-bottom: 20px !important;
-            border-bottom: 2px solid #2196F3 !important; 
-        }
-        .label {
-        font-weight: 500; /* Giảm độ đậm */
-        color: #666; /* Màu xám nhẹ hơn */
-        white-space: nowrap;
-        }
-        .value {
-        color: #222;
-        font-weight: 700; /* Làm đậm giá trị */
-        }
-        /* ===========================
-        FORM FIELDS (TINH CHỈNH MẠNH)
-        =========================== */
-        .exam-result-container {
-        font-size: 14px;
-        color: #333;
-        width: 100%;
-        }
-        .form-field {
-        margin-bottom: 18px;
-        }
-        .field-label {
-        font-weight: 600;
-        margin-bottom: 6px;
-        display: block;
-        color: #2196F3; /* Dùng màu xanh để làm nổi bật tên trường */
-        font-size: 14px;
-        }
-        .field-value {
-        /* Đã đơn giản hóa */
-        padding: 12px 15px;
-        background: #fcfcfc; /* Màu trắng gần như tinh khiết */
-        border-radius: 6px;
-        border: 1px solid #eee; /* Viền rất mỏng và nhẹ */
-        white-space: pre-line;
-        font-weight: 500;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Bóng đổ vào nhẹ */
-        }
-        /* ===========================
-        FORM PANEL / SECTION (TINH CHỈNH MẠNH)
-        =========================== */
-        .panel-title {
-        font-size: 20px; /* Tăng kích thước */
-        font-weight: 700;
-        color: #333; /* Chuyển sang màu đen để trông nghiêm túc */
-        margin-bottom: 20px;
-        border-bottom: 2px solid #2196F3; /* Gạch chân màu xanh, đậm hơn */
-        padding-bottom: 10px;
-        }
-        /* ===========================
-        COLUMNS (Giữ nguyên)
-        =========================== */
-        .form-columns {
-        display: flex;
-        gap: 20px; /* Tăng khoảng cách giữa các cột */
-        width: 100%;
-        }
-        .form-column {
-        flex: 1;
-        }
-        /* ===========================
-        IMAGES (Giữ nguyên)
-        =========================== */
-        .medical-image {
-        max-width: 100%;
-        margin: 10px 0;
-        border-radius: 6px;
-        border: 1px solid #ddd;
-        padding: 5px;
-        background: #fff;
-        }
-        /* ===========================
-        FOOTER (Đã thêm style cho Lưu ý)
-        =========================== */
-        .footer {
-        margin-top: 35px;
-        padding-top: 20px;
-        border-top: 1px solid #ddd;
-        text-align: center;
-        font-size: 14px;
-        color: #777;
-        }
-        .footer p strong {
-        color: #e65100; /* Màu cam nổi bật cho Lưu ý */
-        font-weight: 700;
-        }
+       FORM FIELDS (TINH CHỈNH MẠNH)
+       =========================== */
+       .exam-result-container {
+       font-size: 14px;
+       color: #333;
+       width: 100%;
+       }
+       .form-field {
+       margin-bottom: 18px;
+       }
+       .field-label {
+       font-weight: 600;
+       margin-bottom: 6px;
+       display: block;
+       color: #2196F3; /* Dùng màu xanh để làm nổi bật tên trường */
+       font-size: 14px;
+       }
+       .field-value {
+       /* Đã đơn giản hóa */
+       padding: 12px 15px;
+       background: #fcfcfc; /* Màu trắng gần như tinh khiết */
+       border-radius: 6px;
+       border: 1px solid #eee; /* Viền rất mỏng và nhẹ */
+       white-space: pre-line;
+       font-weight: 500;
+       box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Bóng đổ vào nhẹ */
+       }
+       /* ===========================
+       FORM PANEL / SECTION (TINH CHỈNH MẠNH)
+       =========================== */
+       .panel-title {
+       font-size: 20px; /* Tăng kích thước */
+       font-weight: 700;
+       color: #333; /* Chuyển sang màu đen để trông nghiêm túc */
+       margin-bottom: 20px;
+       border-bottom: 2px solid #2196F3; /* Gạch chân màu xanh, đậm hơn */
+       padding-bottom: 10px;
+       }
+       /* ===========================
+       COLUMNS (Giữ nguyên)
+       =========================== */
+       .form-columns {
+       display: flex;
+       gap: 20px; /* Tăng khoảng cách giữa các cột */
+       width: 100%;
+       }
+       .form-column {
+       flex: 1;
+       }
+       /* ===========================
+       IMAGES (Giữ nguyên)
+       =========================== */
+       .medical-image {
+       max-width: 100%;
+       margin: 10px 0;
+       border-radius: 6px;
+       border: 1px solid #ddd;
+       padding: 5px;
+       background: #fff;
+       }
     </style>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <h1>KẾT QUẢ KHÁM BỆNH</h1>
-    </div>
-    <div class="info-section">
-        <div class="info-row">
-            <span class="info-label">Khách hàng: </span>
-            <span class="info-value" th:text="${patientName}">Nguyễn Văn A</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Mã hồ sơ khám: </span>
-            <span class="info-value" th:text="${examinationId}">EXAM-001</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Ngày hoàn thành: </span>
-            <span class="info-value" th:text="${completionDate}">26/11/2025 20:00</span>
-        </div>
-    </div>
-    <div class="results-section">
-        <h2>Chi tiết kết quả</h2>
-        <div class="service-result" th:each="item : ${resultItems}">
-            <div class="result-item">
-                <span class="label">Dịch vụ thực hiện: </span>
-                <span class="value" th:text="${item.serviceName}">Khám tổng quát</span>
-            </div>
-            <div class="result-item doctor-row">
-                <span class="label">Bác sĩ thực hiện: </span>
-                <span class="value" th:text="${item.doctorName}">BS. Nguyễn Văn A</span>
-            </div>
-            <div class="result-content" th:utext="${item.resultHtmlContent}">
-                <!-- Dynamic content will be inserted here -->
-            </div>
-        </div>
-    </div>
-    <div class="footer">
-        <p><strong>Lưu ý:</strong> Đây là kết quả khám sơ bộ. Vui lòng liên hệ với bác sĩ để được tư vấn chi tiết.</p>
-        <p>Cảm ơn quý khách đã tin tưởng sử dụng dịch vụ của chúng tôi!</p>
-    </div>
-</div>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<!-- Main container table -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 25px 0;">
+    <tr>
+        <td align="center">
+            <!-- Content wrapper -->
+            <table width="780" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color: #ffffff; max-width: 780px;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="padding: 35px 35px 18px 35px; text-align: center; border-bottom: 3px solid #2196F3;">
+                        <h1 style="margin: 0; color: #2196F3; font-size: 30px; font-weight: bold;">KẾT QUẢ KHÁM
+                            BỆNH</h1>
+                    </td>
+                </tr>
+
+                <!-- Info section -->
+                <tr>
+                    <td style="padding: 28px 35px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="background-color: #f8f9fa; padding: 18px; border-radius: 8px;">
+                            <!-- Patient name -->
+                            <tr>
+                                <td style="padding: 6px 0;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td style="font-weight: 600; color: #555555; font-size: 14px;">Khách hàng:
+                                            </td>
+                                            <td align="right" style="font-weight: 500; color: #222222; font-size: 14px;"
+                                                th:text="${patientName}">Nguyễn Văn A
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Examination ID -->
+                            <tr>
+                                <td style="padding: 6px 0;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td style="font-weight: 600; color: #555555; font-size: 14px;">Mã hồ sơ
+                                                khám:
+                                            </td>
+                                            <td align="right" style="font-weight: 500; color: #222222; font-size: 14px;"
+                                                th:text="${examinationId}">EXAM-001
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Completion date -->
+                            <tr>
+                                <td style="padding: 6px 0;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td style="font-weight: 600; color: #555555; font-size: 14px;">Ngày hoàn
+                                                thành:
+                                            </td>
+                                            <td align="right" style="font-weight: 500; color: #222222; font-size: 14px;"
+                                                th:text="${completionDate}">26/11/2025 20:00
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Results section header -->
+                <tr>
+                    <td style="padding: 0 35px;">
+                        <h2 style="color: #2196F3; border-bottom: 2px solid #2196F3; padding-bottom: 8px; margin: 0 0 25px 0; font-size: 24px; font-weight: 700;">
+                            Chi tiết kết quả</h2>
+                    </td>
+                </tr>
+
+                <!-- Results items (loop) -->
+                <tr th:each="item : ${resultItems}">
+                    <td style="padding: 0 35px 25px 35px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="border: 1px solid #e0e0e0; background-color: #ffffff;">
+
+                            <!-- Service name -->
+                            <tr>
+                                <td style="padding: 25px 25px 10px 25px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td style="font-size: 16px; color: #333333; padding-bottom: 10px;">
+                                                <span style="font-weight: 500; color: #666666;">Dịch vụ thực hiện: </span>
+                                                <span style="color: #222222; font-weight: 700;"
+                                                      th:text="${item.serviceName}">Khám tổng quát</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Doctor name -->
+                            <tr>
+                                <td style="padding: 0 25px 20px 25px; border-bottom: 2px solid #2196F3;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td style="font-size: 16px; color: #333333; padding-bottom: 10px;">
+                                                <span style="font-weight: 500; color: #666666;">Bác sĩ thực hiện: </span>
+                                                <span style="color: #222222; font-weight: 700;"
+                                                      th:text="${item.doctorName}">BS. Nguyễn Văn A</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Result content (dynamic HTML) -->
+                            <tr>
+                                <td style="padding: 20px 25px 25px 25px;">
+                                    <div style="font-size: 14px; color: #333333; line-height: 1.55;"
+                                         th:utext="${item.resultHtmlContent}">
+                                        <!-- Dynamic content will be inserted here -->
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding: 20px 35px 35px 35px; border-top: 1px solid #dddddd; text-align: center;">
+                        <p style="margin: 0 0 10px 0; font-size: 14px; color: #777777; line-height: 1.6;">
+                            <strong style="color: #e65100; font-weight: 700;">Lưu ý:</strong> Đây là kết quả khám sơ bộ.
+                            Vui lòng liên hệ với bác sĩ để được tư vấn chi tiết.
+                        </p>
+                        <p style="margin: 0; font-size: 14px; color: #777777; line-height: 1.6;">
+                            Cảm ơn quý khách đã tin tưởng sử dụng dịch vụ của chúng tôi!
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

@@ -1,0 +1,139 @@
+{
+  "queueItemId": "b71351c2-aae2-4e6d-add8-81baf624364a",
+  "medicalForm": {
+    "id": "8600fc19-1758-49c6-8e3a-bf8d39e880ae",
+    "examination": {
+      "id": "5ad58ea3-f11f-481c-be08-a763a6746d97",
+      "patientId": "525ade96-1f14-402d-aa85-8f5e435a42c2",
+      "patientName": "Nguyễn Văn A",
+      "patientEmail": "n21dccn034@student.ptithcm.edu.vn",
+      "medicalFormId": null,
+      "results": [
+        {
+          "doctorId": "9b4d2f12-125e-4ad2-8db3-4d892373adab",
+          "serviceId": "6f9ad091-fc43-4f10-88d3-023a5b92e3dd",
+          "data": "{\n \"description\": \"Thai phát triển bình thường, không phát hiện bất thường.\",\n \"image1\": \"https://s3.amazonaws.com/clinic/uploads/ultra_001.png\",\n \"doctorNote\": \"Tiếp tục theo dõi định kỳ, sức khỏe ổn định.\"\n }",
+          "pdfUrl": null,
+          "status": "CREATED",
+          "doctorName": "Dr. Emily Davis",
+          "serviceFormTemplate": {
+            "components": [
+              {
+                "label": "Mô tả kết quả",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "description",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Ảnh siêu âm 1",
+                "image": true,
+                "tableView": false,
+                "webcam": false,
+                "key": "image1",
+                "type": "file",
+                "input": true
+              },
+              {
+                "label": "Nhận xét của bác sĩ",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "doctorNote",
+                "type": "textarea",
+                "input": true
+              }
+            ],
+            "type": "form",
+            "tags": [],
+            "owner": null
+          }
+        },
+        {
+          "doctorId": "9b4d2f12-125e-4ad2-8db3-4d892373adab",
+          "serviceId": "61ccfdff-7526-47eb-ae06-b2e5cb1b2c2b",
+          "data": {
+            "description": "Thai phát triển bình thường, không phát hiện bất thường.",
+            "image1": "https://s3.amazonaws.com/clinic/uploads/ultra_001.png",
+            "doctorNote": "Tiếp tục theo dõi định kỳ, sức khỏe ổn định."
+          },
+          "pdfUrl": null,
+          "status": "CREATED",
+          "doctorName": "Dr. Emily Davis",
+          "serviceFormTemplate": {
+            "components": [
+              {
+                "label": "Mô tả kết quả",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "description",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Ảnh siêu âm 1",
+                "image": true,
+                "tableView": false,
+                "webcam": false,
+                "key": "image1",
+                "type": "file",
+                "input": true
+              },
+              {
+                "label": "Nhận xét của bác sĩ",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "doctorNote",
+                "type": "textarea",
+                "input": true
+              }
+            ],
+            "type": "form",
+            "tags": [],
+            "owner": null
+          }
+        }
+      ]
+    },
+    "medicalFormStatus": "CREATED"
+  },
+  "requestedService": {
+    "serviceId": "60fd2c68-743a-4539-b085-5f9810076dcf",
+    "name": "Chụp X-Quang",
+    "processingPriority": 4,
+    "departmentId": "3584ae26-904b-430c-b3ae-695f68eeb773",
+    "formTemplate": {
+      "components": [
+        {
+          "label": "Mô tả kết quả",
+          "autoExpand": false,
+          "tableView": true,
+          "key": "description",
+          "type": "textarea",
+          "input": true
+        },
+        {
+          "label": "Ảnh siêu âm 1",
+          "image": true,
+          "tableView": false,
+          "webcam": false,
+          "key": "image1",
+          "type": "file",
+          "input": true
+        },
+        {
+          "label": "Nhận xét của bác sĩ",
+          "autoExpand": false,
+          "tableView": true,
+          "key": "doctorNote",
+          "type": "textarea",
+          "input": true
+        }
+      ],
+      "type": "form",
+      "tags": [],
+      "owner": null
+    }
+  },
+  "type": "EXAM_SERVICE"
+}

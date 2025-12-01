@@ -4,6 +4,7 @@ import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
 import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.CreateSlotRequest;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotsPagedResponse;
+import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.UpdateSlotMaxQuantityRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -53,5 +54,18 @@ public class SlotController {
                         .build(), ResponseTypes.instanceOf(SlotsPagedResponse.class))
                 .join();
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{slotId}")
+    public ResponseEntity<Void> updateSlotMaxQuantity(@PathVariable("slotId") String slotId,
+                                                      @RequestBody UpdateSlotMaxQuantityRequest request) {
+        com.clinic.c46.BookingService.domain.command.UpdateSlotMaxQuantityCommand command = 
+                com.clinic.c46.BookingService.domain.command.UpdateSlotMaxQuantityCommand.builder()
+                .slotId(slotId)
+                .maxQuantity(request.getMaxQuantity())
+                .build();
+        
+        commandGateway.sendAndWait(command);
+        return ResponseEntity.ok().build();
     }
 }

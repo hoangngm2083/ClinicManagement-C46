@@ -4,4 +4,5 @@ public enum NotificationChannel {
     SSE,
     ZALO,
     EMAIL,
+    SMS,
 }
