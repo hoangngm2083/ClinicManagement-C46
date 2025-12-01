@@ -4,12 +4,13 @@ import com.clinic.c46.NotificationService.domain.event.NotificationEvent;
 import com.clinic.c46.NotificationService.domain.valueObject.NotificationChannel;
 
 /**
- * Observer interface cho việc gửi thông báo qua các kênh khác nhau
+ * Strategy interface cho việc gửi thông báo qua các kênh khác nhau
+ * Thay thế Observer Pattern bằng Strategy Pattern cho hiệu suất và đơn giản hơn
  */
-public interface NotificationObserver {
+public interface NotificationStrategy {
 
     /**
-     * Kênh mà observer này xử lý
+     * Kênh mà strategy này xử lý
      */
     NotificationChannel getSupportedChannel();
 
@@ -19,14 +20,7 @@ public interface NotificationObserver {
     void sendNotification(NotificationEvent event);
 
     /**
-     * Kiểm tra xem observer có thể xử lý event này không
+     * Tên của strategy để debug
      */
-    default boolean canHandle(NotificationEvent event) {
-        return getSupportedChannel() == event.getChannel();
-    }
-
-    /**
-     * Tên của observer để debug
-     */
-    String getObserverName();
+    String getStrategyName();
 }

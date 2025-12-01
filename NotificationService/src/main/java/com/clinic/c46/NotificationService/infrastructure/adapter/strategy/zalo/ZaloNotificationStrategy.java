@@ -1,17 +1,17 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.observer.zalo;
+package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.zalo;
 
 import com.clinic.c46.NotificationService.domain.event.NotificationEvent;
-import com.clinic.c46.NotificationService.application.service.notification.NotificationObserver;
+import com.clinic.c46.NotificationService.application.service.notification.NotificationStrategy;
 import com.clinic.c46.NotificationService.domain.valueObject.NotificationChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Observer xử lý việc gửi thông báo qua Zalo
+ * Strategy xử lý việc gửi thông báo qua Zalo
  */
 @Component
 @Slf4j
-public class ZaloNotificationObserver implements NotificationObserver {
+public class ZaloNotificationStrategy implements NotificationStrategy {
 
     @Override
     public NotificationChannel getSupportedChannel() {
@@ -30,7 +30,7 @@ public class ZaloNotificationObserver implements NotificationObserver {
     }
 
     @Override
-    public String getObserverName() {
-        return "ZaloNotificationObserver";
+    public String getStrategyName() {
+        return "ZaloNotificationStrategy";
     }
 }

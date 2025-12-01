@@ -1,20 +1,20 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.observer.email;
+package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email;
 
+import com.clinic.c46.NotificationService.application.service.notification.NotificationStrategy;
 import com.clinic.c46.NotificationService.domain.event.NotificationEvent;
-import com.clinic.c46.NotificationService.application.service.notification.NotificationObserver;
 import com.clinic.c46.NotificationService.domain.valueObject.NotificationChannel;
-import com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.sender.EmailSender;
+import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.sender.EmailSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Observer xử lý việc gửi email
+ * Strategy xử lý việc gửi email
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class EmailNotificationObserver implements NotificationObserver {
+public class EmailNotificationStrategy implements NotificationStrategy {
 
     private final EmailSender emailSender;
 
@@ -39,7 +39,7 @@ public class EmailNotificationObserver implements NotificationObserver {
     }
 
     @Override
-    public String getObserverName() {
-        return "EmailNotificationObserver";
+    public String getStrategyName() {
+        return "EmailNotificationStrategy";
     }
 }

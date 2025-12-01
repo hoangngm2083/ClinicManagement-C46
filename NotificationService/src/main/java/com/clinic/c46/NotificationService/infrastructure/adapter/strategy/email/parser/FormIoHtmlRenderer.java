@@ -1,4 +1,4 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.parser;
+package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
