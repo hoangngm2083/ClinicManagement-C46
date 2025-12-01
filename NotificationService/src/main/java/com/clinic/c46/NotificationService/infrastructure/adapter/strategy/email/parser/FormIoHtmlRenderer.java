@@ -12,7 +12,7 @@ import java.time.format.DateTimeParseException;
 /**
  * FormIoHtmlRenderer - Modern, production-ready renderer for Form.io schemas
  * 
- * ✅ Improvements over old parser:
+ * Improvements over old parser:
  * 1. Supports nested components (panels, columns, fieldsets)
  * 2. Type-specific renderers (text, textarea, number, date, select, file, image)
  * 3. XSS protection via HTML escaping

@@ -57,4 +57,14 @@ public class AppointmentAggregate {
         this.state = AppointmentState.valueOf(event.newState());
     }
 
+    @CommandHandler
+    public void handle(com.clinic.c46.BookingService.domain.command.MarkAppointmentAsRemindedCommand cmd) {
+        AggregateLifecycle.apply(new com.clinic.c46.BookingService.domain.event.AppointmentRemindedEvent(this.appointmentId));
+    }
+
+    @EventSourcingHandler
+    public void on(com.clinic.c46.BookingService.domain.event.AppointmentRemindedEvent event) {
+        // No state change needed in aggregate for now, but good practice to have handler
+    }
+
 }
