@@ -33,8 +33,8 @@ public class AppointmentReminderScheduler {
         // Calculate the date 24 hours from now (tomorrow at this time)
         LocalDate reminderDate = LocalDate.now().plusDays(1);
         
-        // Find all appointments in CREATED state for tomorrow
-        List<AppointmentView> appointments = appointmentViewRepository.findByDateAndState(
+        // Find all appointments in CREATED state for tomorrow that haven't been reminded
+        List<AppointmentView> appointments = appointmentViewRepository.findByDateAndStateAndIsRemindedFalse(
                 reminderDate, 
                 AppointmentState.CREATED.name()
         );
@@ -64,9 +64,14 @@ public class AppointmentReminderScheduler {
                 .build();
         
         commandGateway.send(command)
-                .thenAccept(result -> 
-                    log.info("Successfully sent reminder command for appointment: {}", appointmentId)
-                )
+                .thenCompose(result -> {
+                    log.info("Successfully sent reminder command for appointment: {}", appointmentId);
+                    // Mark appointment as reminded
+                    return commandGateway.send(com.clinic.c46.BookingService.domain.command.MarkAppointmentAsRemindedCommand.builder()
+                            .appointmentId(appointmentId)
+                            .build());
+                })
+                .thenAccept(result -> log.info("Successfully marked appointment as reminded: {}", appointmentId))
                 .exceptionally(ex -> {
                     log.error("Failed to send reminder for appointment: {} after retries", appointmentId, ex);
                     // Rethrow to trigger Spring Retry

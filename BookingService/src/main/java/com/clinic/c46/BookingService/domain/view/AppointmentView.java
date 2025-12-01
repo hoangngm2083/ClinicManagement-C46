@@ -23,6 +23,7 @@ public class AppointmentView extends BaseView {
     private String patientName;
     private String patientId;
     private String state;
+    private boolean isReminded;
 
     // --- Chỉ giữ relation ManyToOne ---
     @ManyToOne(fetch = FetchType.EAGER)
