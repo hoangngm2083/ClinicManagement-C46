@@ -6,8 +6,12 @@ import com.clinic.c46.CommonService.exception.BaseGlobalExceptionHandler;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
+@EnableRetry
 @Import({BaseGlobalExceptionHandler.class, CommonAxonConfig.class, CommonServiceConfig.class})
 
 public class BookingServiceApplication {

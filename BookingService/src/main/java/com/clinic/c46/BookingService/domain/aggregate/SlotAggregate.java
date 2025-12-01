@@ -5,11 +5,13 @@ import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
 import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
 import com.clinic.c46.BookingService.domain.command.ReleaseFingerprintCommand;
 import com.clinic.c46.BookingService.domain.command.ReleaseLockedSlotCommand;
+import com.clinic.c46.BookingService.domain.command.UpdateSlotMaxQuantityCommand;
 import com.clinic.c46.CommonService.type.Shift;
 import com.clinic.c46.BookingService.domain.event.FingerprintReleasedEvent;
 import com.clinic.c46.BookingService.domain.event.LockedSlotReleasedEvent;
 import com.clinic.c46.BookingService.domain.event.SlotCreatedEvent;
 import com.clinic.c46.BookingService.domain.event.SlotLockedEvent;
+import com.clinic.c46.BookingService.domain.event.SlotMaxQuantityUpdatedEvent;
 import com.clinic.c46.BookingService.domain.exception.LockedSlotNotFound;
 import com.clinic.c46.BookingService.domain.exception.SlotLockConflictException;
 import com.clinic.c46.BookingService.domain.exception.SlotUnavailableException;
@@ -147,7 +149,35 @@ public class SlotAggregate {
                 .equals(event.fingerprint()));
     }
 
+    // UPDATE MAX QUANTITY
+    @CommandHandler
+    public void handle(UpdateSlotMaxQuantityCommand cmd) {
+        // Validate that new max quantity is not less than current locked slots
+        int currentlyLocked = this.maxQuantity - this.remainingQuantity;
+        
+        if (cmd.maxQuantity() < currentlyLocked) {
+            throw new IllegalArgumentException(
+                    String.format("Cannot set maxQuantity to %d. Currently %d slots are locked. " +
+                            "New maxQuantity must be at least %d.", 
+                            cmd.maxQuantity(), currentlyLocked, currentlyLocked));
+        }
+
+        SlotMaxQuantityUpdatedEvent event = SlotMaxQuantityUpdatedEvent.builder()
+                .slotId(cmd.slotId())
+                .oldMaxQuantity(this.maxQuantity)
+                .newMaxQuantity(cmd.maxQuantity())
+                .build();
+
+        AggregateLifecycle.apply(event);
+    }
+
+    @EventSourcingHandler
+    public void on(SlotMaxQuantityUpdatedEvent event) {
+        int difference = event.newMaxQuantity() - event.oldMaxQuantity();
+        this.maxQuantity = event.newMaxQuantity();
+        this.remainingQuantity += difference;
+    }
+
 
 }
-
 
