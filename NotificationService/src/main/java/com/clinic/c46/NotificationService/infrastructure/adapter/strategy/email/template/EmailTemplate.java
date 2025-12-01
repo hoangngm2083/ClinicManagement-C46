@@ -1,6 +1,6 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.template;
+package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template;
 
-import com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.template.variables.*;
+import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

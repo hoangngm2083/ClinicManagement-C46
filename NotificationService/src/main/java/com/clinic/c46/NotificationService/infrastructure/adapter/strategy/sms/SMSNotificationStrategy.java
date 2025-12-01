@@ -1,17 +1,17 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.observer.sms;
+package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.sms;
 
+import com.clinic.c46.NotificationService.application.service.notification.NotificationStrategy;
 import com.clinic.c46.NotificationService.domain.event.NotificationEvent;
-import com.clinic.c46.NotificationService.application.service.notification.NotificationObserver;
 import com.clinic.c46.NotificationService.domain.valueObject.NotificationChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Observer xử lý việc gửi SMS
+ * Strategy xử lý việc gửi SMS
  */
 @Component
 @Slf4j
-public class SMSNotificationObserver implements NotificationObserver {
+public class SMSNotificationStrategy implements NotificationStrategy {
 
     @Override
     public NotificationChannel getSupportedChannel() {
@@ -30,7 +30,7 @@ public class SMSNotificationObserver implements NotificationObserver {
     }
 
     @Override
-    public String getObserverName() {
-        return "SMSNotificationObserver";
+    public String getStrategyName() {
+        return "SMSNotificationStrategy";
     }
 }

@@ -10,13 +10,14 @@ import java.time.LocalDateTime;
 
 /**
  * Service chung để gửi thông báo qua nhiều kênh
+ * Sử dụng Strategy Pattern thay vì Observer Pattern
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationSenderService {
 
-    private final NotificationSubject notificationSubject;
+    private final NotificationStrategyRegistry notificationStrategyRegistry;
 
     public void sendEmail(String userId, String recipient, String subject, String content) {
         NotificationEvent event = NotificationEvent.builder()
@@ -29,7 +30,7 @@ public class NotificationSenderService {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        notificationSubject.sendNotification(event);
+        notificationStrategyRegistry.sendNotification(event);
     }
 
     public void sendSMS(String userId, String phoneNumber, String message) {
@@ -42,7 +43,7 @@ public class NotificationSenderService {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        notificationSubject.sendNotification(event);
+        notificationStrategyRegistry.sendNotification(event);
     }
 
     public void sendZaloMessage(String userId, String zaloId, String message) {
@@ -55,13 +56,13 @@ public class NotificationSenderService {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        notificationSubject.sendNotification(event);
+        notificationStrategyRegistry.sendNotification(event);
     }
 
     /**
      * Gửi thông báo tùy chỉnh qua bất kỳ kênh nào
      */
     public void sendNotification(NotificationEvent event) {
-        notificationSubject.sendNotification(event);
+        notificationStrategyRegistry.sendNotification(event);
     }
 }

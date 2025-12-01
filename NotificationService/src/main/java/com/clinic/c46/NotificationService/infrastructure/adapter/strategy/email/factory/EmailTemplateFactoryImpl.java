@@ -1,7 +1,7 @@
-package com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.factory;
+package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.factory;
 
-import com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.template.EmailTemplate;
-import com.clinic.c46.NotificationService.infrastructure.adapter.observer.email.template.variables.EmailTemplateVariables;
+import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.EmailTemplate;
+import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.EmailTemplateVariables;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
