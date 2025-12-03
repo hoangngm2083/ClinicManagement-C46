@@ -36,11 +36,14 @@ public class DepartmentQueryHandler extends BaseQueryHandler {
     public DepartmentsPagedDTO handle(GetAllDepartmentsQuery query) {
 
         Pageable pageable = pageAndSortHelper.buildPageable(query.page(), query.size(), "", SortDirection.ASC);
-        Specification<DepartmentView> spec = specificationBuilder.keyword(query.keyword(),
+        Specification<DepartmentView> searchSpec = specificationBuilder.keyword(query.keyword(),
                 List.of("name", "description"));
 
-        
-        Page<DepartmentView> pageResult = departmentViewRepository.findAll(spec, pageable);
+        Specification<DepartmentView> notDeletedSpec = specificationBuilder.notDeleted();
+
+        Specification<DepartmentView> finalSpec = Specification.allOf(searchSpec, notDeletedSpec);
+
+        Page<DepartmentView> pageResult = departmentViewRepository.findAll(finalSpec, pageable);
 
         return pageAndSortHelper.toPaged(pageResult, view -> DepartmentDTO.builder()
                 .id(view.getId())

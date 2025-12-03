@@ -1,6 +1,7 @@
 package com.clinic.c46.MedicalPackageService.application.listener;
 
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
 import com.clinic.c46.CommonService.exception.TransientDataNotReadyException;
 import com.clinic.c46.MedicalPackageService.application.repository.DepartmentViewRepRepository;
@@ -75,6 +76,19 @@ public class MedicalServiceProjection {
                         view.setDepartmentName(dep.getName());
                     }
 
+                    view.markUpdated();
+                    medicalServiceViewRepository.save(view);
+                });
+    }
+
+    @EventHandler
+    @Transactional
+    public void on(MedicalServiceDeletedEvent event) {
+        log.debug("Handling MedicalServiceDeletedEvent for id={}", event.medicalServiceId());
+
+        medicalServiceViewRepository.findById(event.medicalServiceId())
+                .ifPresent(view -> {
+                    view.markDeleted();
                     medicalServiceViewRepository.save(view);
                 });
     }

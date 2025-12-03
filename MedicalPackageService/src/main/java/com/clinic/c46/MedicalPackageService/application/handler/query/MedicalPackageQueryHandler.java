@@ -38,10 +38,14 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
 
         Pageable pageable = pageAndSortHelper.buildPageable(q.page(), q.size(), "price", q.sort());
 
-        Specification<MedicalPackageView> spec = specificationBuilder.keyword(q.keyword(),
+        Specification<MedicalPackageView> searchSpec = specificationBuilder.keyword(q.keyword(),
                 List.of("name", "description"));
 
-        Page<MedicalPackageView> pageResult = packageRepo.findAll(spec, pageable);
+        Specification<MedicalPackageView> notDeletedSpec = specificationBuilder.notDeleted();
+
+        Specification<MedicalPackageView> finalSpec = Specification.allOf(searchSpec, notDeletedSpec);
+
+        Page<MedicalPackageView> pageResult = packageRepo.findAll(finalSpec, pageable);
 
 
         return pageAndSortHelper.toPaged(pageResult, view -> MedicalPackageDTO.builder()
