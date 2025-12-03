@@ -1,9 +1,12 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 
+
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.DeleteMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackageInfoCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackagePriceCommand;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
@@ -28,6 +31,7 @@ public class MedicalPackageAggregate {
     private int version;
     private BigDecimal price;
     private String image;
+    private boolean isDeleted;
 
 
     @CommandHandler
@@ -130,6 +134,24 @@ public class MedicalPackageAggregate {
         if (event.description() != null) this.description = event.description();
         if (event.serviceIds() != null) this.serviceIds = event.serviceIds();
         if (event.image() != null) this.image = event.image();
+    }
+
+    @CommandHandler
+    public void handle(DeleteMedicalPackageCommand cmd) {
+        if (this.isDeleted) {
+            throw new IllegalStateException("Gói khám đã bị xóa");
+        }
+
+        MedicalPackageDeletedEvent event = MedicalPackageDeletedEvent.builder()
+                .medicalPackageId(cmd.medicalPackageId())
+                .build();
+
+        AggregateLifecycle.apply(event);
+    }
+
+    @EventSourcingHandler
+    public void on(MedicalPackageDeletedEvent event) {
+        this.isDeleted = true;
     }
 
 }

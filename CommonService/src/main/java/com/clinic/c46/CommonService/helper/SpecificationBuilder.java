@@ -15,4 +15,6 @@ public interface SpecificationBuilder {
     <T, V> Specification<T> in(String field, List<V> values);
 
     <T, F extends Comparable<? super F>> Specification<T> fromTo(String field, Class<F> fieldType, F from, F to);
+
+    <T> Specification<T> notDeleted();
 }

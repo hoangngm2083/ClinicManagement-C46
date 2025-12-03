@@ -33,11 +33,13 @@ public class ExaminationController {
     @GetMapping
     public CompletableFuture<ResponseEntity<ExamsPagedDto>> searchExaminations(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false, defaultValue = "1") Integer page) {
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
 
         SearchExamsQuery query = SearchExamsQuery.builder()
                 .keyword(keyword)
                 .page(page)
+                .size(size)
                 .build();
         return queryGateway.query(query, ResponseTypes.instanceOf(ExamsPagedDto.class))
                 .thenApply(ResponseEntity::ok);
