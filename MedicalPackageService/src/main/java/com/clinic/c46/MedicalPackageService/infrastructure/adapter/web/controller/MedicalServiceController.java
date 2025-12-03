@@ -5,9 +5,12 @@ import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalServicesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.service.MedicalServiceService;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.DeleteMedicalServiceCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
 import com.clinic.c46.MedicalPackageService.domain.query.GetAllMedicalServicesQuery;
 import com.clinic.c46.MedicalPackageService.domain.query.GetMedicalServiceByIdQuery;
 import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.CreateMedicalServiceRequest;
+import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.UpdateMedicalServiceRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
@@ -78,6 +81,34 @@ public class MedicalServiceController {
                         ResponseTypes.instanceOf(MedicalServiceDTO.class))
                 .join();
         return ResponseEntity.ok(medicalServiceDTO);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateMedicalService(
+            @PathVariable String id,
+            @RequestBody UpdateMedicalServiceRequest request) {
+
+        UpdateMedicalServiceInfoCommand cmd = UpdateMedicalServiceInfoCommand.builder()
+                .medicalServiceId(id)
+                .name(request.getName())
+                .description(request.getDescription())
+                .departmentId(request.getDepartmentId())
+                .processingPriority(request.getProcessingPriority() != null ? request.getProcessingPriority() : 0)
+                .formTemplate(request.getFormTemplate())
+                .build();
+
+        medicalServiceService.update(cmd);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMedicalService(@PathVariable String id) {
+        DeleteMedicalServiceCommand cmd = DeleteMedicalServiceCommand.builder()
+                .medicalServiceId(id)
+                .build();
+
+        medicalServiceService.delete(cmd);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -1,8 +1,10 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalServiceInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.DeleteMedicalServiceCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalServiceInfoCommand;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.NoArgsConstructor;
@@ -25,6 +27,7 @@ public class MedicalServiceAggregate {
     private String departmentId;
     private JsonNode formTemplate;
     private int processingPriority;
+    private boolean isDeleted;
 
     @CommandHandler
     public MedicalServiceAggregate(CreateMedicalServiceCommand cmd) {
@@ -96,5 +99,23 @@ public class MedicalServiceAggregate {
         if (event.formTemplate() != null)
             this.formTemplate = event.formTemplate();
         this.processingPriority = event.processingPriority();
+    }
+
+    @CommandHandler
+    public void handle(DeleteMedicalServiceCommand cmd) {
+        if (this.isDeleted) {
+            throw new IllegalStateException("Dịch vụ y tế đã bị xóa");
+        }
+
+        MedicalServiceDeletedEvent event = MedicalServiceDeletedEvent.builder()
+                .medicalServiceId(cmd.medicalServiceId())
+                .build();
+
+        AggregateLifecycle.apply(event);
+    }
+
+    @EventSourcingHandler
+    public void on(MedicalServiceDeletedEvent event) {
+        this.isDeleted = true;
     }
 }

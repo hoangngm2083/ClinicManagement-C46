@@ -8,7 +8,12 @@ import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetail
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.service.MedicalPackageService;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.DeleteMedicalPackageCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackageInfoCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackagePriceCommand;
 import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.CreateMedicalPackageRequest;
+import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.UpdateMedicalPackageInfoRequest;
+import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.UpdateMedicalPackagePriceRequest;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,6 +38,7 @@ public class MedicalPackageController {
     @GetMapping
     public ResponseEntity<MedicalPackagesPagedDto> getMedicalPackages(
             @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "0") int size,
             @RequestParam(value = "keyword", required = false) String keyword,
             @Parameter(
                     in = ParameterIn.QUERY,
@@ -43,6 +49,7 @@ public class MedicalPackageController {
 
         GetAllPackagesQuery getAllMedicalPackageQuery = GetAllPackagesQuery.builder()
                 .page(page)
+                .size(size)
                 .keyword(keyword)
                 .sort(sort)
                 .build();
@@ -87,6 +94,51 @@ public class MedicalPackageController {
                         ResponseTypes.instanceOf(MedicalPackageDetailDTO.class))
                 .join();
         return ResponseEntity.ok(medicalPackageDetailDTO);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateMedicalPackageInfo(
+            @PathVariable String id,
+            @RequestBody UpdateMedicalPackageInfoRequest request) {
+
+        UpdateMedicalPackageInfoCommand infoCmd = UpdateMedicalPackageInfoCommand.builder()
+                .medicalPackageId(id)
+                .name(request.getName())
+                .description(request.getDescription())
+                .serviceIds(request.getServiceIds())
+                .image(request.getImage())
+                .build();
+        
+        medicalPackageService.updateInfo(infoCmd);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateMedicalPackagePrice(
+            @PathVariable String id,
+            @RequestBody UpdateMedicalPackagePriceRequest request) {
+
+        if (request.getPrice() == null) {
+            throw new IllegalArgumentException("Price is required");
+        }
+
+        UpdateMedicalPackagePriceCommand priceCmd = UpdateMedicalPackagePriceCommand.builder()
+                .medicalPackageId(id)
+                .newPrice(request.getPrice())
+                .build();
+        
+        medicalPackageService.updatePrice(priceCmd);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMedicalPackage(@PathVariable String id) {
+        DeleteMedicalPackageCommand cmd = DeleteMedicalPackageCommand.builder()
+                .medicalPackageId(id)
+                .build();
+
+        medicalPackageService.delete(cmd);
+        return ResponseEntity.noContent().build();
     }
 
 }

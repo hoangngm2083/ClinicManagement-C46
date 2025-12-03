@@ -1,6 +1,7 @@
 package com.clinic.c46.MedicalPackageService.application.listener;
 
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
@@ -46,7 +47,8 @@ public class MedicalPackageProjection {
                 .image(event.image())
                 .medicalServices(services)
                 .build();
-
+        
+        view.markCreated();
         packageRepo.save(view);
     }
 
@@ -58,6 +60,7 @@ public class MedicalPackageProjection {
         packageRepo.findById(event.medicalPackageId())
                 .ifPresent(view -> {
                     view.setPrice(event.newPrice());
+                    view.markUpdated();
                     packageRepo.save(view);
                 });
     }
@@ -82,6 +85,19 @@ public class MedicalPackageProjection {
                         view.setMedicalServices(services);
                     }
 
+                    view.markUpdated();
+                    packageRepo.save(view);
+                });
+    }
+
+    @EventHandler
+    @Transactional
+    public void on(MedicalPackageDeletedEvent event) {
+        log.debug("Handling MedicalPackageDeletedEvent: {}", event);
+
+        packageRepo.findById(event.medicalPackageId())
+                .ifPresent(view -> {
+                    view.markDeleted();
                     packageRepo.save(view);
                 });
     }
