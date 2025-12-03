@@ -18,10 +18,11 @@ public class PageAndSortHelperImpl implements PageAndSortHelper {
     private int defaultPageSize;
 
     @Override
-    public Pageable buildPageable(int page, String sortField, SortDirection sortDir) {
+    public Pageable buildPageable(int page, int size, String sortField, SortDirection sortDir) {
         int safePage = Math.max(page - 1, 0);
+        int safeSize = size > 0 ? size : defaultPageSize;
         Sort sort = buildSort(sortField, sortDir);
-        return PageRequest.of(safePage, defaultPageSize, sort);
+        return PageRequest.of(safePage, safeSize, sort);
     }
 
     @Override

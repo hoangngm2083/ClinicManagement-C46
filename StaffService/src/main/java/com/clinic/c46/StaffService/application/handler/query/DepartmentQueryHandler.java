@@ -35,7 +35,7 @@ public class DepartmentQueryHandler extends BaseQueryHandler {
     @QueryHandler
     public DepartmentsPagedDTO handle(GetAllDepartmentsQuery query) {
 
-        Pageable pageable = pageAndSortHelper.buildPageable(query.page(), "", SortDirection.ASC);
+        Pageable pageable = pageAndSortHelper.buildPageable(query.page(), query.size(), "", SortDirection.ASC);
         Specification<DepartmentView> spec = specificationBuilder.keyword(query.keyword(),
                 List.of("name", "description"));
 

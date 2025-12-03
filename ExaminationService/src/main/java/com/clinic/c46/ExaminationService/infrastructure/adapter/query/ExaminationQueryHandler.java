@@ -33,7 +33,7 @@ public class ExaminationQueryHandler {
 
     @QueryHandler
     public ExamsPagedDto handle(SearchExamsQuery q) {
-        Pageable pageable = pageAndSortHelper.buildPageable(q.page(), "", SortDirection.ASC);
+        Pageable pageable = pageAndSortHelper.buildPageable(q.page(), q.size(), "", SortDirection.ASC);
 
         Specification<ExamView> spec = specificationBuilder.keyword(q.keyword(),
                 List.of("patientName", "patientEmail"));

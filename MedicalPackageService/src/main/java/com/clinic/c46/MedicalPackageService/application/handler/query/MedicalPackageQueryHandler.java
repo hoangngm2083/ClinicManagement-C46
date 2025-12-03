@@ -36,7 +36,7 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
     public MedicalPackagesPagedDto handle(GetAllPackagesQuery q) {
 
 
-        Pageable pageable = pageAndSortHelper.buildPageable(q.page(), "price", q.sort());
+        Pageable pageable = pageAndSortHelper.buildPageable(q.page(), q.size(), "price", q.sort());
 
         Specification<MedicalPackageView> spec = specificationBuilder.keyword(q.keyword(),
                 List.of("name", "description"));

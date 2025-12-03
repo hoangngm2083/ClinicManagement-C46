@@ -65,7 +65,8 @@ public class StaffController {
             @RequestParam(required = false) String keyword, @RequestParam(required = false) Integer role,
             @RequestParam(required = false) String departmentId, @RequestParam(required = false) String sortBy,
             @RequestParam(required = false, defaultValue = "ASC") String sort,
-            @RequestParam(required = false, defaultValue = "1") Integer page) {
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "0") Integer size) {
         GetAllStaffQuery query = GetAllStaffQuery.builder()
                 .keyword(keyword)
                 .role(role)
@@ -73,6 +74,7 @@ public class StaffController {
                 .sortBy(sortBy)
                 .sort(SortDirection.valueOf(sort))
                 .page(page)
+                .size(size)
                 .build();
 
         return queryGateway.query(query, ResponseTypes.instanceOf(StaffsPagedDTO.class))
