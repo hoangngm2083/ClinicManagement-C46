@@ -42,7 +42,7 @@ public class StaffQueryHandler {
     @QueryHandler
     public StaffsPagedDTO handle(GetAllStaffQuery q) {
 
-        Pageable pageable = pageAndSortHelper.buildPageable(q.page(), q.sortBy(), q.sort());
+        Pageable pageable = pageAndSortHelper.buildPageable(q.page(), q.size(), q.sortBy(), q.sort());
 
         Specification<StaffView> spec1 = specificationBuilder.keyword(q.keyword(), List.of("name", "description"));
         Specification<StaffView> spec2 = specificationBuilder.fieldEquals("departmentId", q.departmentId());

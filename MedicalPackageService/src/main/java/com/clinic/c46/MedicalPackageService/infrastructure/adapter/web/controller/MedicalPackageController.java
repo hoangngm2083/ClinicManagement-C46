@@ -33,6 +33,7 @@ public class MedicalPackageController {
     @GetMapping
     public ResponseEntity<MedicalPackagesPagedDto> getMedicalPackages(
             @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "0") int size,
             @RequestParam(value = "keyword", required = false) String keyword,
             @Parameter(
                     in = ParameterIn.QUERY,
@@ -43,6 +44,7 @@ public class MedicalPackageController {
 
         GetAllPackagesQuery getAllMedicalPackageQuery = GetAllPackagesQuery.builder()
                 .page(page)
+                .size(size)
                 .keyword(keyword)
                 .sort(sort)
                 .build();

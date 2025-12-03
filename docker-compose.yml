@@ -372,6 +372,39 @@ services:
     networks:
       - c46-net
 
+  # ai-service:
+  #   build: ./AIService
+  #   container_name: ai-service
+  #   restart: always
+  #   depends_on:
+  #     api-gateway:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - CLINIC_API_BASE_URL=http://api-gateway:8080
+  #     - AI_SERVICE_PORT=8000
+  #     - CHROMA_DB_PATH=./chroma_db
+  #     - SYNC_DOCTORS_INTERVAL_MINUTES=15
+  #     - SYNC_SLOTS_INTERVAL_MINUTES=5
+  #     - SYNC_PACKAGES_INTERVAL_MINUTES=30
+  #     - MEMORY_MAX_TOKENS=2000
+  #     - MEMORY_WINDOW_SIZE=10
+  #     - TZ=Asia/Ho_Chi_Minh
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ai_chroma_data:/app/chroma_db
+  #     - ./logs:/app/logs
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--spider", "http://localhost:8000/health" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
+  #   networks:
+  #     - c46-net
+
   python-server:
     image: python:3.11-alpine
     container_name: html-python-server
@@ -391,6 +424,7 @@ volumes:
   axon-data:
   axon-events:
   axon-config:
+  ai_chroma_data:
 
 
 networks:
