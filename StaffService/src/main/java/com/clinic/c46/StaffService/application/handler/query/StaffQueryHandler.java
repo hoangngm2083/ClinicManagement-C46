@@ -109,7 +109,9 @@ public class StaffQueryHandler {
 
     @QueryHandler
     public List<String> handle(GetIdOfAllStaffQuery query) {
-        return staffViewRepository.findAll()
+        Specification<StaffView> spec = specificationBuilder.notDeleted();
+
+        return staffViewRepository.findAll(spec)
                 .stream()
                 .map(StaffView::getId)
                 .toList();

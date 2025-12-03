@@ -1,6 +1,7 @@
 package com.clinic.c46.MedicalPackageService.application.service;
 
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
+import com.clinic.c46.MedicalPackageService.domain.command.DeleteMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackageInfoCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackagePriceCommand;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,11 @@ public class MedicalPackageServiceImpl implements MedicalPackageService {
 
     @Override
     public void updateInfo(UpdateMedicalPackageInfoCommand cmd) {
+        commandGateway.sendAndWait(cmd);
+    }
+
+    @Override
+    public void delete(DeleteMedicalPackageCommand cmd) {
         commandGateway.sendAndWait(cmd);
     }
 
