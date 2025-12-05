@@ -94,4 +94,17 @@ public class SpecificationBuilderImpl implements SpecificationBuilder {
         String lowerValue = "%" + value.toLowerCase() + "%";
         return (root, cq, cb) -> cb.like(cb.lower(root.get(field)), lowerValue);
     }
+
+    @Override
+    public <T> Specification<T> notDeleted() {
+        return (root, cq, cb) -> {
+            try {
+                return cb.isNull(root.get("deletedAt"));
+            } catch (Exception e) {
+                // If the entity doesn't have a deletedAt field, return true (no filtering)
+                // This makes the method safe to use on any entity
+                return cb.conjunction();
+            }
+        };
+    }
 }

@@ -4,6 +4,6 @@ import com.clinic.c46.CommonService.helper.SortDirection;
 import lombok.Builder;
 
 @Builder
-public record GetAllStaffQuery(String keyword, String departmentId, Integer role, int page, String sortBy,
+public record GetAllStaffQuery(String keyword, String departmentId, Integer role, int page, int size, String sortBy,
                                SortDirection sort) {
 }

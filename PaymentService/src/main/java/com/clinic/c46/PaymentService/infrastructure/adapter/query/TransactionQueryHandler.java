@@ -51,9 +51,11 @@ public class TransactionQueryHandler {
                 query.invoiceId());
         Specification<TransactionProjection> inSpec = specificationBuilder.in("status",
                 new ArrayList<>(query.statuses()));
+        Specification<TransactionProjection> notDeletedSpec = specificationBuilder.notDeleted();
 
         Specification<TransactionProjection> finalSpec = Specification.allOf(equalsSpec)
-                .and(inSpec);
+                .and(inSpec)
+                .and(notDeletedSpec);
         List<TransactionProjection> transactionProjections = transactionRepository.findAll(finalSpec);
 
         return transactionProjections.stream()

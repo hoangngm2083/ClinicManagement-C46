@@ -1,5 +1,6 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
+import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.ExaminationFlowService.application.dto.PackageRepDto;
 import com.clinic.c46.ExaminationFlowService.application.query.ExistsAllPackageByIdsQuery;
 import com.clinic.c46.ExaminationFlowService.application.query.GetAllPackageByIdsQuery;
@@ -9,6 +10,7 @@ import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.queryhandling.QueryHandler;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,6 +23,7 @@ public class PackageQueryHandler {
 
     private final PackageRepViewRepository packageRepViewRepository;
     private final ServiceMapper serviceMapper;
+    private final SpecificationBuilder specificationBuilder;
 
 
     @QueryHandler
@@ -46,7 +49,15 @@ public class PackageQueryHandler {
         }
         log.warn("+++++++++++ [PackageQueryHandler] Fetching PackageRepViews for package IDs: {}", query.packageIds());
 
-        List<PackageRepView> medicalPackages = packageRepViewRepository.findAllById(query.packageIds());
+        Specification<PackageRepView> inSpec = specificationBuilder.in("id", query.packageIds()
+                .stream()
+                .toList());
+
+        Specification<PackageRepView> notDeletedSpec = specificationBuilder.notDeleted();
+
+        Specification<PackageRepView> finalSpec = Specification.allOf(inSpec, notDeletedSpec);
+
+        List<PackageRepView> medicalPackages = packageRepViewRepository.findAll(finalSpec);
 
         if (medicalPackages.isEmpty()) {
             log.warn("+++++++++++ [PackageQueryHandler] No PackageRepViews found for package IDs: {}",

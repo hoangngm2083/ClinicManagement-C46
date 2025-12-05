@@ -48,7 +48,7 @@ public class AppointmentQueryHandler {
     @QueryHandler
     public AppointmentsPagedResponse handle(SearchAppointmentsQuery q) {
 
-        Pageable pageable = pageAndSortHelper.buildPageable(q.getPage(), q.getSortBy(),
+        Pageable pageable = pageAndSortHelper.buildPageable(q.getPage(), q.getSize(), q.getSortBy(),
                 SortDirection.valueOf(q.getSort()));
 
         Specification<AppointmentView> specKeyword = specificationBuilder.keyword(q.getKeyword(),

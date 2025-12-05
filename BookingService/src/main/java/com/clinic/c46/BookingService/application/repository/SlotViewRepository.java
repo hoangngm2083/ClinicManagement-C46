@@ -15,6 +15,8 @@ public interface SlotViewRepository extends JpaRepository<SlotView, String> {
     List<SlotView> findAllByMedicalPackageId(String medicalPackageId);
 
     Page<SlotView> findAllByMedicalPackageId(String medicalPackageId, Pageable pageable);
+
+    Page<SlotView> findAllByMedicalPackageIdAndDateBetween(String medicalPackageId, LocalDate dateFrom, LocalDate dateTo, Pageable pageable);
     
     boolean existsByDateAndShiftAndMedicalPackageId(LocalDate date, int shift, String medicalPackageId);
 

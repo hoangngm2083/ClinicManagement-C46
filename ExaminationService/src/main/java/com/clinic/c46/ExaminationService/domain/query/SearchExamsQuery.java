@@ -4,6 +4,6 @@ import lombok.Builder;
 
 
 @Builder
-public record SearchExamsQuery(int page, String keyword) {
+public record SearchExamsQuery(int page, int size, String keyword) {
 
 }

@@ -1,8 +1,10 @@
 package com.clinic.c46.MedicalPackageService.domain.view;
 
 
+import com.clinic.c46.CommonService.domain.BaseView;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -13,9 +15,9 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Table(name = "medical_package")
-public class MedicalPackageView {
+public class MedicalPackageView extends BaseView {
     @Id
     private String id;
     private String name;
