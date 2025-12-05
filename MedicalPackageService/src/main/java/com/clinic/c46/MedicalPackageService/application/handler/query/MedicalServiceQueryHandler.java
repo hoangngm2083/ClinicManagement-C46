@@ -33,6 +33,8 @@ public class MedicalServiceQueryHandler extends BaseQueryHandler {
 
         Specification<MedicalServiceView> spec = Specification.allOf();
 
+        spec = spec.and((root, cq, cb) -> cb.isNull(root.get("deletedAt")));
+
         String keyword = query.keyword();
         if (keyword != null && !keyword.isBlank()) {
             String lowerKeyword = "%" + keyword.toLowerCase() + "%";
