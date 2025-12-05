@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e40a09e4-3717-4e5f-98b7-bcde1e17d4fd" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/AIService/.dockerignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/AIService_Detailed_Analysis.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/agents/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/agents/agent_core.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/agents/tools.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/config/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/config/settings.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/models/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/models/prompts.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/rag/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/rag/data_loader.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/rag/data_sync.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/rag/vector_store.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/services/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/services/clinic_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/app/utils/helpers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/demo_dynamic_prompt.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/docs/langchain-agents-knowledge.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/run.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/tests/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AIService/tests/test_health.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/redis/data/dump.rdb" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/dump.rdb" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 4
+}]]></component>
+  <component name="ProjectId" id="36Qoxs4xrCnkEr89BEU4c9nizUw" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="autoscrollToSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "feature/appointment",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/projects/microservice/clinic-management-c46"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.25557.131" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e40a09e4-3717-4e5f-98b7-bcde1e17d4fd" name="Changes" comment="" />
+      <created>1764948405751</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1764948405751</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

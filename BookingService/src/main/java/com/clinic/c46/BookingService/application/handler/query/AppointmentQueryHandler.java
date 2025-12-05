@@ -5,7 +5,6 @@ import com.clinic.c46.BookingService.application.dto.AppointmentDetailsDto;
 import com.clinic.c46.BookingService.application.dto.AppointmentDto;
 import com.clinic.c46.BookingService.application.dto.ServiceDto;
 import com.clinic.c46.BookingService.application.repository.AppointmentViewRepository;
-import com.clinic.c46.BookingService.domain.enums.AppointmentState;
 import com.clinic.c46.BookingService.domain.query.GetAppointmentByIdQuery;
 import com.clinic.c46.BookingService.domain.query.SearchAppointmentsQuery;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
@@ -54,14 +53,14 @@ public class AppointmentQueryHandler {
         Specification<AppointmentView> specKeyword = specificationBuilder.keyword(q.getKeyword(),
                 List.of("patientName"));
 
-        // String stateToSearch = q.getState() == null ? AppointmentState.CREATED.name() : q.getState();
-        // Specification<AppointmentView> specState = specificationBuilder.fieldEquals("state", stateToSearch);
+        Specification<AppointmentView> specState = q.getState() != null ? specificationBuilder.fieldEquals("state",
+                q.getState()) : null;
 
         Specification<AppointmentView> specDate = specificationBuilder.fromTo("date", LocalDate.class, q.getDateFrom(),
                 q.getDateTo());
 
         Specification<AppointmentView> finalSpec = Specification.allOf(specKeyword)
-                // .and(specState)
+                .and(specState)
                 .and(specDate);
 
         Page<AppointmentView> pageResult = appointmentViewRepository.findAll(finalSpec, pageable);
