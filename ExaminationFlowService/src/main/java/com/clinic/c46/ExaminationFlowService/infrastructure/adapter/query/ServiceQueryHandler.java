@@ -1,6 +1,7 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.query;
 
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
+import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.medicalPackage.GetServiceByIdQuery;
 import com.clinic.c46.ExaminationFlowService.application.dto.PackageRepDto;
 import com.clinic.c46.ExaminationFlowService.application.dto.ServiceRepDto;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.queryhandling.QueryHandler;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ public class ServiceQueryHandler {
     private final QueryGateway queryGateway;
     private final ServiceRepViewRepository serviceRepViewRepository;
     private final ServiceMapper serviceMapper;
+    private final SpecificationBuilder specificationBuilder;
 
     @QueryHandler
     public List<ServiceRepDto> handle(GetAllServicesOfPackagesQuery query) {

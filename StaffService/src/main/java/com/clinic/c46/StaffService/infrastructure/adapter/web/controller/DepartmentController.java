@@ -32,10 +32,12 @@ public class DepartmentController {
 
     @GetMapping
     public ResponseEntity<DepartmentsPagedDTO> getAll(@RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "0") int size,
             @RequestParam(value = "keyword", required = false) String keyword) {
 
         GetAllDepartmentsQuery query = GetAllDepartmentsQuery.builder()
                 .page(page)
+                .size(size)
                 .keyword(keyword)
                 .build();
 

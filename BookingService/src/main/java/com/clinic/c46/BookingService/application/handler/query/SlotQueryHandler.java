@@ -8,16 +8,15 @@ import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotResponse;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.SlotsPagedResponse;
+import com.clinic.c46.CommonService.helper.PageAndSortHelper;
+import com.clinic.c46.CommonService.helper.SortDirection;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,35 +24,25 @@ import java.util.List;
 public class SlotQueryHandler extends BaseQueryHandler {
 
     private final SlotViewRepository slotRepository;
+    private final PageAndSortHelper pageAndSortHelper;
 
     @QueryHandler
     public SlotsPagedResponse handle(GetAllSlotOfPackageQuery query) {
-        int page = Math.max(query.page(), 0);
 
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Pageable pageable = pageAndSortHelper.buildPageable(1, 50, "date", SortDirection.ASC);
 
-        Page<SlotView> slotPage = slotRepository.findAllByMedicalPackageId(query.medicalPackageId(), pageable);
+        Page<SlotView> slotPage = slotRepository.findAllByMedicalPackageIdAndDateBetween(query.medicalPackageId(), query.dateFrom(), query.dateTo(), pageable);
 
-        List<SlotResponse> slots = slotPage.getContent().stream()
-                .map(entity -> SlotResponse.builder()
-                        .slotId(entity.getSlotId())
-                        .medicalPackageId(query.medicalPackageId())
-                        .shift(entity.getShift())
-                        .maxQuantity(entity.getMaxQuantity())
-                        .remainingQuantity(entity.getRemainingQuantity())
-                        .date(entity.getDate())
-                        .build())
-                .toList();
+        return pageAndSortHelper.toPaged(slotPage, entity -> SlotResponse.builder()
+                .slotId(entity.getSlotId())
+                .medicalPackageId(query.medicalPackageId())
+                .shift(entity.getShift())
+                .maxQuantity(entity.getMaxQuantity())
+                .remainingQuantity(entity.getRemainingQuantity())
+                .date(entity.getDate())
+                .build(), SlotsPagedResponse::new);
 
-        return SlotsPagedResponse.builder()
-                .content(slots)
-                .page(page)
-                .size(slots.size())
-                .total((int) slotPage.getTotalElements())
-                .totalPages(slotPage.getTotalPages())
-                .build();
     }
-
 
 
     @QueryHandler

@@ -32,7 +32,7 @@ public class AppointmentController {
 
     @GetMapping
     public CompletableFuture<AppointmentsPagedResponse> getAllAppointments(
-            @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "0") Integer size,
             @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(required = false) String keyword, @RequestParam(required = false) String state,
             @RequestParam(required = false) LocalDate dateFrom, @RequestParam(required = false) LocalDate dateTo) {
