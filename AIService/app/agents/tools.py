@@ -36,13 +36,32 @@ async def search_doctor_info(query: str) -> str:
         return "Lỗi: Tools chưa được khởi tạo"
 
     try:
+        # If query is empty or very general, get all doctors from API
+        if not query or query.strip() == "" or query.lower() in ['all', 'tất cả', 'tất cả bác sĩ']:
+            doctors = await clinic_api.get_doctors(role=0)
+            if doctors:
+                doctors_info = []
+                for doctor in doctors[:10]:  # Limit to 10 doctors
+                    doctors_info.append(f"""
+                    🔹 Bác sĩ: {doctor.get('name', 'N/A')}
+                    📧 Email: {doctor.get('email', 'N/A')}
+                    📞 Điện thoại: {doctor.get('phone', 'N/A')}
+                    🏥 Chuyên khoa: {doctor.get('departmentName', 'N/A')}
+                    📝 Mô tả: {doctor.get('description', 'Không có mô tả')}
+                    ✅ Trạng thái: {'Đang hoạt động' if doctor.get('active', True) else 'Tạm nghỉ'}
+                    """.strip())
+                return "\n\n".join(doctors_info)
+            else:
+                return "Hiện tại không có thông tin về bác sĩ nào trong phòng khám."
+
         # Search in PGVector store for semantic search
         search_results = vector_store.similarity_search("doctors", query, n_results=5)
 
         if search_results:
             # Use vector search results
             doctors_info = []
-            for (metadata, similarity_score) in search_results:
+            for result_tuple in search_results:
+                metadata, similarity_score = result_tuple
                 doctors_info.append(f"""
                 🔹 Bác sĩ: {metadata.get('name', 'N/A')}
                 📧 Email: {metadata.get('email', 'N/A')}
@@ -656,12 +675,35 @@ async def find_earliest_available_slot(medical_package: Optional[str] = None, ma
 
         if not packages:
             return f"Không tìm thấy gói khám phù hợp với '{medical_package}'. Vui lòng kiểm tra lại tên gói khám."
-        
+
+        # Tìm gói khám chính xác nhất dựa trên tên (case-insensitive match)
+        target_package = None
+        medical_package_lower = medical_package.lower().strip()
+
+        # First, try exact match
+        for package in packages:
+            if package.get('name', '').lower().strip() == medical_package_lower:
+                target_package = package
+                break
+
+        # If no exact match, try partial match
+        if not target_package:
+            for package in packages:
+                package_name_lower = package.get('name', '').lower().strip()
+                if medical_package_lower in package_name_lower or package_name_lower in medical_package_lower:
+                    target_package = package
+                    break
+
+        # If still no match, use the first package as fallback
+        if not target_package:
+            target_package = packages[0]
+            logger.warning(f"No exact match found for '{medical_package}', using first available package: {target_package.get('name')}")
+
         # Bắt đầu từ ngày mai (vì cần đặt trước 24h)
         current_date = datetime.now().date()
         earliest_slot = None
-        earliest_date = None    
-        
+        earliest_date = None
+
         # Calculate date range and get all slots in one go
         date_from = current_date  # Start from today
         date_to = current_date + timedelta(days=max_days_ahead)
@@ -669,48 +711,47 @@ async def find_earliest_available_slot(medical_package: Optional[str] = None, ma
         date_from_str = date_from.strftime("%Y-%m-%d")
         date_to_str = date_to.strftime("%Y-%m-%d")
 
-        # Ưu tiên buổi sáng trước, tìm kiếm trong toàn bộ range
+        # Chỉ tìm slot cho gói khám được chọn
         for shift in [0, 1]:
-            for package in packages:
-                try:
-                    slots = await clinic_api.get_available_slots(
-                        package['id'],
-                        date_from=date_from_str,
-                        date_to=date_to_str
-                    )
+            try:
+                slots = await clinic_api.get_available_slots(
+                    target_package['id'],
+                    date_from=date_from_str,
+                    date_to=date_to_str
+                )
 
-                    for slot in slots:
-                        slot_date = slot.get('date', '')
-                        slot_shift = slot.get('shift', '')
+                for slot in slots:
+                    slot_date = slot.get('date', '')
+                    slot_shift = slot.get('shift', '')
 
-                        # Parse date if it's a string
-                        if isinstance(slot_date, str):
-                            try:
-                                slot_date_obj = datetime.fromisoformat(slot_date).date()
-                                slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
-                            except:
-                                slot_date_str = str(slot_date)
-                        else:
+                    # Parse date if it's a string
+                    if isinstance(slot_date, str):
+                        try:
+                            slot_date_obj = datetime.fromisoformat(slot_date).date()
+                            slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
+                        except:
                             slot_date_str = str(slot_date)
+                    else:
+                        slot_date_str = str(slot_date)
 
-                        if slot_shift == shift:
-                            remaining = slot.get('remainingQuantity', 0)
-                            if remaining > 0:
-                                slot_date_obj = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
-                                if not earliest_slot or slot_date_obj < earliest_date:
-                                    earliest_slot = {
-                                        'package_name': package.get('name', 'N/A'),
-                                        'date': slot_date_str,
-                                        'shift': slot_shift,
-                                        'remaining': remaining,
-                                        'slot_id': slot.get('slotId', ''),
-                                        'price': package.get('price', 0)
-                                    }
-                                    earliest_date = slot_date_obj
+                    if slot_shift == shift:
+                        remaining = slot.get('remainingQuantity', 0)
+                        if remaining > 0:
+                            slot_date_obj = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
+                            if not earliest_slot or slot_date_obj < earliest_date:
+                                earliest_slot = {
+                                    'package_name': target_package.get('name', 'N/A'),
+                                    'date': slot_date_str,
+                                    'shift': slot_shift,
+                                    'remaining': remaining,
+                                    'slot_id': slot.get('slotId', ''),
+                                    'price': target_package.get('price', 0)
+                                }
+                                earliest_date = slot_date_obj
 
-                except Exception as e:
-                    logger.warning(f"Error getting slots for package {package['id']}: {e}")
-                    continue
+            except Exception as e:
+                logger.warning(f"Error getting slots for package {target_package['id']}: {e}")
+                continue
 
             if earliest_slot:
                 break
@@ -850,6 +891,93 @@ async def list_all_available_slots(medical_package: Optional[str] = None, days_a
     except Exception as e:
         logger.error(f"Error in list_all_available_slots: {e}", exc_info=True)
         return f"Lỗi khi liệt kê slot trống: {str(e)}"
+
+
+@tool
+async def get_department_info(department_name: Optional[str] = None) -> str:
+    """
+    Tư vấn thông tin về phòng ban/khoa của phòng khám.
+    Sử dụng tool này khi người dùng hỏi về phòng ban, khoa khám, hoặc chuyên khoa của phòng khám.
+
+    Args:
+        department_name: Tên phòng ban cụ thể (tùy chọn, nếu không có sẽ liệt kê tất cả)
+
+    Returns:
+        Thông tin chi tiết về phòng ban/khoa
+    """
+    if not clinic_api or not vector_store:
+        return "Lỗi: Tools chưa được khởi tạo"
+
+    try:
+        # Get departments from API
+        departments = await clinic_api.get_departments()
+
+        if not departments:
+            return "Hiện tại chưa có thông tin về phòng ban của phòng khám."
+
+        if department_name:
+            # Search for specific department
+            target_dept = None
+            for dept in departments:
+                if department_name.lower() in dept.get('name', '').lower():
+                    target_dept = dept
+                    break
+
+            if not target_dept:
+                return f"Không tìm thấy phòng ban có tên '{department_name}'. Vui lòng kiểm tra lại tên phòng ban."
+
+            # Get doctors in this department
+            doctors = await clinic_api.get_doctors(department_id=target_dept.get('id'))
+
+            result = [f"🏥 **THÔNG TIN PHÒNG BAN: {target_dept.get('name', 'N/A')}**\n"]
+
+            # Department info
+            result.append(f"📋 **Mô tả:** {target_dept.get('description', 'Chưa có mô tả chi tiết')}")
+            result.append(f"👨‍⚕️ **Số bác sĩ:** {len(doctors) if doctors else 0}")
+            result.append("")
+
+            # List doctors if available
+            if doctors:
+                result.append("👨‍⚕️ **BÁC SĨ TRONG KHOA:**\n")
+                for i, doctor in enumerate(doctors[:5], 1):  # Limit to 5 doctors
+                    result.append(f"{i}. 🔹 {doctor.get('name', 'N/A')}")
+                    result.append(f"   📧 {doctor.get('email', 'N/A')}")
+                    result.append(f"   📞 {doctor.get('phone', 'N/A')}")
+                    result.append(f"   📝 {doctor.get('description', 'Không có mô tả')[:100]}...")
+                    result.append("")
+            else:
+                result.append("Hiện tại chưa có thông tin bác sĩ trong khoa này.")
+
+            result.append("💡 **Khuyến nghị:**")
+            result.append("- Nếu bạn có triệu chứng liên quan, hãy mô tả để được tư vấn gói khám phù hợp")
+            result.append("- Có thể đặt lịch khám trực tiếp với bác sĩ trong khoa")
+
+            return "\n".join(result)
+        else:
+            # List all departments
+            result = [f"🏥 **DANH SÁCH PHÒNG BAN/KHOA CỦA PHÒNG KHÁM**\n"]
+            result.append(f"Chúng tôi có {len(departments)} phòng ban chuyên khoa:\n")
+
+            for i, dept in enumerate(departments, 1):
+                dept_name = dept.get('name', 'N/A')
+                dept_desc = dept.get('description', 'Chưa có mô tả')[:150]
+                if len(dept_desc) == 150:
+                    dept_desc += "..."
+
+                result.append(f"{i}. 🏥 **{dept_name}**")
+                result.append(f"   📋 {dept_desc}")
+                result.append("")
+
+            result.append("💡 **Hướng dẫn:**")
+            result.append("- Hãy cho tôi biết bạn quan tâm đến khoa nào")
+            result.append("- Hoặc mô tả triệu chứng để tôi tư vấn khoa phù hợp")
+            result.append("- Bạn cũng có thể hỏi về bác sĩ trong từng khoa")
+
+            return "\n".join(result)
+
+    except Exception as e:
+        logger.error(f"Error in get_department_info: {e}")
+        return f"Lỗi khi lấy thông tin phòng ban: {str(e)}"
 
 
 @tool

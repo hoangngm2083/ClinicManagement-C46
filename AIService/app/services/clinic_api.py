@@ -78,7 +78,12 @@ class ClinicAPIService:
     async def get_departments(self) -> List[Dict[str, Any]]:
         """Lấy danh sách khoa phòng"""
         response = await self._get("/api/department")
-        return response.get("data", [])
+        # Department service trả về trực tiếp content, không có wrap trong "data"
+        if "content" in response:
+            return response.get("content", [])
+        else:
+            # Fallback cho trường hợp có wrap trong "data" (backward compatible)
+            return response.get("data", [])
 
     async def get_medical_packages(self,
                                  keyword: Optional[str] = None,

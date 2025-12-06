@@ -184,7 +184,12 @@ class PGVectorStore:
                     # Format results
                     formatted_results = []
                     for row in results:
-                        formatted_results.append((dict(row), row['similarity_score']))
+                        row_dict = dict(row)
+                        similarity_score = row_dict.get('similarity_score', 0.0)
+                        # Remove similarity_score from metadata to avoid confusion
+                        if 'similarity_score' in row_dict:
+                            del row_dict['similarity_score']
+                        formatted_results.append((row_dict, float(similarity_score)))
 
                     return formatted_results
 

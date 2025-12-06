@@ -59,7 +59,7 @@ class Settings(BaseSettings):
 
     # Clinic Information
     clinic_name: str = "Phòng Khám Đa Khoa C46"
-    clinic_working_hours: str = "Thứ 2-6: 8:00-17:00, Thứ 7-CN: 8:00-12:00"
+    clinic_working_hours: str = "Thứ 2-CN: 8:00-17:00, sáng: 8:00-12:00, chiều: 13:00-17:00"
     clinic_hotline: str = "1900-3497"
     clinic_email: str = "clinic.management.c46@gmail.com"
     clinic_address: str = "97 Man Thiện, phường Tăng Nhơn Phú, TP. Hồ Chí Minh"

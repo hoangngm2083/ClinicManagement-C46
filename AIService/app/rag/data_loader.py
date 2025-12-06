@@ -12,12 +12,9 @@ class DataLoader:
         self.clinic_api = clinic_api
         self.vector_store = vector_store
 
-    async def load_all_doctors(self) -> List[Dict[str, Any]]:
-        """Load all doctors from StaffService"""
+    async def _load_doctors_to_vector_store(self, doctors: List[Dict[str, Any]]):
+        """Load doctors data to vector store (internal method)"""
         try:
-            logger.info("Loading doctors data...")
-            doctors = await self.clinic_api.get_doctors(role=0)
-
             # Prepare data for PGVector
             ids = []
             documents = []
@@ -47,7 +44,21 @@ class DataLoader:
                 })
 
             if ids:
-                await self.vector_store.add_documents("doctors", documents, metadatas, ids)
+                self.vector_store.add_documents("doctors", documents, metadatas, ids)
+                logger.info(f"Added {len(ids)} doctor documents to vector store")
+            else:
+                logger.warning("No doctors to add to vector store")
+
+        except Exception as e:
+            logger.error(f"Error loading doctors to vector store: {e}")
+            raise
+
+    async def load_all_doctors(self) -> List[Dict[str, Any]]:
+        """Load all doctors from StaffService"""
+        try:
+            logger.info("Loading doctors data...")
+            doctors = await self.clinic_api.get_doctors(role=0)
+            await self._load_doctors_to_vector_store(doctors)
 
             logger.info(f"Loaded {len(doctors)} doctors")
             return doctors
@@ -86,7 +97,7 @@ class DataLoader:
                 })
 
             if ids:
-                await self.vector_store.add_documents("medical_packages", documents, metadatas, ids)
+                self.vector_store.add_documents("medical_packages", documents, metadatas, ids)
 
             logger.info(f"Loaded {len(packages)} packages")
             return packages
@@ -166,7 +177,7 @@ class DataLoader:
                 })
 
             if ids:
-                await self.vector_store.add_documents("clinic_processes", documents, metadatas, ids)
+                self.vector_store.add_documents("clinic_processes", documents, metadatas, ids)
 
             logger.info(f"Loaded {len(processes)} processes")
             return processes
@@ -182,7 +193,7 @@ class DataLoader:
                 {
                     "id": "working_hours",
                     "question": "Phòng khám mở cửa từ mấy giờ?",
-                    "answer": "Phòng khám mở cửa từ 7:00 - 17:00 các ngày trong tuần từ thứ 2 đến thứ 6. Thứ 7 và Chủ nhật mở cửa từ 7:00 - 12:00.",
+                    "answer": f"Phòng khám mở cửa từ {settings.clinic_working_hours} ",
                     "category": "general"
                 },
                 {
@@ -214,7 +225,91 @@ class DataLoader:
                     "question": "Khám cho trẻ em như thế nào?",
                     "answer": "Phòng khám có khu vực riêng dành cho trẻ em với không gian vui chơi. Bác sĩ nhi khoa chuyên nghiệp sẽ thăm khám và tư vấn cho trẻ.",
                     "category": "specialties"
-                }
+                },
+                {
+                "id": "location",
+                "question": "Địa chỉ phòng khám ở đâu?",
+                "answer": f"Phòng khám nằm tại: {settings.clinic_address}. Cách trung tâm thành phố khoảng 5km, có chỗ đậu xe miễn phí và gần các tuyến xe buýt.",
+                "category": "general"
+            },
+            {
+                "id": "contact_info",
+                "question": "Làm thế nào để liên hệ phòng khám?",
+                "answer": f"Bạn có thể liên hệ chúng tôi qua: Hotline {settings.clinic_hotline} (24/7), Email: {settings.clinic_email}, hoặc đến trực tiếp phòng khám.",
+                "category": "general"
+            },
+            {
+                "id": "booking_online",
+                "question": "Làm thế nào để đặt lịch khám online?",
+                "answer": "Bạn có thể đặt lịch qua website, ứng dụng di động, hoặc gọi hotline. Hệ thống AI của chúng tôi cũng có thể hỗ trợ đặt lịch qua chat.",
+                "category": "booking"
+            },
+            {
+                "id": "booking_changes",
+                "question": "Làm thế nào để thay đổi lịch khám đã đặt?",
+                "answer": "Để thay đổi lịch khám, vui lòng liên hệ hotline ít nhất 24 giờ trước giờ hẹn. Chúng tôi sẽ hỗ trợ sắp xếp lại lịch phù hợp nhất cho bạn.",
+                "category": "booking"
+            },
+            {
+                "id": "payment_methods",
+                "question": "Phòng khám có những phương thức thanh toán nào?",
+                "answer": "Chúng tôi chấp nhận: tiền mặt, thẻ tín dụng (Visa/Mastercard), ví điện tử (Momo, ZaloPay, ViettelPay), chuyển khoản ngân hàng, và bảo hiểm y tế.",
+                "category": "payment"
+            },
+            {
+                "id": "waiting_time",
+                "question": "Thời gian chờ khám khoảng bao lâu?",
+                "answer": "Thời gian chờ trung bình là 15-30 phút. Tuy nhiên, nếu bạn đặt lịch trước, chúng tôi sẽ ưu tiên phục vụ đúng giờ để tránh chờ đợi.",
+                "category": "general"
+            },
+            {
+                "id": "emergency_services",
+                "question": "Phòng khám có dịch vụ cấp cứu không?",
+                "answer": f"Đối với trường hợp khẩn cấp, vui lòng gọi ngay {settings.clinic_hotline} hoặc đến trực tiếp. Chúng tôi có đội ngũ y tế sẵn sàng 24/7.",
+                "category": "emergency"
+            },
+            {
+                "id": "medical_records",
+                "question": "Làm thế nào để lấy hồ sơ bệnh án?",
+                "answer": "Bạn có thể yêu cầu sao y hồ sơ bệnh án tại quầy lễ tân với CMND/CCCD. Phí sao y là 50,000 VND/bản. Thời gian chuẩn bị 30 phút.",
+                "category": "records"
+            },
+            {
+                "id": "vaccination",
+                "question": "Phòng khám có dịch vụ tiêm chủng không?",
+                "answer": "Có, chúng tôi cung cấp đầy đủ các loại vắc xin theo khuyến cáo của Bộ Y tế, bao gồm vắc xin cho trẻ em và người lớn. Vui lòng đặt lịch trước.",
+                "category": "services"
+            },
+            {
+                "id": "parking",
+                "question": "Phòng khám có chỗ đậu xe không?",
+                "answer": "Có, phòng khám có khu đậu xe miễn phí cho bệnh nhân với sức chứa 50 xe. Nhân viên bảo vệ sẽ hướng dẫn bạn đậu xe an toàn.",
+                "category": "general"
+            },
+            {
+                "id": "appointment_reminder",
+                "question": "Phòng khám có nhắc nhở lịch khám không?",
+                "answer": "Có, chúng tôi sẽ gửi tin nhắn SMS và email nhắc nhở 24 giờ và 2 giờ trước giờ khám. Bạn cũng có thể bật thông báo trên ứng dụng.",
+                "category": "booking"
+            },
+            {
+                "id": "second_opinion",
+                "question": "Tôi muốn tham khảo ý kiến bác sĩ khác thì sao?",
+                "answer": "Bạn có thể yêu cầu tư vấn thêm từ bác sĩ khác trong cùng chuyên khoa. Chúng tôi khuyến khích việc tham khảo ý kiến thứ hai để đảm bảo chẩn đoán chính xác.",
+                "category": "services"
+            },
+            {
+                "id": "prescription_refill",
+                "question": "Làm thế nào để cấp lại đơn thuốc?",
+                "answer": "Để cấp lại đơn thuốc, bạn cần đến khám lại với bác sĩ. Chúng tôi không cấp đơn thuốc qua điện thoại vì lý do an toàn.",
+                "category": "services"
+            },
+            {
+                "id": "insurance_coverage",
+                "question": "Bảo hiểm y tế chi trả những gì?",
+                "answer": "Bảo hiểm y tế chi trả 100% chi phí khám chữa bệnh theo danh mục quy định. Bạn cần xuất trình thẻ bảo hiểm khi thanh toán.",
+                "category": "payment"
+            }
             ]
 
             # Prepare data for PGVector
@@ -239,7 +334,7 @@ class DataLoader:
                 })
 
             if ids:
-                await self.vector_store.add_documents("faq", documents, metadatas, ids)
+                self.vector_store.add_documents("faq", documents, metadatas, ids)
 
             logger.info(f"Loaded {len(faqs)} FAQs")
             return faqs
@@ -270,9 +365,9 @@ class DataLoader:
             # Don't use async with - clinic_api is a long-lived shared instance
             doctors = await self.clinic_api.get_doctors(role=0)
 
-            # Delete existing and reload
+            # Delete existing and reload using the fetched data
             self.vector_store.delete_collection("doctors")
-            await self.load_all_doctors()
+            await self._load_doctors_to_vector_store(doctors)
             logger.info("Doctor data synced")
         except Exception as e:
             logger.error(f"Error syncing doctors: {e}")
