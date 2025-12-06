@@ -1,0 +1,289 @@
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+import logging
+import uvicorn
+from contextlib import asynccontextmanager
+
+from .config.settings import settings
+from .services.clinic_api import ClinicAPIService
+from .rag.pgvector_store import PGVectorStore
+from .rag.data_loader import DataLoader
+from .agents.langgraph_agent import AgentManager
+from .utils.helpers import setup_logging
+
+# Setup logging
+setup_logging()
+logger = logging.getLogger(__name__)
+
+# Global instances
+clinic_api: Optional[ClinicAPIService] = None
+vector_store: Optional[PGVectorStore] = None
+data_loader: Optional[DataLoader] = None
+agent_manager: Optional[AgentManager] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager"""
+    global clinic_api, vector_store, data_loader, agent_manager
+
+    logger.info("Starting AI Service...")
+
+    try:
+        # Initialize services
+        clinic_api = ClinicAPIService()
+        vector_store = PGVectorStore()
+        data_loader = DataLoader(clinic_api, vector_store)
+        agent_manager = AgentManager()
+
+        # Initialize default agent
+        await agent_manager.initialize_default_agent(clinic_api, vector_store)
+
+        # Load initial data
+        logger.info("Loading initial data...")
+        await data_loader.load_initial_data()
+
+        logger.info("AI Service started successfully")
+
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        raise
+
+    yield
+
+    # Cleanup
+    logger.info("Shutting down AI Service...")
+
+
+# Create FastAPI app
+app = FastAPI(
+    title="Clinic AI Service",
+    description="AI-powered chatbot for clinic management and appointment booking",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Pydantic models
+class ChatRequest(BaseModel):
+    message: str = Field(..., description="User's message")
+    session_id: Optional[str] = Field(None, description="Session identifier for conversation tracking")
+
+
+class SuggestedAction(BaseModel):
+    action: str = Field(..., description="Action identifier")
+    label: str = Field(..., description="Human-readable label")
+    description: Optional[str] = Field(None, description="Action description")
+
+
+class ChatResponse(BaseModel):
+    response: str = Field(..., description="AI assistant's response")
+    suggested_actions: List[str] = Field(default_factory=list, description="Suggested next actions")
+    session_id: Optional[str] = Field(None, description="Session identifier")
+    timestamp: str = Field(..., description="Response timestamp")
+    error: Optional[str] = Field(None, description="Error message if any")
+
+
+class HealthResponse(BaseModel):
+    status: str = Field(..., description="Service health status")
+    version: str = Field(..., description="Service version")
+    services: Dict[str, bool] = Field(..., description="Status of dependent services")
+
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint"""
+    try:
+        # Check vector store
+        vector_store_healthy = vector_store.health_check() if vector_store else False
+
+        # Check clinic API
+        clinic_api_healthy = False
+        if clinic_api:
+            try:
+                async with clinic_api:
+                    # Simple health check - try to get doctors
+                    await clinic_api.get_doctors(page=1)
+                    clinic_api_healthy = True
+            except Exception:
+                clinic_api_healthy = False
+
+        # Overall health
+        overall_healthy = vector_store_healthy and clinic_api_healthy
+
+        return HealthResponse(
+            status="healthy" if overall_healthy else "unhealthy",
+            version="1.0.0",
+            services={
+                "vector_store": vector_store_healthy,
+                "clinic_api": clinic_api_healthy,
+                "agent": agent_manager is not None
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        return HealthResponse(
+            status="unhealthy",
+            version="1.0.0",
+            services={
+                "vector_store": False,
+                "clinic_api": False,
+                "agent": False
+            }
+        )
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """
+    Main chat endpoint for AI assistant interaction
+
+    This endpoint accepts user messages and returns AI-generated responses
+    with optional suggested actions.
+    """
+    if not agent_manager:
+        raise HTTPException(status_code=503, detail="AI service not initialized")
+
+    try:
+        # Run agent
+        result = await agent_manager.run_agent(
+            user_input=request.message,
+            session_id=request.session_id
+        )
+
+        return ChatResponse(**result)
+
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@app.get("/chat/history/{session_id}")
+async def get_chat_history(session_id: str):
+    """Get conversation history for a session"""
+    if not agent_manager:
+        raise HTTPException(status_code=503, detail="AI service not initialized")
+
+    try:
+        agent = agent_manager.get_agent(session_id)
+        history = await agent.get_conversation_history(session_id)
+        return {"session_id": session_id, "history": history}
+
+    except Exception as e:
+        logger.error(f"Error getting chat history: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving chat history")
+
+
+@app.delete("/chat/session/{session_id}")
+async def clear_session(session_id: str):
+    """Clear conversation session"""
+    if not agent_manager:
+        raise HTTPException(status_code=503, detail="AI service not initialized")
+
+    try:
+        agent_manager.cleanup_session(session_id)
+        return {"message": f"Session {session_id} cleared successfully"}
+
+    except Exception as e:
+        logger.error(f"Error clearing session: {e}")
+        raise HTTPException(status_code=500, detail="Error clearing session")
+
+
+@app.post("/admin/clear-cache")
+async def clear_cache():
+    """Clear system prompt cache (admin endpoint)"""
+    try:
+        from .models.prompts import clear_system_prompt_cache
+        clear_system_prompt_cache()
+        return {"message": "Cache cleared successfully"}
+    except Exception as e:
+        logger.error(f"Error clearing cache: {e}")
+        raise HTTPException(status_code=500, detail="Error clearing cache")
+
+
+@app.get("/info")
+async def get_service_info():
+    """Get service information"""
+    return {
+        "name": "Clinic AI Service",
+        "version": "1.0.0",
+        "description": "AI-powered chatbot for clinic management",
+        "capabilities": [
+            "doctor_information_search",
+            "appointment_booking",
+            "medical_package_recommendations",
+            "clinic_information_queries",
+            "schedule_checking"
+        ],
+        "supported_languages": ["vi"],
+        "rate_limit": f"{settings.rate_limit_requests} requests per {settings.rate_limit_window_seconds} seconds"
+    }
+
+
+@app.post("/admin/clear-prompt-cache")
+async def clear_prompt_cache():
+    """Clear system prompt cache (admin only)"""
+    if not agent_manager:
+        raise HTTPException(status_code=503, detail="AI service not initialized")
+
+    try:
+        from .models.prompts import clear_system_prompt_cache
+        clear_system_prompt_cache()
+
+        return {"message": "System prompt cache cleared successfully"}
+
+    except Exception as e:
+        logger.error(f"Error clearing prompt cache: {e}")
+        raise HTTPException(status_code=500, detail="Error clearing prompt cache")
+
+
+@app.get("/admin/prompt-preview")
+async def preview_system_prompt():
+    """Preview current system prompt (admin only)"""
+    if not agent_manager:
+        raise HTTPException(status_code=503, detail="AI service not initialized")
+
+    try:
+        from .models.prompts import build_dynamic_system_prompt
+        if clinic_api:
+            prompt = await build_dynamic_system_prompt(clinic_api)
+            return {"system_prompt": prompt}
+        else:
+            raise HTTPException(status_code=503, detail="Clinic API not initialized")
+
+    except Exception as e:
+        logger.error(f"Error previewing prompt: {e}")
+        raise HTTPException(status_code=500, detail="Error previewing prompt")
+
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Welcome to Clinic AI Service",
+        "docs": "/docs",
+        "health": "/health",
+        "chat": "/chat"
+    }
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=settings.ai_service_port,
+        reload=True,
+        log_level="info"
+    )

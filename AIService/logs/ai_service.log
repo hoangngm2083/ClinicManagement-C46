@@ -1,0 +1,91 @@
+2025-12-06 17:47:58 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:47:58 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:47:58 - app.main - ERROR - lifespan:51 - Error during startup: name 'VectorStore' is not defined
+2025-12-06 17:48:47 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:48:47 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:48:47 - app.main - ERROR - lifespan:51 - Error during startup: name 'VectorStore' is not defined
+2025-12-06 17:52:29 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:52:30 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:52:42 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+2025-12-06 17:52:43 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:52:48 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:52:48 - app.models.prompts - WARNING - build_dynamic_system_prompt:165 - Failed to load medical packages from DB: 
+2025-12-06 17:53:15 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:53:15 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:53:15 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:53:15 - app.rag.data_loader - INFO - load_initial_data:250 - Starting initial data load...
+2025-12-06 17:53:15 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:53:20 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/staff: 
+2025-12-06 17:53:20 - app.rag.data_loader - ERROR - load_all_doctors:54 - Error loading doctors: 
+2025-12-06 17:53:20 - app.rag.data_loader - ERROR - load_initial_data:260 - Error in initial data load: 
+2025-12-06 17:53:20 - app.main - ERROR - lifespan:51 - Error during startup: 
+2025-12-06 17:53:30 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:53:30 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:53:44 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+2025-12-06 17:53:43 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:53:48 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:53:48 - app.models.prompts - WARNING - build_dynamic_system_prompt:165 - Failed to load medical packages from DB: 
+2025-12-06 17:54:15 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:54:15 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:54:15 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:54:15 - app.rag.data_loader - INFO - load_initial_data:250 - Starting initial data load...
+2025-12-06 17:54:15 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:54:20 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/staff: 
+2025-12-06 17:54:20 - app.rag.data_loader - ERROR - load_all_doctors:54 - Error loading doctors: 
+2025-12-06 17:54:20 - app.rag.data_loader - ERROR - load_initial_data:260 - Error in initial data load: 
+2025-12-06 17:54:20 - app.main - ERROR - lifespan:51 - Error during startup: 
+2025-12-06 17:55:01 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:55:01 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:55:13 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+2025-12-06 17:55:13 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:55:17 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:55:17 - app.models.prompts - WARNING - build_dynamic_system_prompt:165 - Failed to load medical packages from DB: 
+2025-12-06 17:55:47 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:55:47 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:55:58 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+2025-12-06 17:55:58 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:56:03 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:56:03 - app.models.prompts - WARNING - build_dynamic_system_prompt:165 - Failed to load medical packages from DB: 
+2025-12-06 17:56:23 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:56:23 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:56:23 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:56:23 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:56:23 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:56:28 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/staff: 
+2025-12-06 17:56:28 - app.rag.data_loader - WARNING - load_all_doctors:54 - Could not load doctors from API: 
+2025-12-06 17:56:28 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:56:33 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:56:33 - app.rag.data_loader - WARNING - load_all_packages:93 - Could not load packages from API: 
+2025-12-06 17:56:33 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:56:37 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_ope************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-12-06 17:56:37 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_ope************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-12-06 17:56:37 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_ope************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-12-06 17:56:37 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 17:56:44 - app.main - INFO - lifespan:57 - Shutting down AI Service...
+2025-12-06 17:56:52 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:56:52 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:57:05 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+2025-12-06 17:57:05 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:57:10 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:57:10 - app.models.prompts - WARNING - build_dynamic_system_prompt:165 - Failed to load medical packages from DB: 
+2025-12-06 17:57:26 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:57:26 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:57:26 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:57:26 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:57:26 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:57:31 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/staff: 
+2025-12-06 17:57:31 - app.rag.data_loader - WARNING - load_all_doctors:54 - Could not load doctors from API: 
+2025-12-06 17:57:31 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:57:36 - app.services.clinic_api - ERROR - _get:32 - HTTP error for http://api-gateway:8080/api/medical-package: 
+2025-12-06 17:57:36 - app.rag.data_loader - WARNING - load_all_packages:93 - Could not load packages from API: 
+2025-12-06 17:57:36 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:57:37 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_ope************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-12-06 17:57:37 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_ope************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-12-06 17:57:37 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_ope************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-12-06 17:57:37 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 18:06:47 - app.main - INFO - lifespan:57 - Shutting down AI Service...

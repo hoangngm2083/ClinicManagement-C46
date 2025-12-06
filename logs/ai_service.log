@@ -1,0 +1,117 @@
+2025-12-06 17:09:25 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:09:25 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:09:26 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: vector type not found in the database
+2025-12-06 17:09:26 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:09:29 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:09:29 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:09:29 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:09:29 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:09:29 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:09:29 - app.rag.data_loader - INFO - load_all_doctors:51 - Loaded 0 doctors
+2025-12-06 17:09:29 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:09:29 - app.rag.data_loader - INFO - load_all_packages:90 - Loaded 0 packages
+2025-12-06 17:09:29 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:09:34 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:09:34 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:09:34 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:09:34 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 17:10:25 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: variable chat_history should be a list of base messages, got None
+2025-12-06 17:10:46 - app.main - INFO - lifespan:57 - Shutting down AI Service...
+2025-12-06 17:10:51 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:10:51 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:10:51 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: vector type not found in the database
+2025-12-06 17:10:51 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:10:54 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:10:54 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:10:54 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:10:54 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:10:54 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:10:54 - app.rag.data_loader - INFO - load_all_doctors:51 - Loaded 0 doctors
+2025-12-06 17:10:54 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:10:54 - app.rag.data_loader - INFO - load_all_packages:90 - Loaded 0 packages
+2025-12-06 17:10:54 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:10:59 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:10:59 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:10:59 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:10:59 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 17:11:26 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: variable chat_history should be a list of base messages, got None
+2025-12-06 17:11:44 - app.main - INFO - lifespan:57 - Shutting down AI Service...
+2025-12-06 17:11:50 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:11:50 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:11:51 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: vector type not found in the database
+2025-12-06 17:11:51 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:11:53 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:11:53 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:11:53 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:11:53 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:11:53 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:11:53 - app.rag.data_loader - INFO - load_all_doctors:51 - Loaded 0 doctors
+2025-12-06 17:11:53 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:11:53 - app.rag.data_loader - INFO - load_all_packages:90 - Loaded 0 packages
+2025-12-06 17:11:53 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:12:09 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:12:09 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:12:09 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:12:09 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 17:12:24 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:12:28 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:30:50 - app.main - INFO - lifespan:57 - Shutting down AI Service...
+2025-12-06 17:30:55 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:30:55 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:30:56 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: vector type not found in the database
+2025-12-06 17:30:56 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:30:58 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:30:58 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:30:58 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:30:58 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:30:58 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:30:58 - app.rag.data_loader - INFO - load_all_doctors:51 - Loaded 0 doctors
+2025-12-06 17:30:58 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:30:58 - app.rag.data_loader - INFO - load_all_packages:90 - Loaded 0 packages
+2025-12-06 17:30:58 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:30:59 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:30:59 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:30:59 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:30:59 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 17:31:22 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-fake-*************************only. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
+2025-12-06 17:31:34 - app.main - INFO - lifespan:57 - Shutting down AI Service...
+2025-12-06 17:31:39 - app.main - INFO - lifespan:32 - Starting AI Service...
+2025-12-06 17:31:39 - app.services.clinic_api - INFO - __init__:16 - Initialized ClinicAPIService with base_url: http://api-gateway:8080
+2025-12-06 17:31:40 - app.rag.pgvector_store - WARNING - __init__:39 - PGVectorStore initialization failed, using fallback mode: vector type not found in the database
+2025-12-06 17:31:40 - app.agents.langgraph_agent - INFO - __init__:41 - LangGraphAgent initialized
+2025-12-06 17:31:42 - app.agents.langgraph_agent - INFO - initialize:76 - LangGraphAgent fully initialized with tools and executor
+2025-12-06 17:31:42 - app.agents.langgraph_agent - INFO - initialize_default_agent:212 - Default LangGraph agent initialized
+2025-12-06 17:31:42 - app.main - INFO - lifespan:45 - Loading initial data...
+2025-12-06 17:31:42 - app.rag.data_loader - INFO - load_initial_data:252 - Starting initial data load...
+2025-12-06 17:31:42 - app.rag.data_loader - INFO - load_all_doctors:17 - Loading doctors data...
+2025-12-06 17:31:42 - app.rag.data_loader - INFO - load_all_doctors:51 - Loaded 0 doctors
+2025-12-06 17:31:42 - app.rag.data_loader - INFO - load_all_packages:61 - Loading medical packages data...
+2025-12-06 17:31:42 - app.rag.data_loader - INFO - load_all_packages:90 - Loaded 0 packages
+2025-12-06 17:31:42 - app.rag.data_loader - INFO - load_clinic_processes:100 - Loading clinic processes...
+2025-12-06 17:31:47 - openai._base_client - INFO - _sleep_for_retry:1071 - Retrying request to /embeddings in 0.497689 seconds
+2025-12-06 17:31:47 - openai._base_client - INFO - _sleep_for_retry:1071 - Retrying request to /embeddings in 0.853655 seconds
+2025-12-06 17:31:48 - app.rag.pgvector_store - ERROR - add_documents:140 - Error adding documents to clinic_processes: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:31:48 - app.rag.data_loader - ERROR - load_clinic_processes:173 - Error loading processes: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:31:48 - app.rag.data_loader - ERROR - load_initial_data:262 - Error in initial data load: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:31:48 - app.main - INFO - lifespan:48 - AI Service started successfully
+2025-12-06 17:31:55 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.417441 seconds
+2025-12-06 17:31:56 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.868683 seconds
+2025-12-06 17:31:58 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:32:02 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.443718 seconds
+2025-12-06 17:32:03 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.788917 seconds
+2025-12-06 17:32:04 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:32:08 - app.models.prompts - INFO - clear_system_prompt_cache:134 - System prompt cache cleared
+2025-12-06 17:32:26 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.441911 seconds
+2025-12-06 17:32:27 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.911356 seconds
+2025-12-06 17:32:28 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:32:29 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.409257 seconds
+2025-12-06 17:32:30 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.927833 seconds
+2025-12-06 17:32:31 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:32:38 - app.agents.tools - ERROR - recommend_medical_packages:200 - Error in recommend_medical_packages: Cannot send a request, as the client has been closed.
+2025-12-06 17:32:39 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.417860 seconds
+2025-12-06 17:32:40 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.804630 seconds
+2025-12-06 17:32:41 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:32:41 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.395992 seconds
+2025-12-06 17:32:42 - openai._base_client - INFO - _sleep_for_retry:1618 - Retrying request to /chat/completions in 0.816409 seconds
+2025-12-06 17:32:43 - app.agents.langgraph_agent - ERROR - run:128 - Error running agent: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-12-06 17:32:43 - app.models.prompts - INFO - clear_system_prompt_cache:134 - System prompt cache cleared
