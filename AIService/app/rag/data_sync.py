@@ -103,11 +103,11 @@ class DataSyncService:
             logger.info("Starting slot data sync...")
             # Note: Slot data is typically queried in real-time,
             # but we can cache recent availability for RAG
-            async with self.clinic_api as api:
-                slots = await api.get_all_slots_next_week()
-                # Here we could update a cache or vector store with slot info
-                # For now, we'll just log the count
-                logger.info(f"Fetched {len(slots)} slots for next week")
+            # Don't use async with - clinic_api is a long-lived shared instance
+            slots = await self.clinic_api.get_all_slots_next_week()
+            # Here we could update a cache or vector store with slot info
+            # For now, we'll just log the count
+            logger.info(f"Fetched {len(slots)} slots for next week")
         except Exception as e:
             logger.error(f"Error syncing slot data: {e}")
 

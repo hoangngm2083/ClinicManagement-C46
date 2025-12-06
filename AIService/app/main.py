@@ -55,6 +55,12 @@ async def lifespan(app: FastAPI):
 
     # Cleanup
     logger.info("Shutting down AI Service...")
+    try:
+        if clinic_api and clinic_api.client:
+            await clinic_api.client.aclose()
+            logger.info("Clinic API client closed")
+    except Exception as e:
+        logger.error(f"Error closing clinic API client: {e}")
 
 
 # Create FastAPI app
@@ -112,11 +118,12 @@ async def health_check():
         clinic_api_healthy = False
         if clinic_api:
             try:
-                async with clinic_api:
-                    # Simple health check - try to get doctors
-                    await clinic_api.get_doctors(page=1)
-                    clinic_api_healthy = True
-            except Exception:
+                # Don't use async with - clinic_api is a long-lived global instance
+                # Simple health check - try to get doctors
+                await clinic_api.get_doctors(page=1)
+                clinic_api_healthy = True
+            except Exception as e:
+                logger.warning(f"Clinic API health check failed: {e}")
                 clinic_api_healthy = False
 
         # Overall health

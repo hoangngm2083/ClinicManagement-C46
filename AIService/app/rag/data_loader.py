@@ -251,11 +251,11 @@ class DataLoader:
         try:
             logger.info("Starting initial data load...")
 
-            async with self.clinic_api as api:
-                await self.load_all_doctors()
-                await self.load_all_packages()
-                await self.load_clinic_processes()
-                await self.load_faq_data()
+            # Don't use async with - clinic_api is a long-lived shared instance
+            await self.load_all_doctors()
+            await self.load_all_packages()
+            await self.load_clinic_processes()
+            await self.load_faq_data()
 
             logger.info("Initial data load completed successfully")
         except Exception as e:
@@ -266,8 +266,8 @@ class DataLoader:
         """Sync doctor data periodically"""
         try:
             logger.info("Syncing doctor data...")
-            async with self.clinic_api as api:
-                doctors = await api.get_doctors()
+            # Don't use async with - clinic_api is a long-lived shared instance
+            doctors = await self.clinic_api.get_doctors()
 
             # Delete existing and reload
             self.vector_store.delete_collection("doctors")
@@ -281,8 +281,8 @@ class DataLoader:
         """Sync medical package data periodically"""
         try:
             logger.info("Syncing package data...")
-            async with self.clinic_api as api:
-                packages = await api.get_medical_packages()
+            # Don't use async with - clinic_api is a long-lived shared instance
+            packages = await self.clinic_api.get_medical_packages()
 
             # Delete existing and reload
             self.vector_store.delete_collection("medical_packages")

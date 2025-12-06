@@ -1,3 +1,63 @@
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
 */venv
-redis/data/*
+venv/
+ENV/
+env/
+.venv
+
+# Logs
+*.log
+logs/
+*.log.*
+log/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+out/
+bin/
+
+# Redis data
+redis/data/
+redis/data/**
+
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+*.cache

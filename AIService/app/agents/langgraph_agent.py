@@ -107,9 +107,43 @@ class LangGraphAgent:
                 config
             )
 
-            # Extract final answer
-            final_answer = response.get("output", "")
-
+            # Extract final answer from LangGraph response
+            # LangGraph agent executor returns: {"input": ..., "chat_history": ..., "agent_outcome": ..., "intermediate_steps": ...}
+            # agent_outcome is an AgentFinish object with return_values attribute containing {"output": "..."}
+            final_answer = ""
+            
+            agent_outcome = response.get("agent_outcome")
+            
+            if agent_outcome and hasattr(agent_outcome, "return_values"):
+                return_values = agent_outcome.return_values
+                # return_values is a dict with "output" key
+                if isinstance(return_values, dict):
+                    final_answer = return_values.get("output", "")
+                else:
+                    # Fallback: try to access as attribute or convert
+                    try:
+                        final_answer = getattr(return_values, "output", None) or (return_values.get("output") if hasattr(return_values, "get") else "")
+                    except:
+                        pass
+            
+            # Log for debugging if empty
+            if not final_answer:
+                logger.warning(f"Empty response from agent. Agent outcome: {type(agent_outcome).__name__ if agent_outcome else 'None'}")
+            
+            # Fallback: try direct output key in response
+            if not final_answer:
+                final_answer = response.get("output", "")
+            
+            # If still empty, check messages in response
+            if not final_answer and "messages" in response:
+                messages = response.get("messages", [])
+                if messages:
+                    # Get last AI message
+                    for msg in reversed(messages):
+                        if hasattr(msg, "content"):
+                            final_answer = msg.content
+                            break
+            
             # Extract suggested actions from response
             suggested_actions = self._extract_suggested_actions(final_answer)
 

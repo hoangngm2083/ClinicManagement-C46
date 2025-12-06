@@ -1,15 +1,11 @@
 -- Initialize pgvector extension and vector database schema
--- Run this script after PostgreSQL is started
+-- This script runs after init-db.sh creates vector_db
 
--- Enable pgvector extension
+-- Connect to vector_db first
+\c vector_db
+
+-- Enable pgvector extension in vector_db
 CREATE EXTENSION IF NOT EXISTS vector;
-
--- Create vector database if it doesn't exist
--- Note: This should be run by postgres superuser
--- CREATE DATABASE vector_db;
-
--- Connect to vector_db and create schema
--- \c vector_db;
 
 -- Create vector embeddings table
 CREATE TABLE IF NOT EXISTS vector_embeddings (
@@ -20,7 +16,6 @@ CREATE TABLE IF NOT EXISTS vector_embeddings (
     metadata JSONB,
     embedding VECTOR(1536), -- OpenAI ada-002 dimension
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
     UNIQUE(collection_name, document_id)
 );
 
@@ -37,12 +32,6 @@ ON vector_embeddings
 USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 
--- Alternative: HNSW index for faster search (requires more memory)
--- CREATE INDEX IF NOT EXISTS idx_vector_embeddings_embedding_hnsw
--- ON vector_embeddings
--- USING hnsw (embedding vector_cosine_ops)
--- WITH (m = 16, ef_construction = 64);
-
--- Grant permissions (adjust based on your user setup)
--- GRANT ALL PRIVILEGES ON TABLE vector_embeddings TO booking;
--- GRANT USAGE ON SEQUENCE vector_embeddings_id_seq TO booking;
+-- Grant permissions
+GRANT ALL PRIVILEGES ON TABLE vector_embeddings TO booking;
+GRANT USAGE ON SEQUENCE vector_embeddings_id_seq TO booking;
