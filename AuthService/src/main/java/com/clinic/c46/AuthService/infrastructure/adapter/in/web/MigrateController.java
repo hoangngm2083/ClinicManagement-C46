@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/api/migrate")
+@RequestMapping("/migrate")
 @RequiredArgsConstructor
 @Slf4j
 public class MigrateController {

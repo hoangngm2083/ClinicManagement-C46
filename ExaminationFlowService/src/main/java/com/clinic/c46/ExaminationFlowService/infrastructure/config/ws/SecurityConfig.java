@@ -29,7 +29,7 @@ public class SecurityConfig {
 //                        .permitAll()
 //
 //                        // Enable REST APIs (Trust Gateway)
-//                        .requestMatchers("/api/**")
+//                        .requestMatchers("/**")
 //                        .permitAll()
 //
 //                        // ==========================================================================================
@@ -64,8 +64,8 @@ public class SecurityConfig {
 
                 // 1. CHỈ VÔ HIỆU HÓA CSRF CHO ENDPOINT CỦA WEBSOCKET
                 .csrf(csrf -> csrf
-                        // Vô hiệu hóa CSRF cho tất cả các API REST (/api/**)
-                        .ignoringRequestMatchers("/api/**")
+                        // Vô hiệu hóa CSRF cho tất cả các API REST (/**)
+                        .ignoringRequestMatchers("/**")
                         // Đảm bảo vẫn bỏ qua cho WebSocket
                         .ignoringRequestMatchers("/ws/exam-workflow/**"))
                 // 2. Vô hiệu hóa Http Basic và Form Login mặc định (nếu không dùng)
@@ -78,8 +78,8 @@ public class SecurityConfig {
                         .permitAll()
 
                         // Cấp quyền cho các API REST và Swagger (giữ nguyên)
-                        .requestMatchers("/api/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                                "/webjars/**")
+                        .requestMatchers("/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                "/swagger-resources/**", "/webjars/**")
                         .permitAll()
 
                         // 4. CHẶN TẤT CẢ CÁC REQUEST KHÁC

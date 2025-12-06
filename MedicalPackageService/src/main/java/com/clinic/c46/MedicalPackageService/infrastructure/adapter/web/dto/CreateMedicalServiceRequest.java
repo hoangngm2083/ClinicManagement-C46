@@ -21,7 +21,6 @@ public class CreateMedicalServiceRequest {
 
     @NotBlank
     private String departmentId;
-    @NotBlank
     private int processingPriority;
 
     private JsonNode formTemplate;

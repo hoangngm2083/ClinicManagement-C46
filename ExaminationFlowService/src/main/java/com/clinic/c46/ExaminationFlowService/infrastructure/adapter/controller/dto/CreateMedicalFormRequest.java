@@ -3,7 +3,6 @@ package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.controller.
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Builder;
 
 import java.util.Set;
 

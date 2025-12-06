@@ -19,5 +19,9 @@ public record CreateStaffRequest(
 
         @Size(max = 255, message = "E-signature must not exceed 255 characters") String eSignature,
 
-        @Pattern(regexp = "^(|[a-fA-F0-9\\-]{36})$", message = "Invalid department ID format") String departmentId) {
+        @Pattern(regexp = "^(|[a-fA-F0-9\\-]{36})$", message = "Invalid department ID format") String departmentId,
+
+        @NotBlank(message = "Account name is required") @Size(min = 3, max = 50, message = "Account name must be between 3 and 50 characters") String accountName,
+
+        @NotBlank(message = "Password is required") @Size(min = 6, message = "Password must be at least 6 characters") String password) {
 }

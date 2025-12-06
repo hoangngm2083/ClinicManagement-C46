@@ -41,7 +41,7 @@ public class StaffServiceImpl implements StaffService {
 
         CreateStaffCommand command = new CreateStaffCommand(staffId, request.name(), request.email(), request.phone(),
                 request.description(), request.image(), Role.findByCode(request.role()), request.eSignature(),
-                request.departmentId());
+                request.departmentId(), request.accountName(), request.password());
 
         return commandGateway.send(command)
                 .thenApply(result -> staffId);
