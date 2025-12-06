@@ -9,7 +9,7 @@ import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesInIdsQuer
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetailDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
-import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDTO;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDetailsDTO;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +70,7 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
                         .description(view.getDescription())
                         .medicalServices(view.getMedicalServices()
                                 .stream()
-                                .map(serviceView -> MedicalServiceDTO.builder()
+                                .map(serviceView -> MedicalServiceDetailsDTO.builder()
                                         .name(serviceView.getName())
                                         .medicalServiceId(serviceView.getId())
                                         .description(serviceView.getDescription())

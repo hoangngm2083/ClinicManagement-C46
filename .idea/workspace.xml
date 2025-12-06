@@ -5,37 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e40a09e4-3717-4e5f-98b7-bcde1e17d4fd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/AIService/.dockerignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/AIService_Detailed_Analysis.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/agents/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/agents/agent_core.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/agents/tools.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/config/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/config/settings.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/models/prompts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/rag/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/rag/data_loader.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/rag/data_sync.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/rag/vector_store.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/services/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/services/clinic_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/app/utils/helpers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/demo_dynamic_prompt.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/docs/langchain-agents-knowledge.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/env.example" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/run.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/tests/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AIService/tests/test_health.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/redis/data/dump.rdb" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/dump.rdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalPackageDetailDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalPackageDetailDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServiceDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServiceDetailsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServicesPagedDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServicesPagedDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalPackageQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalPackageQueryHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalServiceQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalServiceQueryHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/query/GetAllMedicalServicesQuery.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/query/GetAllMedicalServicesQuery.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MedicalServiceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MedicalServiceController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MigrateController.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MigrateController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,9 +25,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="36Qoxs4xrCnkEr89BEU4c9nizUw" />
   <component name="ProjectViewState">
     <option name="autoscrollFromSource" value="true" />
@@ -59,8 +39,9 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature/appointment",
+    "git-widget-placeholder": "feature/ai",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "E:/projects/microservice/clinic-management-c46"
