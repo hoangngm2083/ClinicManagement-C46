@@ -51,7 +51,7 @@ public class StaffAggregate {
         AggregateLifecycle.apply(
                 new StaffCreatedEvent(command.staffId(), command.name(), command.email(), command.phone(),
                         command.description(), command.image(), command.role(), command.eSignature(),
-                        command.departmentId()));
+                        command.departmentId(), command.accountName(), command.password()));
     }
 
     @EventSourcingHandler

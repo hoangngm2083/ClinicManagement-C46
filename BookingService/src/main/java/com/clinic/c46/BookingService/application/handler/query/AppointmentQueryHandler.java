@@ -54,14 +54,14 @@ public class AppointmentQueryHandler {
         Specification<AppointmentView> specKeyword = specificationBuilder.keyword(q.getKeyword(),
                 List.of("patientName"));
 
-        String stateToSearch = q.getState() == null ? AppointmentState.CREATED.name() : q.getState();
-        Specification<AppointmentView> specState = specificationBuilder.fieldEquals("state", stateToSearch);
+        // String stateToSearch = q.getState() == null ? AppointmentState.CREATED.name() : q.getState();
+        // Specification<AppointmentView> specState = specificationBuilder.fieldEquals("state", stateToSearch);
 
         Specification<AppointmentView> specDate = specificationBuilder.fromTo("date", LocalDate.class, q.getDateFrom(),
                 q.getDateTo());
 
         Specification<AppointmentView> finalSpec = Specification.allOf(specKeyword)
-                .and(specState)
+                // .and(specState)
                 .and(specDate);
 
         Page<AppointmentView> pageResult = appointmentViewRepository.findAll(finalSpec, pageable);
