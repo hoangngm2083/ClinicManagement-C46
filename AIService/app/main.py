@@ -10,6 +10,7 @@ from .config.settings import settings
 from .services.clinic_api import ClinicAPIService
 from .rag.pgvector_store import PGVectorStore
 from .rag.data_loader import DataLoader
+from .rag.data_sync import DataSyncService
 from .agents.langgraph_agent import AgentManager
 from .utils.helpers import setup_logging
 
@@ -21,13 +22,14 @@ logger = logging.getLogger(__name__)
 clinic_api: Optional[ClinicAPIService] = None
 vector_store: Optional[PGVectorStore] = None
 data_loader: Optional[DataLoader] = None
+data_sync_service: Optional[DataSyncService] = None
 agent_manager: Optional[AgentManager] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
-    global clinic_api, vector_store, data_loader, agent_manager
+    global clinic_api, vector_store, data_loader, data_sync_service, agent_manager
 
     logger.info("Starting AI Service...")
 
@@ -36,6 +38,7 @@ async def lifespan(app: FastAPI):
         clinic_api = ClinicAPIService()
         vector_store = PGVectorStore()
         data_loader = DataLoader(clinic_api, vector_store)
+        data_sync_service = DataSyncService(clinic_api, data_loader)
         agent_manager = AgentManager()
 
         # Initialize default agent
@@ -44,6 +47,11 @@ async def lifespan(app: FastAPI):
         # Load initial data
         logger.info("Loading initial data...")
         await data_loader.load_initial_data()
+
+        # Start data sync service for periodic updates
+        logger.info("Starting data sync service...")
+        await data_sync_service.start()
+        logger.info("Data sync service started")
 
         logger.info("AI Service started successfully")
 
@@ -56,11 +64,16 @@ async def lifespan(app: FastAPI):
     # Cleanup
     logger.info("Shutting down AI Service...")
     try:
+        # Stop data sync service
+        if data_sync_service:
+            await data_sync_service.stop()
+            logger.info("Data sync service stopped")
+        
         if clinic_api and clinic_api.client:
             await clinic_api.client.aclose()
             logger.info("Clinic API client closed")
     except Exception as e:
-        logger.error(f"Error closing clinic API client: {e}")
+        logger.error(f"Error during cleanup: {e}")
 
 
 # Create FastAPI app
@@ -273,6 +286,34 @@ async def preview_system_prompt():
     except Exception as e:
         logger.error(f"Error previewing prompt: {e}")
         raise HTTPException(status_code=500, detail="Error previewing prompt")
+
+
+@app.get("/admin/sync-status")
+async def get_sync_status():
+    """Get data sync service status (admin only)"""
+    if not data_sync_service:
+        raise HTTPException(status_code=503, detail="Data sync service not initialized")
+    
+    try:
+        status = data_sync_service.get_sync_status()
+        return status
+    except Exception as e:
+        logger.error(f"Error getting sync status: {e}")
+        raise HTTPException(status_code=500, detail="Error getting sync status")
+
+
+@app.post("/admin/sync-now")
+async def trigger_manual_sync():
+    """Manually trigger data sync (admin only)"""
+    if not data_sync_service:
+        raise HTTPException(status_code=503, detail="Data sync service not initialized")
+    
+    try:
+        result = await data_sync_service.manual_sync_all()
+        return result
+    except Exception as e:
+        logger.error(f"Error triggering manual sync: {e}")
+        raise HTTPException(status_code=500, detail="Error triggering manual sync")
 
 
 @app.get("/")

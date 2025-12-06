@@ -62,7 +62,8 @@ class ClinicAgent:
             recommend_medical_packages,
             create_booking,
             get_clinic_info,
-            get_doctor_schedule
+            get_doctor_schedule,
+            find_earliest_available_slot
         )
 
         self.tools = [
@@ -71,7 +72,8 @@ class ClinicAgent:
             recommend_medical_packages,
             create_booking,
             get_clinic_info,
-            get_doctor_schedule
+            get_doctor_schedule,
+            find_earliest_available_slot
         ]
 
         # Create agent prompt with dynamic content from database

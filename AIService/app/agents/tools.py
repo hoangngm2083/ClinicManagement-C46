@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timedelta
 from ..services.clinic_api import ClinicAPIService
 from ..rag.pgvector_store import PGVectorStore
+from ..config.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -95,27 +96,36 @@ async def check_available_slots(date: str, shift: Optional[str] = None, medical_
         return "Lỗi: Tools chưa được khởi tạo"
 
     try:
-        # Get all packages first
-        packages = await clinic_api.get_medical_packages()
+        # Get packages with keyword search (server handles None/empty keyword)
+        packages = await clinic_api.get_medical_packages(keyword=medical_package)
+
+        if not packages:
+            return f"Không tìm thấy gói khám phù hợp với '{medical_package}'. Vui lòng kiểm tra lại tên gói khám."
 
         available_slots = []
-        for package in packages:
-            # Filter by package name if specified
-            if medical_package and medical_package.lower() not in package.get('name', '').lower():
-                continue
 
+        # Get slots for the specific date using date range (same date for both from/to)
+        for package in packages:
             try:
-                slots = await clinic_api.get_available_slots(package['id'])
+                slots = await clinic_api.get_available_slots(
+                    package['id'],
+                    date_from=date,
+                    date_to=date
+                )
+
                 for slot in slots:
                     slot_date = slot.get('date', '')
                     slot_shift = slot.get('shift', '')
 
-                    # Filter by date
-                    if str(slot_date) != date:
-                        continue
+                    # Filter by shift if specified (convert to numeric for comparison)
+                    shift_numeric = None
+                    if shift:
+                        if shift.upper() == 'MORNING':
+                            shift_numeric = 0
+                        elif shift.upper() == 'AFTERNOON':
+                            shift_numeric = 1
 
-                    # Filter by shift if specified
-                    if shift and slot_shift != shift.upper():
+                    if shift_numeric is not None and slot_shift != shift_numeric:
                         continue
 
                     # Check if slot has remaining capacity
@@ -137,14 +147,14 @@ async def check_available_slots(date: str, shift: Optional[str] = None, medical_
             return f"Không có slot trống nào vào ngày {date} cho tiêu chí đã chọn."
 
         # Group by shift
-        morning_slots = [s for s in available_slots if s['shift'] == 'MORNING']
-        afternoon_slots = [s for s in available_slots if s['shift'] == 'AFTERNOON']
+        morning_slots = [s for s in available_slots if s['shift'] == 0]
+        afternoon_slots = [s for s in available_slots if s['shift'] == 1]
 
         result = [f"📅 Slot trống ngày {date}:"]
         result.append("")
 
         if morning_slots:
-            result.append("🌅 Buổi sáng (7:00-11:00):")
+            result.append("🌅 Buổi sáng (8:00-12:00):")
             for slot in morning_slots[:5]:  # Limit to 5 per shift
                 result.append(f"  • {slot['package_name']} - Còn {slot['remaining']} chỗ - {slot['price']:,} VND")
             result.append("")
@@ -294,15 +304,14 @@ async def get_clinic_info(query: str) -> str:
             results.append(f"❓ {question}\n💡 {answer}")
 
         if not results:
-            return """Không tìm thấy thông tin cụ thể. Đây là một số thông tin chung về phòng khám:
+            return f"""Không tìm thấy thông tin cụ thể. Đây là một số thông tin chung về phòng khám:
 
 🏥 **Giờ hoạt động:**
-- Thứ 2 - Thứ 6: 7:00 - 17:00
-- Thứ 7 - Chủ nhật: 7:00 - 12:00
+{settings.clinic_working_hours}
 
 📞 **Liên hệ:**
-- Hotline: 1900-xxxx
-- Email: info@clinic.com
+- Hotline: {settings.clinic_hotline}
+- Email: {settings.clinic_email}
 
 💡 Để được hỗ trợ chi tiết hơn, vui lòng mô tả cụ thể câu hỏi của bạn."""
 
@@ -375,3 +384,224 @@ async def get_doctor_schedule(doctor_name: Optional[str] = None, month: Optional
     except Exception as e:
         logger.error(f"Error in get_doctor_schedule: {e}")
         return f"Lỗi khi lấy lịch làm việc: {str(e)}"
+
+
+@tool
+async def find_earliest_available_slot(medical_package: Optional[str] = None, max_days_ahead: int = 7) -> str:
+    """
+    Tìm slot khám sớm nhất có thể cho gói khám cụ thể.
+    Tool này sẽ tự động kiểm tra từ ngày mai trở đi, ưu tiên buổi sáng trước, sau đó buổi chiều.
+    Sử dụng tool này khi người dùng muốn khám "càng sớm càng tốt" hoặc "sớm nhất có thể".
+
+    Args:
+        medical_package: Tên gói khám (tùy chọn, nếu không có sẽ tìm cho tất cả gói)
+        max_days_ahead: Số ngày tối đa để tìm kiếm (mặc định 7 ngày)
+
+    Returns:
+        Thông tin về slot sớm nhất tìm được
+    """
+    if not clinic_api:
+        return "Lỗi: Tools chưa được khởi tạo"
+    
+    try:
+        from datetime import datetime, timedelta
+
+        # Lấy gói khám với keyword search nếu có
+        packages = await clinic_api.get_medical_packages(keyword=medical_package)
+
+        if not packages:
+            return f"Không tìm thấy gói khám phù hợp với '{medical_package}'. Vui lòng kiểm tra lại tên gói khám."
+        
+        # Bắt đầu từ ngày mai (vì cần đặt trước 24h)
+        current_date = datetime.now().date()
+        earliest_slot = None
+        earliest_date = None    
+        
+        # Calculate date range and get all slots in one go
+        date_from = current_date  # Start from today
+        date_to = current_date + timedelta(days=max_days_ahead)
+
+        date_from_str = date_from.strftime("%Y-%m-%d")
+        date_to_str = date_to.strftime("%Y-%m-%d")
+
+        # Ưu tiên buổi sáng trước, tìm kiếm trong toàn bộ range
+        for shift in [0, 1]:
+            for package in packages:
+                try:
+                    slots = await clinic_api.get_available_slots(
+                        package['id'],
+                        date_from=date_from_str,
+                        date_to=date_to_str
+                    )
+
+                    for slot in slots:
+                        slot_date = slot.get('date', '')
+                        slot_shift = slot.get('shift', '')
+
+                        # Parse date if it's a string
+                        if isinstance(slot_date, str):
+                            try:
+                                slot_date_obj = datetime.fromisoformat(slot_date).date()
+                                slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
+                            except:
+                                slot_date_str = str(slot_date)
+                        else:
+                            slot_date_str = str(slot_date)
+
+                        if slot_shift == shift:
+                            remaining = slot.get('remainingQuantity', 0)
+                            if remaining > 0:
+                                slot_date_obj = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
+                                if not earliest_slot or slot_date_obj < earliest_date:
+                                    earliest_slot = {
+                                        'package_name': package.get('name', 'N/A'),
+                                        'date': slot_date_str,
+                                        'shift': slot_shift,
+                                        'remaining': remaining,
+                                        'slot_id': slot.get('slotId', ''),
+                                        'price': package.get('price', 0)
+                                    }
+                                    earliest_date = slot_date_obj
+
+                except Exception as e:
+                    logger.warning(f"Error getting slots for package {package['id']}: {e}")
+                    continue
+
+            if earliest_slot:
+                break
+        
+        if not earliest_slot:
+            return f"Không tìm thấy slot trống trong {max_days_ahead} ngày tới cho gói khám đã chọn. Vui lòng thử lại sau hoặc liên hệ hotline {settings.clinic_hotline} để được hỗ trợ."
+        
+        # Format kết quả
+        shift_name = "🌅 Buổi sáng (8:00-12:00)" if earliest_slot['shift'] == 0 else "🌇 Buổi chiều (13:00-17:00)"
+        date_formatted = earliest_date.strftime("%d/%m/%Y")
+        
+        result = f"""✅ Tìm thấy slot sớm nhất:
+        
+📅 Ngày: {date_formatted}
+⏰ {shift_name}
+📦 Gói khám: {earliest_slot['package_name']}
+💰 Giá: {earliest_slot['price']:,} VND
+🎫 Còn {earliest_slot['remaining']} chỗ trống
+
+Bạn có muốn đặt lịch cho slot này không? Nếu có, vui lòng cung cấp thông tin:
+- Họ tên
+- Email
+- Số điện thoại"""
+        
+        return result
+    
+    except Exception as e:
+        logger.error(f"Error in find_earliest_available_slot: {e}", exc_info=True)
+        return f"Lỗi khi tìm slot sớm nhất: {str(e)}"
+
+
+@tool
+async def list_all_available_slots(medical_package: Optional[str] = None, days_ahead: int = 7, time_period: Optional[str] = None) -> str:
+    """
+    Liệt kê tất cả slot khám còn trống trong khoảng thời gian chỉ định.
+    Sử dụng tool này khi người dùng muốn xem danh sách đầy đủ các slot trống.
+
+    Args:
+        medical_package: Tên gói khám (tùy chọn để filter)
+        days_ahead: Số ngày muốn kiểm tra (mặc định 7 ngày)
+        time_period: Khoảng thời gian đặc biệt ("this_week", "next_week", etc.) - sẽ override days_ahead
+
+    Returns:
+        Danh sách tất cả slot trống theo thứ tự thời gian
+    """
+    if not clinic_api:
+        return "Lỗi: Tools chưa được khởi tạo"
+
+    try:
+        # Get packages with keyword search (server handles None/empty keyword)
+        packages = await clinic_api.get_medical_packages(keyword=medical_package)
+
+        if not packages:
+            return f"Không tìm thấy gói khám phù hợp với '{medical_package}'. Vui lòng kiểm tra lại tên gói khám."
+
+        # Calculate days_ahead based on time_period
+        if time_period == "this_week":
+            # Tính số ngày từ hôm nay đến cuối tuần (bao gồm hôm nay)
+            current_date = datetime.now().date()
+            # weekday() returns 0=Monday, 6=Sunday
+            days_to_end_of_week = 6 - current_date.weekday()
+            days_ahead = days_to_end_of_week + 1  # +1 để bao gồm cả hôm nay
+
+        # Calculate date range (từ hôm nay đến days_ahead ngày sau)
+        current_date = datetime.now().date()
+        date_from = current_date  # Hôm nay
+        date_to = current_date + timedelta(days=days_ahead)
+
+        date_from_str = date_from.strftime("%Y-%m-%d")
+        date_to_str = date_to.strftime("%Y-%m-%d")
+
+        all_available_slots = []
+
+        # Get slots for all matching packages in the date range
+        for package in packages:
+            try:
+                slots = await clinic_api.get_available_slots(
+                    package['id'],
+                    date_from=date_from_str,
+                    date_to=date_to_str
+                )
+
+                for slot in slots:
+                    slot_date = slot.get('date', '')
+                    slot_shift = slot.get('shift', '')
+
+                    # Parse date if it's a string
+                    if isinstance(slot_date, str):
+                        try:
+                            slot_date_obj = datetime.fromisoformat(slot_date).date()
+                            slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
+                        except:
+                            slot_date_str = str(slot_date)
+                    else:
+                        slot_date_str = str(slot_date)
+
+                    # Check if slot has remaining capacity and is in valid shift
+                    remaining = slot.get('remainingQuantity', 0)
+                    if remaining > 0 and slot_shift in [0, 1]:
+                        all_available_slots.append({
+                            'package_name': package.get('name', 'N/A'),
+                            'date': slot_date_str,
+                            'shift': slot_shift,
+                            'remaining': remaining,
+                            'slot_id': slot.get('slotId', ''),
+                            'price': package.get('price', 0)
+                        })
+
+            except Exception as e:
+                logger.warning(f"Error getting slots for package {package['id']}: {e}")
+                continue
+
+        if not all_available_slots:
+            return f"Không tìm thấy slot trống nào trong {days_ahead} ngày tới cho gói khám đã chọn. Vui lòng thử lại sau hoặc liên hệ hotline {settings.clinic_hotline} để được hỗ trợ."
+
+        # Sort by date and shift (sáng trước chiều)
+        all_available_slots.sort(key=lambda x: (x['date'], x['shift']))
+
+        # Format kết quả
+        result = f"📅 **Danh sách slot trống trong {days_ahead} ngày tới:**\n\n"
+
+        current_date = None
+        for slot in all_available_slots:
+            if current_date != slot['date']:
+                current_date = slot['date']
+                date_obj = datetime.strptime(slot['date'], "%Y-%m-%d")
+                result += f"🗓️ **{date_obj.strftime('%d/%m/%Y')}**:\n"
+
+            shift_name = "🌅 Sáng (8:00-12:00)" if slot['shift'] == 0 else "🌇 Chiều (13:00-17:00)"
+            result += f"  • {shift_name} - {slot['package_name']} - Còn {slot['remaining']} chỗ - {slot['price']:,} VND\n"
+
+        result += f"\n💡 Tổng cộng: {len(all_available_slots)} slot trống\n"
+        result += "Để đặt lịch, vui lòng chọn slot cụ thể và cung cấp thông tin cá nhân."
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error in list_all_available_slots: {e}", exc_info=True)
+        return f"Lỗi khi liệt kê slot trống: {str(e)}"

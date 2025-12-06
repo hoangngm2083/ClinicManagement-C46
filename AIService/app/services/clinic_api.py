@@ -88,7 +88,23 @@ class ClinicAPIService:
             params["keyword"] = keyword
 
         response = await self._get("/api/medical-package", params)
-        return response.get("data", {}).get("content", [])
+        # MedicalPackageService trả về trực tiếp {content: [...], page: ..., total: ...}
+        # Không có wrap trong "data" như các service khác
+        if "content" in response:
+            packages = response.get("content", [])
+        else:
+            # Fallback cho trường hợp có wrap trong "data" (backward compatible)
+            packages = response.get("data", {}).get("content", [])
+        
+        # Normalize field names: medicalPackageId -> id để consistent với code khác
+        normalized_packages = []
+        for package in packages:
+            normalized = dict(package)
+            if "medicalPackageId" in normalized and "id" not in normalized:
+                normalized["id"] = normalized.pop("medicalPackageId")
+            normalized_packages.append(normalized)
+        
+        return normalized_packages
 
     async def get_medical_package_by_id(self, package_id: str) -> Optional[Dict[str, Any]]:
         """Lấy thông tin chi tiết gói khám theo ID"""
@@ -100,12 +116,19 @@ class ClinicAPIService:
 
     async def get_available_slots(self,
                                 medical_package_id: str,
+                                date_from: Optional[str] = None,
+                                date_to: Optional[str] = None,
                                 page: int = 0) -> List[Dict[str, Any]]:
-        """Lấy danh sách slot trống theo gói khám"""
+        """Lấy danh sách slot trống theo gói khám với khoảng thời gian"""
         params = {
             "medicalPackageId": medical_package_id,
             "page": page
         }
+        if date_from:
+            params["dateFrom"] = date_from
+        if date_to:
+            params["dateTo"] = date_to
+
         response = await self._get("/api/slot", params)
         return response.get("content", [])
 

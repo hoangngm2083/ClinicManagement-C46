@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     # LangGraph Configuration
     langgraph_agent_type: str = "ReAct"
     langgraph_max_iterations: int = 5
-    langgraph_recursion_limit: int = 10
+    langgraph_recursion_limit: int = 50
 
     # Retry Configuration
     retry_max_attempts: int = 3
@@ -58,6 +58,13 @@ class Settings(BaseSettings):
     # Feature Flags
     enable_vector_store: bool = True
     enable_langgraph: bool = True
+
+    # Clinic Information
+    clinic_name: str = "Phòng Khám Đa Khoa C46"
+    clinic_working_hours: str = "Thứ 2-6: 8:00-17:00, Thứ 7-CN: 8:00-12:00"
+    clinic_hotline: str = "1900-3497"
+    clinic_email: str = "clinic.management.c46@gmail.com"
+    clinic_address: str = "97 Man Thiện, phường Tăng Nhơn Phú, TP. Hồ Chí Minh"
 
     # Computed Properties
     @property

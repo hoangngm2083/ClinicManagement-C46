@@ -1,16 +1,16 @@
 import logging
 from typing import Dict, Any, Optional, List, TypedDict, Annotated
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.prebuilt import ToolExecutor, create_agent_executor
+from langchain.memory import ConversationBufferWindowMemory
+from langchain.agents import create_openai_functions_agent, AgentExecutor
+from langchain.callbacks.base import BaseCallbackHandler
 import json
 from datetime import datetime
 
-from .tools import init_tools, search_doctor_info, check_available_slots, recommend_medical_packages, create_booking, get_clinic_info, get_doctor_schedule
+from .tools import init_tools, search_doctor_info, check_available_slots, recommend_medical_packages, create_booking, get_clinic_info, get_doctor_schedule, find_earliest_available_slot, list_all_available_slots
 from ..services.clinic_api import ClinicAPIService
 from ..rag.pgvector_store import PGVectorStore
 from ..models.prompts import build_dynamic_system_prompt
@@ -19,11 +19,21 @@ from ..config.settings import settings
 logger = logging.getLogger(__name__)
 
 
-# Using built-in LangGraph state management
+class ClinicAgentCallbackHandler(BaseCallbackHandler):
+    """Custom callback handler for logging agent actions"""
+
+    def on_tool_start(self, serialized: Dict[str, Any], input_str: str, **kwargs: Any) -> None:
+        logger.info(f"Tool started: {serialized.get('name', 'Unknown')} with input: {input_str}")
+
+    def on_tool_end(self, output: str, **kwargs: Any) -> None:
+        logger.info(f"Tool completed with output length: {len(output)}")
+
+    def on_agent_action(self, action, **kwargs):
+        logger.info(f"Agent action: {action.tool} with input: {action.tool_input}")
 
 
 class LangGraphAgent:
-    """AI Agent using LangGraph with memory"""
+    """AI Agent using LangChain AgentExecutor with session-based memory"""
 
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -34,9 +44,11 @@ class LangGraphAgent:
         )
 
         self.tools = []
-        self.agent_executor = None
-        self.memory = MemorySaver()
         self.system_prompt = None
+        self.callback_handler = ClinicAgentCallbackHandler()
+
+        # Session-specific memories
+        self.session_memories: Dict[str, ConversationBufferWindowMemory] = {}
 
         logger.info("LangGraphAgent initialized")
 
@@ -52,14 +64,31 @@ class LangGraphAgent:
             recommend_medical_packages,
             create_booking,
             get_clinic_info,
-            get_doctor_schedule
+            get_doctor_schedule,
+            find_earliest_available_slot,
+            list_all_available_slots
         ]
 
         # Build system prompt
         self.system_prompt = await build_dynamic_system_prompt(clinic_api)
 
-        # Create prompt template
-        from langchain.agents import create_openai_functions_agent
+        logger.info("LangGraphAgent initialized with tools and system prompt")
+
+    def _get_or_create_memory(self, session_id: str) -> ConversationBufferWindowMemory:
+        """Get or create memory for a specific session"""
+        if session_id not in self.session_memories:
+            self.session_memories[session_id] = ConversationBufferWindowMemory(
+                memory_key="chat_history",
+                return_messages=True,
+                max_token_limit=settings.memory_max_tokens,
+                k=settings.memory_window_size
+            )
+            logger.info(f"Created new memory for session {session_id}")
+        return self.session_memories[session_id]
+
+    def _create_agent_executor(self, memory: ConversationBufferWindowMemory):
+        """Create agent executor with given memory"""
+        # Create agent prompt with dynamic content
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
             MessagesPlaceholder(variable_name="chat_history", optional=True),
@@ -67,15 +96,27 @@ class LangGraphAgent:
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ])
 
-        # Create LangChain agent first
-        agent = create_openai_functions_agent(self.llm, self.tools, prompt)
+        # Create agent
+        agent = create_openai_functions_agent(
+            llm=self.llm,
+            tools=self.tools,
+            prompt=prompt
+        )
 
-        # Create LangGraph executor
-        self.agent_executor = create_agent_executor(agent, self.tools)
+        # Create agent executor with session-specific memory
+        agent_executor = AgentExecutor(
+            agent=agent,
+            tools=self.tools,
+            memory=memory,
+            verbose=True,
+            max_iterations=5,
+            early_stopping_method="generate",
+            callbacks=[self.callback_handler],
+            handle_parsing_errors=True
+        )
 
-        logger.info("LangGraphAgent fully initialized with tools and executor")
+        return agent_executor
 
-    # Using built-in LangGraph agent executor, no custom methods needed
 
     async def run(self, user_input: str, session_id: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -88,71 +129,34 @@ class LangGraphAgent:
         Returns:
             Dict containing response and metadata
         """
-        if not self.agent_executor:
+        if not self.system_prompt:
             raise ValueError("Agent not initialized. Call initialize() first.")
 
         if not session_id:
             session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         try:
-            # Configure thread for memory
-            config = RunnableConfig(
-                configurable={"thread_id": session_id},
-                recursion_limit=settings.langgraph_recursion_limit
-            )
+            # Get or create memory for this session
+            memory = self._get_or_create_memory(session_id)
 
-            # Run the agent executor
-            response = await self.agent_executor.ainvoke(
-                {"input": user_input, "chat_history": []},
-                config
-            )
+            # Create agent executor with this session's memory
+            agent_executor = self._create_agent_executor(memory)
 
-            # Extract final answer from LangGraph response
-            # LangGraph agent executor returns: {"input": ..., "chat_history": ..., "agent_outcome": ..., "intermediate_steps": ...}
-            # agent_outcome is an AgentFinish object with return_values attribute containing {"output": "..."}
-            final_answer = ""
-            
-            agent_outcome = response.get("agent_outcome")
-            
-            if agent_outcome and hasattr(agent_outcome, "return_values"):
-                return_values = agent_outcome.return_values
-                # return_values is a dict with "output" key
-                if isinstance(return_values, dict):
-                    final_answer = return_values.get("output", "")
-                else:
-                    # Fallback: try to access as attribute or convert
-                    try:
-                        final_answer = getattr(return_values, "output", None) or (return_values.get("output") if hasattr(return_values, "get") else "")
-                    except:
-                        pass
-            
-            # Log for debugging if empty
-            if not final_answer:
-                logger.warning(f"Empty response from agent. Agent outcome: {type(agent_outcome).__name__ if agent_outcome else 'None'}")
-            
-            # Fallback: try direct output key in response
-            if not final_answer:
-                final_answer = response.get("output", "")
-            
-            # If still empty, check messages in response
-            if not final_answer and "messages" in response:
-                messages = response.get("messages", [])
-                if messages:
-                    # Get last AI message
-                    for msg in reversed(messages):
-                        if hasattr(msg, "content"):
-                            final_answer = msg.content
-                            break
-            
+            # Run agent
+            result = await agent_executor.ainvoke({"input": user_input})
+
+            # Extract the final answer from the result
+            response = result.get("output", "")
+
             # Extract suggested actions from response
-            suggested_actions = self._extract_suggested_actions(final_answer)
+            suggested_actions = self._extract_suggested_actions(response)
 
             result = {
-                "response": final_answer,
+                "response": response,
                 "suggested_actions": suggested_actions,
                 "session_id": session_id,
                 "timestamp": datetime.now().isoformat(),
-                "tool_calls": len(response.get("intermediate_steps", []))
+                "tool_calls": 0  # Would need to track this differently
             }
 
             logger.info(f"Agent response generated for session {session_id}")
@@ -198,33 +202,33 @@ class LangGraphAgent:
 
     def clear_memory(self, session_id: Optional[str] = None):
         """Clear conversation memory"""
-        if session_id and self.memory:
-            # Clear specific thread memory
-            self.memory.storage.pop(session_id, None)
-        logger.info(f"Memory cleared for session {session_id}")
+        if session_id and session_id in self.session_memories:
+            # Clear specific session memory
+            self.session_memories[session_id].clear()
+            del self.session_memories[session_id]
+            logger.info(f"Memory cleared for session {session_id}")
+        elif not session_id:
+            # Clear all memories
+            self.session_memories.clear()
+            logger.info("All memories cleared")
 
     async def get_conversation_history(self, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get conversation history"""
         try:
-            if not session_id or not self.memory:
+            if not session_id or session_id not in self.session_memories:
                 return []
 
-            # Get thread history from memory
-            config = RunnableConfig(configurable={"thread_id": session_id})
-            history = []
+            memory = self.session_memories[session_id]
+            memory_vars = memory.load_memory_variables({})
 
-            # Get stored messages (this is a simplified approach)
-            # In practice, you'd need to access the memory storage directly
-            if hasattr(self.memory, 'storage') and session_id in self.memory.storage:
-                thread_data = self.memory.storage[session_id]
-                if 'channel_values' in thread_data and 'messages' in thread_data['channel_values']:
-                    messages = thread_data['channel_values']['messages']
-                    for message in messages:
-                        history.append({
-                            "type": message.__class__.__name__,
-                            "content": message.content,
-                            "timestamp": datetime.now().isoformat()
-                        })
+            # Convert to serializable format
+            history = []
+            for message in memory_vars.get("chat_history", []):
+                history.append({
+                    "type": message.__class__.__name__,
+                    "content": message.content,
+                    "timestamp": datetime.now().isoformat()
+                })
 
             return history
 

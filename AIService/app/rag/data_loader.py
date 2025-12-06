@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 import logging
 from ..services.clinic_api import ClinicAPIService
+from ..config.settings import settings
 from .pgvector_store import PGVectorStore
 
 logger = logging.getLogger(__name__)
@@ -126,9 +127,9 @@ class DataLoader:
                 {
                     "id": "emergency_process",
                     "title": "Quy trình xử lý cấp cứu",
-                    "content": """
+                    "content": f"""
                     Trong trường hợp cấp cứu:
-                    1. Gọi ngay hotline: 1900-xxxx hoặc đến trực tiếp phòng khám
+                    1. Gọi ngay hotline: {settings.clinic_hotline} hoặc đến trực tiếp phòng khám
                     2. Nhân viên y tế sẽ tiếp đón và đánh giá mức độ khẩn cấp
                     3. Ưu tiên khám và điều trị ngay lập tức
                     4. Thông báo cho người nhà về tình trạng bệnh nhân
