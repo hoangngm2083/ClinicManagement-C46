@@ -2,6 +2,7 @@ import httpx
 from typing import List, Dict, Optional, Any
 import logging
 from ..config.settings import settings
+from .medical_analyzer import MedicalSymptomAnalyzer, SymptomAnalysis, MedicalRecommendation
 
 logger = logging.getLogger(__name__)
 
@@ -189,32 +190,113 @@ class ClinicAPIService:
         return [doc for doc in doctors if specialty.lower() in (doc.get("description", "").lower() or "")]
 
     async def get_package_recommendations(self, symptoms: str) -> List[Dict[str, Any]]:
-        """Đề xuất gói khám dựa trên triệu chứng"""
-        packages = await self.get_medical_packages()
-        symptom_keywords = {
-            'răng': ['khám răng', 'niềng răng', 'trám răng', 'răng miệng'],
-            'mắt': ['khám mắt', 'nhãn khoa', 'mắt'],
-            'tim mạch': ['tim mạch', 'tim', 'mạch máu'],
-            'tổng quát': ['tổng quát', 'thường xuyên', 'kiểm tra sức khỏe'],
-            'phụ khoa': ['phụ khoa', 'sản phụ khoa', 'bệnh phụ nữ'],
-            'nam khoa': ['nam khoa', 'bệnh nam giới'],
-            'tiêu hóa': ['tiêu hóa', 'dạ dày', 'ruột'],
-            'thần kinh': ['thần kinh', 'não', 'đau đầu'],
-            'cơ xương khớp': ['cơ xương khớp', 'gãy xương', 'thoát vị'],
-            'da liễu': ['da liễu', 'da', 'nám', 'mụn']
-        }
+        """
+        Enhanced medical package recommendations using clinical analysis
 
-        recommendations = []
+        Args:
+            symptoms: Patient's symptom description
+
+        Returns:
+            List of recommended packages with clinical reasoning
+        """
+        try:
+            # Get available packages
+            packages = await self.get_medical_packages()
+
+            # Initialize medical analyzer (could be cached in production)
+            analyzer = MedicalSymptomAnalyzer()
+
+            # Perform comprehensive symptom analysis
+            analysis = analyzer.analyze_symptoms(symptoms)
+
+            logger.info(f"Symptom analysis - Category: {analysis.primary_category.value}, "
+                       f"Urgency: {analysis.urgency_level.value}, "
+                       f"Confidence: {analysis.confidence_score:.2f}")
+
+            # Get clinically-informed recommendations
+            medical_recommendations = analyzer.recommend_medical_packages(analysis, packages)
+
+            # Convert to format compatible with existing tool
+            recommendations = []
+            for rec in medical_recommendations:
+                # Find the original package data
+                original_package = next((p for p in packages if p.get('id') == rec.package_id), None)
+                if original_package:
+                    package_with_analysis = dict(original_package)
+                    package_with_analysis['_score'] = rec.relevance_score
+                    package_with_analysis['_urgency'] = analysis.urgency_level.value
+                    package_with_analysis['_confidence'] = analysis.confidence_score
+                    package_with_analysis['_clinical_reasoning'] = rec.clinical_reasoning
+                    package_with_analysis['_urgency_justification'] = rec.urgency_justification
+                    package_with_analysis['_specialty_match'] = rec.specialty_match
+                    package_with_analysis['_confidence_level'] = rec.confidence_level
+                    package_with_analysis['_possible_conditions'] = analysis.possible_conditions
+                    package_with_analysis['_recommended_specialties'] = analysis.recommended_specialties
+                    package_with_analysis['_red_flags'] = analysis.red_flags
+                    package_with_analysis['_related_symptoms'] = analysis.related_symptoms
+
+                    recommendations.append(package_with_analysis)
+
+            # Add urgent notes based on analysis
+            if recommendations:
+                main_rec = recommendations[0]
+
+                # Critical symptoms
+                if analysis.urgency_level.value == 'critical':
+                    main_rec['_urgent_note'] = "🚨 KHẨN CẤP: Triệu chứng này có thể đe dọa tính mạng. Hãy đến cơ sở y tế gần nhất ngay lập tức hoặc gọi cấp cứu 115!"
+
+                # High urgency symptoms
+                elif analysis.urgency_level.value == 'high':
+                    main_rec['_urgent_note'] = "⚠️ CẦN CHÚ Ý: Triệu chứng này cần được thăm khám sớm trong vòng 24-48 giờ để tránh biến chứng."
+
+                # Red flags present
+                if analysis.red_flags:
+                    red_flag_notes = [flag for flag in analysis.red_flags]
+                    if red_flag_notes:
+                        main_rec['_red_flag_notes'] = red_flag_notes
+
+            logger.info(f"Generated {len(recommendations)} clinical recommendations")
+            return recommendations
+
+        except Exception as e:
+            logger.error(f"Error in enhanced get_package_recommendations: {e}", exc_info=True)
+            # Fallback to basic keyword matching
+            return await self._fallback_recommendations(symptoms)
+
+    async def _fallback_recommendations(self, symptoms: str) -> List[Dict[str, Any]]:
+        """Fallback method using basic keyword matching"""
+        logger.warning("Using fallback recommendation method")
+
+        packages = await self.get_medical_packages()
         symptoms_lower = symptoms.lower()
 
+        # Basic keyword matching
+        basic_keywords = {
+            'răng': ['răng', 'hàm', 'dental'],
+            'mắt': ['mắt', 'thị lực'],
+            'tim mạch': ['tim', 'mạch', 'huyết áp'],
+            'tiêu hóa': ['dạ dày', 'ruột', 'tiêu hóa'],
+            'da liễu': ['da', 'mụn', 'ngứa'],
+            'thần kinh': ['đau đầu', 'chóng mặt'],
+            'tổng quát': ['tổng quát', 'cơ bản']
+        }
+
+        scored_packages = []
         for package in packages:
-            package_name = package.get("name", "").lower()
-            package_desc = package.get("description", "").lower()
+            package_text = f"{package.get('name', '')} {package.get('description', '')}".lower()
+            score = 0
 
-            for symptom_type, keywords in symptom_keywords.items():
-                if symptoms_lower in symptom_type or any(k in symptoms_lower for k in keywords):
-                    if any(k in package_name or k in package_desc for k in keywords):
-                        recommendations.append(package)
-                        break
+            for category, keywords in basic_keywords.items():
+                if any(kw in symptoms_lower for kw in keywords):
+                    if any(kw in package_text for kw in keywords):
+                        score += 1
 
-        return recommendations[:5]  # Top 5 recommendations
+            if score > 0:
+                package_with_score = dict(package)
+                package_with_score['_score'] = score
+                package_with_score['_urgency'] = 'medium'
+                package_with_score['_confidence'] = 0.5
+                package_with_score['_fallback'] = True
+                scored_packages.append(package_with_score)
+
+        return sorted(scored_packages, key=lambda x: x.get('_score', 0), reverse=True)[:5]

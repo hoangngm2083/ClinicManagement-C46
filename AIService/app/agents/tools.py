@@ -280,41 +280,180 @@ def _parse_and_format_date(date_input: str) -> Optional[str]:
 @tool
 async def recommend_medical_packages(symptoms: str) -> str:
     """
-    Đề xuất gói khám phù hợp dựa trên triệu chứng của bệnh nhân.
-    Sử dụng tool này khi người dùng mô tả triệu chứng và cần tư vấn gói khám.
+    Đề xuất gói khám phù hợp dựa trên triệu chứng của bệnh nhân với AI analysis.
+    Sử dụng tool này khi người dùng mô tả triệu chứng và cần tư vấn gói khám chi tiết.
 
     Args:
         symptoms: Mô tả triệu chứng của bệnh nhân
 
     Returns:
-        Danh sách gói khám được đề xuất
+        Danh sách gói khám được đề xuất với phân tích chi tiết
     """
     if not clinic_api:
         return "Lỗi: Tools chưa được khởi tạo"
 
     try:
-        # Use the API's recommendation method
+        # Use the enhanced API's recommendation method
         recommendations = await clinic_api.get_package_recommendations(symptoms)
 
         if not recommendations:
-            return f"""Không tìm thấy gói khám phù hợp với triệu chứng "{symptoms}".
-Vui lòng mô tả chi tiết hơn về triệu chứng hoặc liên hệ trực tiếp với phòng khám để được tư vấn."""
+            return f"""❌ Không tìm thấy gói khám phù hợp với triệu chứng "{symptoms}".
 
-        result = [f"💊 Gói khám đề xuất cho triệu chứng: {symptoms}"]
+💡 **Khuyến nghị:**
+- Vui lòng mô tả chi tiết hơn về triệu chứng (mức độ đau, thời gian xuất hiện, các triệu chứng kèm theo)
+- Hoặc gọi hotline {settings.clinic_hotline} để được tư vấn trực tiếp từ bác sĩ
+- Bạn cũng có thể đặt lịch khám tổng quát để được kiểm tra toàn diện"""
+
+        result = [f"🔍 **Phân tích triệu chứng và đề xuất gói khám:**"]
+        result.append(f"📋 *Triệu chứng mô tả:* {symptoms}")
         result.append("")
 
+        # Group recommendations by urgency
+        high_urgency = [p for p in recommendations if p.get('_urgency') == 'high']
+        medium_urgency = [p for p in recommendations if p.get('_urgency') == 'medium']
+        low_urgency = [p for p in recommendations if p.get('_urgency') == 'low']
+
+        def format_package(package, index, is_primary=False):
+            """Format a single package recommendation"""
+            lines = []
+
+            # Package header with priority indicator
+            if is_primary:
+                lines.append(f"⭐ **{index}. {package.get('name', 'N/A')}** (Đề xuất chính)")
+            else:
+                lines.append(f"{index}. 📦 {package.get('name', 'N/A')}")
+
+            # Price
+            price = package.get('price', 0)
+            if price > 0:
+                lines.append(f"   💰 **Giá:** {price:,} VND")
+            else:
+                lines.append("   💰 **Giá:** Liên hệ")
+
+            # Description (truncated)
+            desc = package.get('description', 'Không có mô tả')
+            if len(desc) > 150:
+                desc = desc[:150] + "..."
+            lines.append(f"   📝 **Mô tả:** {desc}")
+
+            # Matched symptoms (if available)
+            matched = package.get('_matched_symptoms', [])
+            if matched:
+                lines.append(f"   🎯 **Lý do phù hợp:** {', '.join(matched[:3])}")
+
+            # Urgency indicator
+            urgency = package.get('_urgency', 'low')
+            if urgency == 'high':
+                lines.append("   ⚠️ **Mức độ khẩn cấp:** CAO - Nên khám sớm")
+            elif urgency == 'medium':
+                lines.append("   🟡 **Mức độ khẩn cấp:** TRUNG BÌNH")
+            else:
+                lines.append("   🟢 **Mức độ khẩn cấp:** THẤP")
+
+            # Urgent note
+            urgent_note = package.get('_urgent_note')
+            if urgent_note:
+                lines.append(f"   🚨 **Lưu ý quan trọng:** {urgent_note}")
+
+            # Reason for secondary packages
+            reason = package.get('_reason')
+            if reason:
+                lines.append(f"   💡 **Gợi ý bổ sung:** {reason}")
+
+            return "\n".join(lines)
+
+        # Display recommendations with clinical analysis
+        result.append("## 📋 **PHÂN TÍCH TRIỆU CHỨNG**\n")
+
+        # Show clinical insights if available
+        if recommendations and '_possible_conditions' in recommendations[0]:
+            primary_rec = recommendations[0]
+            possible_conditions = primary_rec.get('_possible_conditions', [])
+            recommended_specialties = primary_rec.get('_recommended_specialties', [])
+            red_flags = primary_rec.get('_red_flags', [])
+            confidence_level = primary_rec.get('_confidence_level', 'Unknown')
+
+            result.append(f"**🔍 Chuyên khoa gợi ý:** {', '.join(recommended_specialties) if recommended_specialties else 'Tổng quát'}")
+            result.append(f"**📊 Độ tin cậy:** {confidence_level}")
+
+            if possible_conditions:
+                result.append(f"**🎯 Có thể liên quan đến:** {', '.join(possible_conditions[:3])}")
+
+            if red_flags:
+                result.append("")
+                result.append("**🚨 CẢNH BÁO QUAN TRỌNG:**")
+                for flag in red_flags:
+                    result.append(f"• {flag}")
+                result.append("")
+
+        result.append("## 💊 **ĐỀ XUẤT GÓI KHÁM**\n")
+
+        # Display recommendations with clinical reasoning
         for i, package in enumerate(recommendations, 1):
-            result.append(f"{i}. 📦 {package.get('name', 'N/A')}")
-            result.append(f"   💰 Giá: {package.get('price', 0):,} VND")
-            result.append(f"   📝 Mô tả: {package.get('description', 'Không có mô tả')[:200]}...")
+            # Enhanced package formatting with clinical info
+            clinical_reasoning = package.get('_clinical_reasoning', '')
+            urgency_justification = package.get('_urgency_justification', '')
+            confidence_level = package.get('_confidence_level', 'Thấp')
+            specialty_match = package.get('_specialty_match', False)
+
+            # Package header with clinical indicators
+            header_icon = "⭐" if i == 1 else "📦"
+            specialty_indicator = "🏥" if specialty_match else ""
+            confidence_indicator = "🎯" if confidence_level == "Cao" else "⚡" if confidence_level == "Trung bình" else "❓"
+
+            result.append(f"{i}. {header_icon} {specialty_indicator} {confidence_indicator} **{package.get('name', 'N/A')}**")
+
+            # Price
+            price = package.get('price', 0)
+            if price > 0:
+                result.append(f"   💰 **Giá:** {price:,} VND")
+            else:
+                result.append("   💰 **Giá:** Liên hệ")
+
+            # Clinical reasoning (most important)
+            if clinical_reasoning:
+                result.append(f"   🩺 **Lý do đề xuất:** {clinical_reasoning}")
+
+            # Urgency information
+            if urgency_justification:
+                result.append(f"   ⏰ **Khuyến nghị thời gian:** {urgency_justification}")
+
+            # Description (truncated for clinical focus)
+            desc = package.get('description', 'Không có mô tả')
+            if len(desc) > 100:
+                desc = desc[:100] + "..."
+            result.append(f"   📝 **Chi tiết:** {desc}")
+
+            # Confidence level
+            result.append(f"   ✅ **Độ tin cậy:** {confidence_level}")
+
+            # Urgent notes
+            urgent_note = package.get('_urgent_note')
+            if urgent_note:
+                result.append(f"   🚨 **LƯU Ý KHẨN CẤP:** {urgent_note}")
+
+            # Red flag notes
+            red_flag_notes = package.get('_red_flag_notes')
+            if red_flag_notes:
+                result.append("   ⚠️ **TRIỆU CHỨNG CẦN CHÚ Ý:**")
+                for note in red_flag_notes:
+                    result.append(f"      • {note}")
+
             result.append("")
 
-        result.append("💡 Khuyến nghị: Nên đến khám sớm để được chẩn đoán chính xác.")
+        # General recommendations
+        result.append("💡 **Khuyến nghị chung:**")
+        result.append("• Hãy mô tả chi tiết hơn về triệu chứng để có đề xuất chính xác hơn")
+        result.append("• Có thể kết hợp nhiều gói khám để kiểm tra toàn diện")
+        result.append("• Đến khám sớm giúp phát hiện và điều trị kịp thời")
+        result.append("")
+        result.append(f"📞 **Cần hỗ trợ thêm?** Gọi hotline {settings.clinic_hotline} hoặc để lại thông tin để chúng tôi liên hệ tư vấn.")
+
         return "\n".join(result)
 
     except Exception as e:
         logger.error(f"Error in recommend_medical_packages: {e}")
-        return f"Lỗi khi đề xuất gói khám: {str(e)}"
+        return f"Lỗi khi đề xuất gói khám: {str(e)}\n\nVui lòng thử lại hoặc liên hệ hotline để được hỗ trợ."
 
 
 @tool
@@ -711,3 +850,62 @@ async def list_all_available_slots(medical_package: Optional[str] = None, days_a
     except Exception as e:
         logger.error(f"Error in list_all_available_slots: {e}", exc_info=True)
         return f"Lỗi khi liệt kê slot trống: {str(e)}"
+
+
+@tool
+async def list_medical_packages(keyword: Optional[str] = None) -> str:
+    """
+    Liệt kê chi tiết các gói khám có sẵn với thông tin giá và dịch vụ.
+    Sử dụng tool này khi người dùng muốn xem các gói khám tổng quát hoặc không có triệu chứng cụ thể.
+
+    Args:
+        keyword: Từ khóa tìm kiếm gói khám (tùy chọn, để filter)
+
+    Returns:
+        Danh sách chi tiết các gói khám có sẵn
+    """
+    if not clinic_api:
+        return "Lỗi: Tools chưa được khởi tạo"
+
+    try:
+        # Get packages with keyword search if provided
+        packages = await clinic_api.get_medical_packages(keyword=keyword)
+
+        if not packages:
+            return f"❌ Không tìm thấy gói khám phù hợp với từ khóa '{keyword}'.\n\n💡 **Khuyến nghị:**\n- Vui lòng kiểm tra lại tên gói khám\n- Hoặc liên hệ hotline {settings.clinic_hotline} để được tư vấn"
+
+        result = [f"📋 **DANH SÁCH GÓI KHÁM CÓ SẴN**\n"]
+        result.append(f"Chúng tôi có {len(packages)} gói khám phù hợp:\n")
+
+        for i, package in enumerate(packages, 1):
+            # Package name
+            name = package.get('name', 'N/A')
+            result.append(f"{i}. 📦 **{name}**")
+
+            # Price
+            price = package.get('price', 0)
+            if price > 0:
+                result.append(f"   💰 **Giá:** {price:,} VND")
+            else:
+                result.append("   💰 **Giá:** Liên hệ")
+
+            # Description (truncated if too long)
+            description = package.get('description', 'Không có mô tả chi tiết')
+            if len(description) > 200:
+                description = description[:200] + "..."
+            result.append(f"   📝 **Dịch vụ bao gồm:** {description}")
+
+            result.append("")  # Empty line between packages
+
+        result.append("💡 **Hướng dẫn tiếp theo:**")
+        result.append("• Hãy cho tôi biết bạn muốn đăng ký gói nào")
+        result.append("• Hoặc mô tả triệu chứng cụ thể để tôi tư vấn gói phù hợp hơn")
+        result.append("• Bạn cũng có thể hỏi về slot trống cho gói đã chọn")
+        result.append("")
+        result.append(f"📞 **Cần hỗ trợ?** Gọi hotline {settings.clinic_hotline}")
+
+        return "\n".join(result)
+
+    except Exception as e:
+        logger.error(f"Error in list_medical_packages: {e}")
+        return f"Lỗi khi lấy danh sách gói khám: {str(e)}\n\nVui lòng thử lại hoặc liên hệ hotline để được hỗ trợ."
