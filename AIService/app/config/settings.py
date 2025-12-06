@@ -38,8 +38,6 @@ class Settings(BaseSettings):
     memory_checkpoint_type: str = "MemorySaver"
 
     # LangGraph Configuration
-    langgraph_agent_type: str = "ReAct"
-    langgraph_max_iterations: int = 5
     langgraph_recursion_limit: int = 50
 
     # Retry Configuration

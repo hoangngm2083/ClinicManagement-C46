@@ -85,7 +85,7 @@ async def check_available_slots(date: str, shift: Optional[str] = None, medical_
     Sử dụng tool này khi người dùng muốn đặt lịch hoặc kiểm tra availability.
 
     Args:
-        date: Ngày cần kiểm tra (định dạng YYYY-MM-DD)
+        date: Ngày cần kiểm tra (có thể là text tiếng Việt hoặc format khác)
         shift: Buổi khám (MORNING hoặc AFTERNOON, mặc định None để lấy cả hai)
         medical_package: Tên gói khám (tùy chọn để filter)
 
@@ -96,6 +96,10 @@ async def check_available_slots(date: str, shift: Optional[str] = None, medical_
         return "Lỗi: Tools chưa được khởi tạo"
 
     try:
+        # Parse and format date to Java LocalDate format (yyyy-MM-dd)
+        formatted_date = _parse_and_format_date(date)
+        if not formatted_date:
+            return f"Không thể hiểu ngày '{date}'. Vui lòng cung cấp ngày theo định dạng dd/mm/yyyy hoặc mô tả như 'ngày mai', 'thứ 2 tuần sau', etc."
         # Get packages with keyword search (server handles None/empty keyword)
         packages = await clinic_api.get_medical_packages(keyword=medical_package)
 
@@ -109,8 +113,8 @@ async def check_available_slots(date: str, shift: Optional[str] = None, medical_
             try:
                 slots = await clinic_api.get_available_slots(
                     package['id'],
-                    date_from=date,
-                    date_to=date
+                    date_from=formatted_date,
+                    date_to=formatted_date
                 )
 
                 for slot in slots:
@@ -169,6 +173,108 @@ async def check_available_slots(date: str, shift: Optional[str] = None, medical_
     except Exception as e:
         logger.error(f"Error in check_available_slots: {e}")
         return f"Lỗi khi kiểm tra slot trống: {str(e)}"
+
+
+def _parse_and_format_date(date_input: str) -> Optional[str]:
+    """
+    Parse date from various formats and return Java LocalDate format (yyyy-MM-dd)
+
+    Args:
+        date_input: Date in various formats (dd/mm/yyyy, dd-mm-yyyy, Vietnamese text, etc.)
+
+    Returns:
+        Date in yyyy-MM-dd format or None if parsing fails
+    """
+    import re
+    from datetime import datetime, timedelta
+
+    try:
+        date_input = date_input.strip().lower()
+
+        # Handle Vietnamese date expressions
+        today = datetime.now()
+
+        # "ngày mai" -> tomorrow
+        if "ngày mai" in date_input or "mai" == date_input:
+            target_date = today + timedelta(days=1)
+            return target_date.strftime("%Y-%m-%d")
+
+        # "hôm nay" -> today
+        if "hôm nay" in date_input or "hôm nay" == date_input or "today" in date_input:
+            return today.strftime("%Y-%m-%d")
+
+        # "thứ [number] tuần sau" -> next week weekday
+        week_match = re.search(r'thứ\s*(\d+)\s*tuần\s*sau', date_input)
+        if week_match:
+            weekday = int(week_match.group(1))
+            if 2 <= weekday <= 8:  # Monday = 0, Sunday = 6 in Python, but Vietnamese uses 2-8
+                viet_to_python_weekday = {2: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6}
+                python_weekday = viet_to_python_weekday.get(weekday, 0)
+
+                days_ahead = python_weekday - today.weekday()
+                if days_ahead <= 0:
+                    days_ahead += 7
+
+                target_date = today + timedelta(days=days_ahead + 7)  # Next week
+                return target_date.strftime("%Y-%m-%d")
+
+        # "thứ [number] này" -> this week weekday
+        week_this_match = re.search(r'thứ\s*(\d+)\s*này', date_input)
+        if week_this_match:
+            weekday = int(week_this_match.group(1))
+            if 2 <= weekday <= 8:
+                viet_to_python_weekday = {2: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6}
+                python_weekday = viet_to_python_weekday.get(weekday, 0)
+
+                days_ahead = python_weekday - today.weekday()
+                if days_ahead <= 0:
+                    days_ahead += 7
+
+                target_date = today + timedelta(days=days_ahead)
+                return target_date.strftime("%Y-%m-%d")
+
+        # Direct date formats: dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd
+        date_patterns = [
+            r'(\d{1,2})[/-](\d{1,2})[/-](\d{4})',  # dd/mm/yyyy or dd-mm-yyyy
+            r'(\d{4})[/-](\d{1,2})[/-](\d{1,2})',  # yyyy/mm/dd or yyyy-mm-dd
+        ]
+
+        for pattern in date_patterns:
+            match = re.search(pattern, date_input)
+            if match:
+                groups = match.groups()
+                if len(groups) == 3:
+                    # Determine format based on first group length
+                    if len(groups[0]) == 4:  # yyyy-mm-dd format
+                        year, month, day = int(groups[0]), int(groups[1]), int(groups[2])
+                    else:  # dd-mm-yyyy format
+                        day, month, year = int(groups[0]), int(groups[1]), int(groups[2])
+
+                    # Validate date
+                    try:
+                        datetime(year, month, day)
+                        return f"{year:04d}-{month:02d}-{day:02d}"
+                    except ValueError:
+                        continue
+
+        # If no pattern matches, try direct parsing with common formats
+        formats_to_try = [
+            "%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d",
+            "%d/%m/%y", "%d-%m-%y", "%Y/%m/%d"
+        ]
+
+        for fmt in formats_to_try:
+            try:
+                parsed_date = datetime.strptime(date_input, fmt)
+                return parsed_date.strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+
+        return None
+
+    except Exception as e:
+        logger.error(f"Error parsing date '{date_input}': {e}")
+        return None
 
 
 @tool

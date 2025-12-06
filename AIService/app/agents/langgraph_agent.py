@@ -1,12 +1,13 @@
 import logging
 from typing import Dict, Any, Optional, List, TypedDict, Annotated
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
-from langchain.memory import ConversationBufferWindowMemory
-from langchain.agents import create_openai_functions_agent, AgentExecutor
-from langchain.callbacks.base import BaseCallbackHandler
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode
+from langgraph.checkpoint.memory import MemorySaver
 import json
 from datetime import datetime
 
@@ -19,21 +20,13 @@ from ..config.settings import settings
 logger = logging.getLogger(__name__)
 
 
-class ClinicAgentCallbackHandler(BaseCallbackHandler):
-    """Custom callback handler for logging agent actions"""
-
-    def on_tool_start(self, serialized: Dict[str, Any], input_str: str, **kwargs: Any) -> None:
-        logger.info(f"Tool started: {serialized.get('name', 'Unknown')} with input: {input_str}")
-
-    def on_tool_end(self, output: str, **kwargs: Any) -> None:
-        logger.info(f"Tool completed with output length: {len(output)}")
-
-    def on_agent_action(self, action, **kwargs):
-        logger.info(f"Agent action: {action.tool} with input: {action.tool_input}")
+# Define the state for our graph
+class AgentState(TypedDict):
+    messages: Annotated[List[BaseMessage], add_messages]
 
 
 class LangGraphAgent:
-    """AI Agent using LangChain AgentExecutor with session-based memory"""
+    """AI Agent using LangGraph with proper state management"""
 
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -45,10 +38,8 @@ class LangGraphAgent:
 
         self.tools = []
         self.system_prompt = None
-        self.callback_handler = ClinicAgentCallbackHandler()
-
-        # Session-specific memories
-        self.session_memories: Dict[str, ConversationBufferWindowMemory] = {}
+        self.graph = None
+        self.memory = MemorySaver()
 
         logger.info("LangGraphAgent initialized")
 
@@ -72,55 +63,71 @@ class LangGraphAgent:
         # Build system prompt
         self.system_prompt = await build_dynamic_system_prompt(clinic_api)
 
-        logger.info("LangGraphAgent initialized with tools and system prompt")
+        # Create the LangGraph
+        self.graph = self._create_graph()
 
-    def _get_or_create_memory(self, session_id: str) -> ConversationBufferWindowMemory:
-        """Get or create memory for a specific session"""
-        if session_id not in self.session_memories:
-            self.session_memories[session_id] = ConversationBufferWindowMemory(
-                memory_key="chat_history",
-                return_messages=True,
-                max_token_limit=settings.memory_max_tokens,
-                k=settings.memory_window_size
-            )
-            logger.info(f"Created new memory for session {session_id}")
-        return self.session_memories[session_id]
+        logger.info("LangGraphAgent initialized with tools and graph")
 
-    def _create_agent_executor(self, memory: ConversationBufferWindowMemory):
-        """Create agent executor with given memory"""
-        # Create agent prompt with dynamic content
+    def _create_graph(self) -> StateGraph:
+        """Create the LangGraph with proper state management"""
+        # Create prompt template
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
-            MessagesPlaceholder(variable_name="chat_history", optional=True),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ("placeholder", "{messages}"),
         ])
 
-        # Create agent
-        agent = create_openai_functions_agent(
-            llm=self.llm,
-            tools=self.tools,
-            prompt=prompt
-        )
+        # Bind tools to LLM
+        llm_with_tools = self.llm.bind_tools(self.tools)
 
-        # Create agent executor with session-specific memory
-        agent_executor = AgentExecutor(
-            agent=agent,
-            tools=self.tools,
-            memory=memory,
-            verbose=True,
-            max_iterations=5,
-            early_stopping_method="generate",
-            callbacks=[self.callback_handler],
-            handle_parsing_errors=True
-        )
+        def agent_node(state: AgentState) -> Dict[str, Any]:
+            """Agent node that processes messages and decides on actions"""
+            try:
+                # Format the prompt with current messages
+                formatted_prompt = prompt.invoke({"messages": state["messages"]})
 
-        return agent_executor
+                # Get response from LLM
+                response = llm_with_tools.invoke(formatted_prompt)
+
+                # Return updated messages
+                return {"messages": [response]}
+            except Exception as e:
+                logger.error(f"Error in agent_node: {e}")
+                # Return error message
+                error_msg = AIMessage(content=f"Xin lỗi, có lỗi xảy ra: {str(e)}")
+                return {"messages": [error_msg]}
+
+        def should_continue(state: AgentState) -> str:
+            """Determine if we should continue with tool execution or end"""
+            messages = state["messages"]
+            last_message = messages[-1]
+
+            # Check if the last message has tool calls
+            if isinstance(last_message, AIMessage) and hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+                return "tools"
+            else:
+                return END
+
+        # Create the graph
+        graph = StateGraph(AgentState)
+
+        # Add nodes
+        graph.add_node("agent", agent_node)
+        graph.add_node("tools", ToolNode(self.tools))
+
+        # Add edges
+        graph.add_edge(START, "agent")
+        graph.add_conditional_edges("agent", should_continue)
+        graph.add_edge("tools", "agent")
+
+        # Compile with memory
+        compiled_graph = graph.compile(checkpointer=self.memory)
+
+        return compiled_graph
 
 
     async def run(self, user_input: str, session_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Run agent with user input
+        Run agent with user input using LangGraph
 
         Args:
             user_input: User's message
@@ -129,38 +136,60 @@ class LangGraphAgent:
         Returns:
             Dict containing response and metadata
         """
-        if not self.system_prompt:
+        if not self.graph:
             raise ValueError("Agent not initialized. Call initialize() first.")
 
         if not session_id:
             session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         try:
-            # Get or create memory for this session
-            memory = self._get_or_create_memory(session_id)
+            # Create human message
+            human_message = HumanMessage(content=user_input)
 
-            # Create agent executor with this session's memory
-            agent_executor = self._create_agent_executor(memory)
+            # Configure thread for memory
+            config = RunnableConfig(
+                configurable={"thread_id": session_id},
+                recursion_limit=50
+            )
 
-            # Run agent
-            result = await agent_executor.ainvoke({"input": user_input})
+            # Run the graph
+            result = await self.graph.ainvoke(
+                {"messages": [human_message]},
+                config
+            )
 
-            # Extract the final answer from the result
-            response = result.get("output", "")
+            # Extract final answer from messages
+            messages = result.get("messages", [])
+            final_answer = ""
+
+            # Get the last AI message
+            for msg in reversed(messages):
+                if isinstance(msg, AIMessage) and msg.content and not msg.tool_calls:
+                    final_answer = msg.content
+                    break
+
+            # If no AI message found, try the last message
+            if not final_answer and messages:
+                last_msg = messages[-1]
+                if hasattr(last_msg, "content"):
+                    final_answer = last_msg.content
 
             # Extract suggested actions from response
-            suggested_actions = self._extract_suggested_actions(response)
+            suggested_actions = self._extract_suggested_actions(final_answer)
 
-            result = {
-                "response": response,
+            # Count tool calls
+            tool_calls = sum(1 for msg in messages if hasattr(msg, 'tool_calls') and msg.tool_calls)
+
+            result_dict = {
+                "response": final_answer,
                 "suggested_actions": suggested_actions,
                 "session_id": session_id,
                 "timestamp": datetime.now().isoformat(),
-                "tool_calls": 0  # Would need to track this differently
+                "tool_calls": tool_calls
             }
 
             logger.info(f"Agent response generated for session {session_id}")
-            return result
+            return result_dict
 
         except Exception as e:
             logger.error(f"Error running agent: {e}")
@@ -201,34 +230,48 @@ class LangGraphAgent:
         return actions
 
     def clear_memory(self, session_id: Optional[str] = None):
-        """Clear conversation memory"""
-        if session_id and session_id in self.session_memories:
-            # Clear specific session memory
-            self.session_memories[session_id].clear()
-            del self.session_memories[session_id]
+        """Clear conversation memory in LangGraph"""
+        if session_id and self.memory:
+            # Clear specific thread memory
+            if hasattr(self.memory, 'storage'):
+                self.memory.storage.pop(session_id, None)
             logger.info(f"Memory cleared for session {session_id}")
-        elif not session_id:
+        elif not session_id and self.memory:
             # Clear all memories
-            self.session_memories.clear()
+            if hasattr(self.memory, 'storage'):
+                self.memory.storage.clear()
             logger.info("All memories cleared")
 
     async def get_conversation_history(self, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Get conversation history"""
+        """Get conversation history from LangGraph memory"""
         try:
-            if not session_id or session_id not in self.session_memories:
+            if not session_id or not self.memory:
                 return []
 
-            memory = self.session_memories[session_id]
-            memory_vars = memory.load_memory_variables({})
-
-            # Convert to serializable format
+            # Get stored messages from memory storage
             history = []
-            for message in memory_vars.get("chat_history", []):
-                history.append({
-                    "type": message.__class__.__name__,
-                    "content": message.content,
-                    "timestamp": datetime.now().isoformat()
-                })
+            if hasattr(self.memory, 'storage') and session_id in self.memory.storage:
+                thread_data = self.memory.storage[session_id]
+                # LangGraph stores messages in different structure
+                if 'channels' in thread_data:
+                    channels = thread_data['channels']
+                    if 'messages' in channels:
+                        messages_data = channels['messages']
+                        # messages_data might be a list or dict with different structure
+                        if isinstance(messages_data, list):
+                            messages = messages_data
+                        elif isinstance(messages_data, dict) and 'messages' in messages_data:
+                            messages = messages_data['messages']
+                        else:
+                            messages = []
+
+                        for message in messages:
+                            if hasattr(message, 'content'):
+                                history.append({
+                                    "type": message.__class__.__name__,
+                                    "content": message.content,
+                                    "timestamp": datetime.now().isoformat()
+                                })
 
             return history
 
