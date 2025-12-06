@@ -16,7 +16,7 @@ class DataLoader:
         """Load all doctors from StaffService"""
         try:
             logger.info("Loading doctors data...")
-            doctors = await self.clinic_api.get_doctors()
+            doctors = await self.clinic_api.get_doctors(role=0)
 
             # Prepare data for PGVector
             ids = []
@@ -268,7 +268,7 @@ class DataLoader:
         try:
             logger.info("Syncing doctor data...")
             # Don't use async with - clinic_api is a long-lived shared instance
-            doctors = await self.clinic_api.get_doctors()
+            doctors = await self.clinic_api.get_doctors(role=0)
 
             # Delete existing and reload
             self.vector_store.delete_collection("doctors")

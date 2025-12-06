@@ -58,7 +58,7 @@ class ClinicAPIService:
             params["role"] = role
 
         response = await self._get("/api/staff", params)
-        return response.get("data", {}).get("content", [])
+        return response.get("content", [])
 
     async def get_doctor_by_id(self, doctor_id: str) -> Optional[Dict[str, Any]]:
         """Lấy thông tin chi tiết bác sĩ theo ID"""
@@ -185,7 +185,7 @@ class ClinicAPIService:
 
     async def search_doctors_by_specialty(self, specialty: str) -> List[Dict[str, Any]]:
         """Tìm bác sĩ theo chuyên khoa"""
-        doctors = await self.get_doctors()
+        doctors = await self.get_doctors(role=0)
         return [doc for doc in doctors if specialty.lower() in (doc.get("description", "").lower() or "")]
 
     async def get_package_recommendations(self, symptoms: str) -> List[Dict[str, Any]]:

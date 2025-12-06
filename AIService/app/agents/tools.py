@@ -56,7 +56,7 @@ async def search_doctor_info(query: str) -> str:
             return "\n\n".join(doctors_info)
         else:
             # Fallback to API search
-            doctors = await clinic_api.get_doctors(keyword=query)
+            doctors = await clinic_api.get_doctors(keyword=query, role=0)
             if not doctors:
                 return "Không tìm thấy bác sĩ phù hợp với từ khóa tìm kiếm."
 
