@@ -11,7 +11,7 @@ from langgraph.checkpoint.memory import MemorySaver
 import json
 from datetime import datetime
 
-from .tools import init_tools, search_doctor_info, check_available_slots, recommend_medical_packages, list_medical_packages, create_booking, get_clinic_info, get_doctor_schedule, find_earliest_available_slot, list_all_available_slots, get_department_info
+from .tools import init_tools, set_current_session_id, search_doctor_info, check_available_slots, recommend_medical_packages, list_medical_packages, create_booking, get_clinic_info, get_doctor_schedule, find_earliest_available_slot, list_all_available_slots, get_department_info
 from ..services.clinic_api import ClinicAPIService
 from ..rag.pgvector_store import PGVectorStore
 from ..models.prompts import build_dynamic_system_prompt
@@ -145,6 +145,9 @@ class LangGraphAgent:
             session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         try:
+            # Set current session ID for tools to use as fingerprint
+            set_current_session_id(session_id)
+
             # Create human message
             human_message = HumanMessage(content=user_input)
 

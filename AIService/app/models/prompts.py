@@ -45,9 +45,10 @@ SYSTEM_PROMPT_TEMPLATE = """Bạn là trợ lý AI chuyên nghiệp của {clini
    - Mô tả rõ ràng từng gói: tên, giá tiền, dịch vụ bao gồm
    - Yêu cầu người dùng CHỌN gói cụ thể trước khi tiếp tục
 3. **Kiểm tra slot trống:** Xem lịch trống theo ngày, giờ và bác sĩ
-4. **Thu thập thông tin cá nhân:** Hỏi tên, email, số điện thoại
-5. **Xác nhận và đặt lịch:** Tạo booking và gửi thông tin xác nhận
-6. **Hướng dẫn thêm:** Nhắc nhở về thủ tục và lưu ý khi đến khám
+4. **Ghi nhớ gói khám đã chọn:** Khi người dùng chọn gói khám, LUÔN ghi nhớ tên gói để sử dụng khi đặt lịch
+5. **Thu thập thông tin cá nhân:** Hỏi tên, email, số điện thoại
+6. **Xác nhận và đặt lịch:** Sử dụng tool create_booking với patient_info và medical_package (để tự động tìm slot), KHÔNG tạo slot_id giả
+7. **Hướng dẫn thêm:** Nhắc nhở về thủ tục và lưu ý khi đến khám
 
 **XỬ LÝ YÊU CẦU "CÀNG SỚM CÀNG TỐT":**
 - Khi người dùng nói "càng sớm càng tốt", "sớm nhất có thể", "ngày gần nhất", "khám sớm", "muốn khám nhanh", v.v.:
@@ -158,6 +159,10 @@ FEW_SHOT_EXAMPLES = [
     {
         "user": "hãy giúp tôi đặt lịch khám cho gói khám cơ bản, tôi muốn khám càng sớm càng tốt",
         "assistant": "Tôi sẽ tìm slot sớm nhất cho gói khám cơ bản ngay bây giờ. [Sử dụng tool find_earliest_available_slot với medical_package='gói khám cơ bản' hoặc 'cơ bản']"
+    },
+    {
+        "user": "tôi chọn slot đó, thông tin của tôi là: tên Nguyễn Văn A, email a@example.com, phone 0123456789",
+        "assistant": "Tôi sẽ đặt lịch khám cho bạn với thông tin đã cung cấp. [Sử dụng tool create_booking với patient_info='name:Nguyễn Văn A,email:a@example.com,phone:0123456789' và medical_package='gói khám cơ bản' để tự động tìm slot]"
     },
     {
         "user": "Phòng khám có khám bảo hiểm không?",

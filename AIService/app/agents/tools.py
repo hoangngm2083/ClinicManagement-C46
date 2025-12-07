@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # Global instances (will be initialized in the agent)
 clinic_api: Optional[ClinicAPIService] = None
 vector_store: Optional[PGVectorStore] = None
+current_session_id: Optional[str] = None
 
 
 def init_tools(clinic_api_instance: ClinicAPIService, vector_store_instance: PGVectorStore):
@@ -18,6 +19,12 @@ def init_tools(clinic_api_instance: ClinicAPIService, vector_store_instance: PGV
     global clinic_api, vector_store
     clinic_api = clinic_api_instance
     vector_store = vector_store_instance
+
+
+def set_current_session_id(session_id: str):
+    """Set current session ID for tools to use as fingerprint"""
+    global current_session_id
+    current_session_id = session_id
 
 
 @tool
@@ -476,14 +483,15 @@ async def recommend_medical_packages(symptoms: str) -> str:
 
 
 @tool
-async def create_booking(patient_info: str, slot_id: str) -> str:
+async def create_booking(patient_info: str, slot_id: Optional[str] = None, medical_package: Optional[str] = None) -> str:
     """
     Tạo lịch hẹn khám mới cho bệnh nhân.
     Sử dụng tool này sau khi đã xác nhận thông tin bệnh nhân và slot trống.
 
     Args:
         patient_info: Thông tin bệnh nhân (định dạng: "name:Nguyễn Văn A,email:a@example.com,phone:0123456789")
-        slot_id: ID của slot đã chọn
+        slot_id: ID của slot đã chọn (tùy chọn, nếu không có sẽ tự động tìm slot sớm nhất)
+        medical_package: Tên gói khám (tùy chọn, dùng để tìm slot nếu slot_id không được cung cấp)
 
     Returns:
         Kết quả tạo booking
@@ -506,9 +514,106 @@ async def create_booking(patient_info: str, slot_id: str) -> str:
         if missing_fields:
             return f"Thiếu thông tin bắt buộc: {', '.join(missing_fields)}. Vui lòng cung cấp đầy đủ."
 
-        # Generate fingerprint for booking
-        import uuid
-        fingerprint = str(uuid.uuid4())
+        # If slot_id is not provided, find the earliest available slot
+        if not slot_id:
+            if not medical_package:
+                return "Lỗi: Cần cung cấp slot_id hoặc medical_package để tìm slot."
+
+            logger.info(f"Finding earliest slot for medical_package: {medical_package}")
+            # Use the same logic as find_earliest_available_slot
+            from datetime import datetime, timedelta
+
+            packages = await clinic_api.get_medical_packages(keyword=medical_package)
+
+            if not packages:
+                return f"Không tìm thấy gói khám phù hợp với '{medical_package}'."
+
+            # Find target package (same logic as find_earliest_available_slot)
+            target_package = None
+            medical_package_lower = medical_package.lower().strip()
+
+            for package in packages:
+                if package.get('name', '').lower().strip() == medical_package_lower:
+                    target_package = package
+                    break
+
+            if not target_package:
+                for package in packages:
+                    package_name_lower = package.get('name', '').lower().strip()
+                    if medical_package_lower in package_name_lower or package_name_lower in medical_package_lower:
+                        target_package = package
+                        break
+
+            if not target_package:
+                target_package = packages[0]
+
+            # Find earliest slot
+            current_date = datetime.now().date()
+            earliest_slot = None
+            earliest_date = None
+
+            date_from = current_date
+            date_to = current_date + timedelta(days=7)
+
+            date_from_str = date_from.strftime("%Y-%m-%d")
+            date_to_str = date_to.strftime("%Y-%m-%d")
+
+            for shift in [0, 1]:
+                try:
+                    slots = await clinic_api.get_available_slots(
+                        target_package['id'],
+                        date_from=date_from_str,
+                        date_to=date_to_str
+                    )
+
+                    logger.info(f"Found {len(slots)} slots for package {target_package['id']}, shift {shift}")
+
+                    for slot in slots:
+                        slot_date = slot.get('date', '')
+                        slot_shift = slot.get('shift', '')
+
+                        if isinstance(slot_date, str):
+                            try:
+                                slot_date_obj = datetime.fromisoformat(slot_date).date()
+                                slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
+                            except:
+                                slot_date_str = str(slot_date)
+                        else:
+                            slot_date_str = str(slot_date)
+
+                        if slot_shift == shift:
+                            remaining = slot.get('remainingQuantity', 0)
+                            if remaining > 0:
+                                slot_date_obj = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
+                                if not earliest_slot or slot_date_obj < earliest_date:
+                                    earliest_slot = {
+                                        'slot_id': slot.get('slotId', ''),
+                                        'date': slot_date_str,
+                                        'shift': slot_shift,
+                                        'remaining': remaining,
+                                        'price': target_package.get('price', 0)
+                                    }
+                                    earliest_date = slot_date_obj
+
+                except Exception as e:
+                    logger.warning(f"Error getting slots for package {target_package['id']}: {e}")
+                    continue
+
+                if earliest_slot:
+                    break
+
+            if not earliest_slot:
+                return f"Không tìm thấy slot trống cho gói khám '{medical_package}'."
+
+            slot_id = earliest_slot['slot_id']
+            logger.info(f"Found slot_id: {slot_id} for medical_package: {medical_package}")
+
+        # Use current session_id as fingerprint for booking
+        if not current_session_id:
+            return "Lỗi: Không tìm thấy session ID. Vui lòng thử lại."
+        fingerprint = current_session_id
+
+        logger.info(f"Creating booking with slot_id: {slot_id}, fingerprint: {fingerprint}")
 
         booking_id = await clinic_api.create_booking(
             slot_id=slot_id,
