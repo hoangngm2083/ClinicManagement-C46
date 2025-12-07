@@ -19,6 +19,7 @@ import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -53,6 +54,10 @@ public class AppointmentProjection {
             throw new IllegalStateException("Failed to fetch PatientDto for " + event.patientId(), ex);
         }
 
+        // Snapshot price and priceVersion at booking time
+        BigDecimal currentPrice = medicalPackageView.getCurrentPrice();
+        int currentPriceVersion = medicalPackageView.getCurrentPriceVersion();
+        
         AppointmentView view = AppointmentView.builder()
                 .id(event.appointmentId())
                 .patientId(event.patientId())
@@ -60,6 +65,8 @@ public class AppointmentProjection {
                 .shift(slotView.getShift())
                 .date(slotView.getDate())
                 .medicalPackage(medicalPackageView)
+                .snapshotPrice(currentPrice)
+                .snapshotPriceVersion(currentPriceVersion)
                 .state(AppointmentState.CREATED.name())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

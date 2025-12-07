@@ -71,7 +71,7 @@ public class InvoiceProjector {
             List<MedicalPackageDTO> medicalPackageDTOs) {
 
         Set<MedicalPackageRep> medicalPackages = medicalPackageDTOs.stream()
-                .map(dto -> new MedicalPackageRep(dto.medicalPackageId(), dto.name(), dto.price()))
+                .map(dto -> new MedicalPackageRep(dto.medicalPackageId(), dto.name(), dto.price(), dto.priceVersion()))
                 .collect(Collectors.toSet());
 
         BigDecimal totalAmount = medicalPackageDTOs.stream()

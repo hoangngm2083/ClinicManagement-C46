@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Embeddable
-public record MedicalPackageRep(String id, String name, BigDecimal price) {
+public record MedicalPackageRep(String id, String name, BigDecimal price, int priceVersion) {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

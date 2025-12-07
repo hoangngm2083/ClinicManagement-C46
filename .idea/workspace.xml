@@ -6,16 +6,57 @@
   <component name="ChangeListManager">
     <list default="true" id="e40a09e4-3717-4e5f-98b7-bcde1e17d4fd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AuthService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/AuthService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AuthService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/AuthService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/dto/AppointmentDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/dto/AppointmentDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/listener/AppointmentProjection.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/listener/AppointmentProjection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/listener/MedicalPackageProjection.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/listener/MedicalPackageProjection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/domain/view/AppointmentView.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/domain/view/AppointmentView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/domain/view/MedicalPackageView.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/domain/view/MedicalPackageView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BookingService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/dto/AppointmentDetailsDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/dto/AppointmentDetailsDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/dto/MedicalPackageDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/dto/MedicalPackageDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/dto/MedicalPackageRepDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/dto/MedicalPackageRepDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/medicalPackage/MedicalPackageCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/medicalPackage/MedicalPackageCreatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/medicalPackage/MedicalPackageInfoUpdatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/medicalPackage/MedicalPackageInfoUpdatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/medicalPackage/MedicalPackagePriceUpdatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/medicalPackage/MedicalPackagePriceUpdatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/query/medicalPackage/GetAllPackagesQuery.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/query/medicalPackage/GetAllPackagesQuery.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/application/dto/PackageRepDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/application/dto/PackageRepDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/infrastructure/adapter/persistence/projection/PackageRepView.java" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/infrastructure/adapter/persistence/projection/PackageRepView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/infrastructure/adapter/persistence/projector/PackageRepViewProjector.java" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/infrastructure/adapter/persistence/projector/PackageRepViewProjector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/infrastructure/adapter/query/PackageQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/infrastructure/adapter/query/PackageQueryHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ExaminationService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ExaminationService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalPackageDetailDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalPackageDetailDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServiceDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServiceDetailsDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServicesPagedDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/dto/MedicalServicesPagedDto.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalPackageQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalPackageQueryHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalServiceQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/handler/query/MedicalServiceQueryHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/query/GetAllMedicalServicesQuery.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/query/GetAllMedicalServicesQuery.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MedicalServiceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MedicalServiceController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MigrateController.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MigrateController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/listener/MedicalPackageProjection.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/application/listener/MedicalPackageProjection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/aggregate/MedicalPackageAggregate.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/aggregate/MedicalPackageAggregate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/view/MedicalPackageView.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/domain/view/MedicalPackageView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MedicalPackageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/java/com/clinic/c46/MedicalPackageService/infrastructure/adapter/web/controller/MedicalPackageController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedicalPackageService/src/main/resources/db/migration/V3__create_medical_package_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/MedicalPackageService/src/main/resources/db/migration/V3__create_medical_package_schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PatientService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/PatientService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PatientService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/PatientService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/application/dto/MedicalPackageRepDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/application/dto/MedicalPackageRepDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projection/MedicalPackageRep.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projection/MedicalPackageRep.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projector/InvoiceProjector.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projector/InvoiceProjector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/query/InvoiceDetailsQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/query/InvoiceDetailsQueryHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/StaffService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/StaffService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/StaffService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/StaffService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/check-db-connections.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/final_ai_test.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/redis/data/dump.rdb" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/dump.rdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_integration.sh" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,18 +76,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature/ai",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/projects/microservice/clinic-management-c46"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/ai&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/projects/microservice/clinic-management-c46&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

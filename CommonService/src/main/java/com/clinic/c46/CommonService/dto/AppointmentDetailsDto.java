@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -21,6 +22,8 @@ public class AppointmentDetailsDto {
     private LocalDate date;
     private String medicalPackageId;
     private String medicalPackageName;
+    private BigDecimal snapshotPrice;
+    private int snapshotPriceVersion;
     private String state;
     private Set<ServiceDto> services;
     

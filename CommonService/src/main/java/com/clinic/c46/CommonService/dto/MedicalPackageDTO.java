@@ -7,6 +7,6 @@ import java.math.BigDecimal;
 
 @Builder
 public record MedicalPackageDTO(String medicalPackageId, String name, String description, BigDecimal price,
-                                String image) {
+                                int priceVersion, String image) {
 
 }
