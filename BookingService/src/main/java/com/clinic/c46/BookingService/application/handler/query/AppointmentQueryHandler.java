@@ -16,6 +16,7 @@ import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SortDirection;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.appointment.GetAppointmentDetailsByIdQuery;
+import com.clinic.c46.CommonService.query.appointment.GetAppointmentByPatientIdAndDateQuery;
 import com.clinic.c46.CommonService.query.patient.GetPatientOptByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -185,6 +186,41 @@ public class AppointmentQueryHandler {
 
         // Return empty result when patient is not found even after retries
         return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    @QueryHandler
+    public Optional<com.clinic.c46.CommonService.dto.AppointmentDetailsDto> handle(GetAppointmentByPatientIdAndDateQuery q) {
+        Specification<AppointmentView> specPatientId = specificationBuilder.fieldEquals("patientId", q.patientId());
+        Specification<AppointmentView> specDate = specificationBuilder.fieldEquals("date", q.date());
+
+        Specification<AppointmentView> finalSpec = Specification.allOf(specPatientId, specDate);
+
+        return appointmentViewRepository.findAll(finalSpec).stream()
+                .findFirst() // Get the first appointment if multiple exist
+                .map(view -> {
+                    MedicalPackageView medicalPackage = view.getMedicalPackage();
+                    Set<com.clinic.c46.CommonService.dto.AppointmentDetailsDto.ServiceDto> services = medicalPackage.getServices()
+                            .stream()
+                            .map(serviceRepView -> com.clinic.c46.CommonService.dto.AppointmentDetailsDto.ServiceDto.builder()
+                                    .id(serviceRepView.getId())
+                                    .name(serviceRepView.getName())
+                                    .build())
+                            .collect(Collectors.toSet());
+
+                    return com.clinic.c46.CommonService.dto.AppointmentDetailsDto.builder()
+                            .id(view.getId())
+                            .patientId(view.getPatientId())
+                            .patientName(view.getPatientName())
+                            .shift(view.getShift())
+                            .date(view.getDate())
+                            .medicalPackageId(medicalPackage.getMedicalPackageId())
+                            .medicalPackageName(medicalPackage.getMedicalPackageName())
+                            .snapshotPrice(view.getSnapshotPrice())
+                            .snapshotPriceVersion(view.getSnapshotPriceVersion())
+                            .state(view.getState())
+                            .services(services)
+                            .build();
+                });
     }
 
 
