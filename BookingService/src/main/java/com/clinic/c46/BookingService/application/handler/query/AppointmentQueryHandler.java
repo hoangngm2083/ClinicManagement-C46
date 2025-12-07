@@ -9,13 +9,14 @@ import com.clinic.c46.BookingService.domain.query.GetAppointmentByIdQuery;
 import com.clinic.c46.BookingService.domain.query.SearchAppointmentsQuery;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
 import com.clinic.c46.BookingService.domain.view.MedicalPackageView;
+import com.clinic.c46.BookingService.infrastructure.adapter.exception.DataNotFoundRetryableException;
 import com.clinic.c46.BookingService.infrastructure.adapter.in.web.dto.AppointmentsPagedResponse;
 import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SortDirection;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.appointment.GetAppointmentDetailsByIdQuery;
-import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientOptByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
@@ -24,6 +25,9 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -119,6 +123,7 @@ public class AppointmentQueryHandler {
     }
 
     @QueryHandler
+    @Retryable(retryFor = DataNotFoundRetryableException.class, maxAttemptsExpression = "${retry.maxAttempts}", backoff = @Backoff(maxDelayExpression = "${retry.maxDelay}"))
     public CompletableFuture<Optional<com.clinic.c46.CommonService.dto.AppointmentDetailsDto>> handle(
             GetAppointmentDetailsByIdQuery q) {
         Optional<AppointmentView> viewOpt = appointmentViewRepository.findById(q.appointmentId());
@@ -138,14 +143,19 @@ public class AppointmentQueryHandler {
                 .collect(Collectors.toSet());
 
         // Query patient email asynchronously
-        GetPatientByIdQuery patientQuery = GetPatientByIdQuery.builder()
+        GetPatientOptByIdQuery patientQuery = GetPatientOptByIdQuery.builder()
                 .patientId(view.getPatientId())
                 .build();
 
         return queryGateway.query(patientQuery, ResponseTypes.optionalInstanceOf(PatientDto.class))
                 .thenApply(patientOpt -> {
-                    String patientEmail = patientOpt.map(PatientDto::email)
-                            .orElse(null);
+                    if (patientOpt.isEmpty()) {
+                        log.warn("[AppointmentQueryHandler] Patient not found: {}, will retry", view.getPatientId());
+                        throw new DataNotFoundRetryableException("Patient not found: " + view.getPatientId());
+                    }
+
+                    String patientEmail = patientOpt.get()
+                            .email();
 
                     com.clinic.c46.CommonService.dto.AppointmentDetailsDto dto = com.clinic.c46.CommonService.dto.AppointmentDetailsDto.builder()
                             .id(view.getId())
@@ -164,6 +174,17 @@ public class AppointmentQueryHandler {
 
                     return Optional.of(dto);
                 });
+    }
+
+    @Recover
+    public CompletableFuture<Optional<com.clinic.c46.CommonService.dto.AppointmentDetailsDto>> recover(
+            DataNotFoundRetryableException e, GetAppointmentDetailsByIdQuery q) {
+        log.error(
+                "[AppointmentQueryHandler] Failed to get appointment details after retries for appointmentId: {}, reason: {}",
+                q.appointmentId(), e.getMessage(), e);
+
+        // Return empty result when patient is not found even after retries
+        return CompletableFuture.completedFuture(Optional.empty());
     }
 
 
