@@ -7,3 +7,4 @@ import java.time.LocalDate;
 @Builder
 public record GetAppointmentByPatientIdAndDateQuery(String patientId, LocalDate date) {
 }
+

@@ -191,7 +191,7 @@
                         String(now.getMinutes()).padStart(2, '0') +
                         String(now.getSeconds()).padStart(2, '0');
 
-                    sessionId = `session_${dateStr}_${timeStr}`;
+                    sessionId = `session_${dateStr}_${timeStr}`; // Change to Fingerprint
                     localStorage.setItem('clinic_chat_session_id', sessionId);
                 }
 
@@ -244,7 +244,7 @@
                     session_id: this.sessionId
                 };
 
-                const response = await fetch('http://localhost:8000/chat', {
+                const response = await fetch('http://localhost:8080/api/ai/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

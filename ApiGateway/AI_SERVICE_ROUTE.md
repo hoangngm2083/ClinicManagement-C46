@@ -2,7 +2,7 @@
 
 ## 📋 Tổng Quan
 
-AI Service đã được thêm vào API Gateway với route `/api/ai/**`.
+AI Service đã được thêm vào API Gateway với route `/api/ai/**`. Tất cả endpoints trong AI Service đều sử dụng prefix `/ai` và có thể được cấu hình qua biến môi trường `AI_API_PREFIX`.
 
 ## 🔧 Cấu Hình
 
@@ -19,6 +19,8 @@ AI Service đã được thêm vào API Gateway với route `/api/ai/**`.
 1. `application.properties` - Default configuration (local)
 2. `application-docker.properties` - Docker configuration
 3. `application-local.properties` - Local development configuration
+4. `AIService/app/config/settings.py` - Added `ai_api_prefix` setting
+5. `AIService/app/main.py` - Updated all endpoints to use `/ai` prefix
 
 ## 🌐 Endpoints Available Through Gateway
 
@@ -134,11 +136,11 @@ spring.cloud.gateway.routes[7].filters[0]=StripPrefix=1
 
 | Gateway Path | After StripPrefix | AI Service Endpoint |
 |--------------|-------------------|---------------------|
-| `/api/ai/chat` | `/chat` | `POST /chat` |
-| `/api/ai/health` | `/health` | `GET /health` |
-| `/api/ai/info` | `/info` | `GET /info` |
-| `/api/ai/chat/history/{id}` | `/chat/history/{id}` | `GET /chat/history/{id}` |
-| `/api/ai/chat/session/{id}` | `/chat/session/{id}` | `DELETE /chat/session/{id}` |
+| `/api/ai/chat` | `/ai/chat` | `POST /ai/chat` |
+| `/api/ai/health` | `/ai/health` | `GET /ai/health` |
+| `/api/ai/info` | `/ai/info` | `GET /ai/info` |
+| `/api/ai/chat/history/{id}` | `/ai/chat/history/{id}` | `GET /ai/chat/history/{id}` |
+| `/api/ai/chat/session/{id}` | `/ai/chat/session/{id}` | `DELETE /ai/chat/session/{id}` |
 
 ## 🔄 Restart Required
 

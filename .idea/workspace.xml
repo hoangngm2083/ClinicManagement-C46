@@ -6,13 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="e40a09e4-3717-4e5f-98b7-bcde1e17d4fd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/BookingService/src/main/java/com/clinic/c46/BookingService/application/handler/query/AppointmentQueryHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/command/payment/CreateInvoiceCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/command/payment/CreateInvoiceCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/payment/InvoiceCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/CommonService/src/main/java/com/clinic/c46/CommonService/event/payment/InvoiceCreatedEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/application/saga/ClinicWorkFlowProcessingSaga.java" beforeDir="false" afterPath="$PROJECT_DIR$/ExaminationFlowService/src/main/java/com/clinic/c46/ExaminationFlowService/application/saga/ClinicWorkFlowProcessingSaga.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/domain/aggregate/InvoiceAggregate.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/domain/aggregate/InvoiceAggregate.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projector/InvoiceProjector.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projector/InvoiceProjector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/appendonlydir/appendonly.aof.1.incr.aof" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projection/InvoiceProjection.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/clinic/c46/PaymentService/infrastructure/adapter/persistence/projection/InvoiceProjection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/rag/data_loader.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/redis/data/dump.rdb" beforeDir="false" afterPath="$PROJECT_DIR$/redis/data/dump.rdb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

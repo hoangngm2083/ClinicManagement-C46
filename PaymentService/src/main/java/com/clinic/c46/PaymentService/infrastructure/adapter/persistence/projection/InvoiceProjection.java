@@ -33,4 +33,3 @@ public class InvoiceProjection extends BaseView {
     @CollectionTable(name = "invoice_medical_packages", joinColumns = @JoinColumn(name = "invoice_id"))
     private Set<MedicalPackageRep> medicalPackages = new HashSet<>();
 }
-

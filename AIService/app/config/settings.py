@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     # API Configuration
     clinic_api_base_url: str = "http://api-gateway:8080"
     ai_service_port: int = 8000
+    ai_api_prefix: str = "/ai"
 
     # OpenAI Configuration
     openai_api_key: str = "sk-fake-key-for-testing"  # Default for testing

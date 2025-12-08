@@ -18,6 +18,9 @@ from .utils.helpers import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# API prefix configuration
+api_prefix = settings.ai_api_prefix
+
 # Global instances
 clinic_api: Optional[ClinicAPIService] = None
 vector_store: Optional[PGVectorStore] = None
@@ -120,7 +123,7 @@ class HealthResponse(BaseModel):
     services: Dict[str, bool] = Field(..., description="Status of dependent services")
 
 
-@app.get("/health", response_model=HealthResponse)
+@app.get(f"{api_prefix}/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
     try:
@@ -165,7 +168,7 @@ async def health_check():
         )
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post(f"{api_prefix}/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """
     Main chat endpoint for AI assistant interaction
@@ -190,7 +193,7 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@app.get("/chat/history/{session_id}")
+@app.get(f"{api_prefix}/chat/history/{{session_id}}")
 async def get_chat_history(session_id: str):
     """Get conversation history for a session"""
     if not agent_manager:
@@ -206,7 +209,7 @@ async def get_chat_history(session_id: str):
         raise HTTPException(status_code=500, detail="Error retrieving chat history")
 
 
-@app.delete("/chat/session/{session_id}")
+@app.delete(f"{api_prefix}/chat/session/{{session_id}}")
 async def clear_session(session_id: str):
     """Clear conversation session"""
     if not agent_manager:
@@ -221,7 +224,7 @@ async def clear_session(session_id: str):
         raise HTTPException(status_code=500, detail="Error clearing session")
 
 
-@app.post("/admin/clear-cache")
+@app.post(f"{api_prefix}/admin/clear-cache")
 async def clear_cache():
     """Clear system prompt cache (admin endpoint)"""
     try:
@@ -233,7 +236,7 @@ async def clear_cache():
         raise HTTPException(status_code=500, detail="Error clearing cache")
 
 
-@app.get("/info")
+@app.get(f"{api_prefix}/info")
 async def get_service_info():
     """Get service information"""
     return {
@@ -252,7 +255,7 @@ async def get_service_info():
     }
 
 
-@app.post("/admin/clear-prompt-cache")
+@app.post(f"{api_prefix}/admin/clear-prompt-cache")
 async def clear_prompt_cache():
     """Clear system prompt cache (admin only)"""
     if not agent_manager:
@@ -269,7 +272,7 @@ async def clear_prompt_cache():
         raise HTTPException(status_code=500, detail="Error clearing prompt cache")
 
 
-@app.get("/admin/prompt-preview")
+@app.get(f"{api_prefix}/admin/prompt-preview")
 async def preview_system_prompt():
     """Preview current system prompt (admin only)"""
     if not agent_manager:
@@ -288,7 +291,7 @@ async def preview_system_prompt():
         raise HTTPException(status_code=500, detail="Error previewing prompt")
 
 
-@app.get("/admin/sync-status")
+@app.get(f"{api_prefix}/admin/sync-status")
 async def get_sync_status():
     """Get data sync service status (admin only)"""
     if not data_sync_service:
@@ -302,7 +305,7 @@ async def get_sync_status():
         raise HTTPException(status_code=500, detail="Error getting sync status")
 
 
-@app.post("/admin/sync-now")
+@app.post(f"{api_prefix}/admin/sync-now")
 async def trigger_manual_sync():
     """Manually trigger data sync (admin only)"""
     if not data_sync_service:
@@ -322,8 +325,8 @@ async def root():
     return {
         "message": "Welcome to Clinic AI Service",
         "docs": "/docs",
-        "health": "/health",
-        "chat": "/chat"
+        "health": f"{api_prefix}/health",
+        "chat": f"{api_prefix}/chat"
     }
 
 
