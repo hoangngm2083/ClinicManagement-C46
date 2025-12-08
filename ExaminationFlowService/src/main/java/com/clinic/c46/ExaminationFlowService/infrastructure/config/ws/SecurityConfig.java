@@ -89,30 +89,30 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-
-        // THAY ĐỔI QUAN TRỌNG 1: Dùng addAllowedOriginPattern thay vì addAllowedOrigin
-        // Điều này cho phép dùng "*" ngay cả khi allowCredentials = true
-        config.addAllowedOriginPattern("*");
-
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        // THAY ĐỔI QUAN TRỌNG 2: Bắt buộc phải là true cho SockJS/WebSocket
-        config.setAllowCredentials(true);
-
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }
-
-    @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilterRegistration(CorsFilter corsFilter) {
-        FilterRegistrationBean<CorsFilter> registration = new FilterRegistrationBean<>(corsFilter);
-        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE); // Quan trọng: Đảm bảo chạy đầu tiên
-        return registration;
-    }
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration config = new CorsConfiguration();
+//
+//        // THAY ĐỔI QUAN TRỌNG 1: Dùng addAllowedOriginPattern thay vì addAllowedOrigin
+//        // Điều này cho phép dùng "*" ngay cả khi allowCredentials = true
+//        config.addAllowedOriginPattern("*");
+//
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+//
+//        // THAY ĐỔI QUAN TRỌNG 2: Bắt buộc phải là true cho SockJS/WebSocket
+//        config.setAllowCredentials(true);
+//
+//        source.registerCorsConfiguration("/**", config);
+//        return new CorsFilter(source);
+//    }
+//
+//    @Bean
+//    public FilterRegistrationBean<CorsFilter> corsFilterRegistration(CorsFilter corsFilter) {
+//        FilterRegistrationBean<CorsFilter> registration = new FilterRegistrationBean<>(corsFilter);
+//        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE); // Quan trọng: Đảm bảo chạy đầu tiên
+//        return registration;
+//    }
 
 }
