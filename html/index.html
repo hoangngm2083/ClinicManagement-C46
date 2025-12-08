@@ -293,7 +293,7 @@
             data: parsedData
         };
 
-        const url = `${EXAMINATION_SERVICE_URL}/api/examination/${examId}/result`;
+        const url = `${EXAMINATION_SERVICE_URL}/examination/${examId}/result`;
 
         logMessage(`[HTTP POST] Gửi yêu cầu hoàn thành khám tới: ${url}`, 'info');
 
@@ -340,7 +340,7 @@
             paymentMethod: paymentMethod
         };
 
-        const url = `${PAYMENT_SERVICE_URL}/api/payment/transactions`;
+        const url = `${PAYMENT_SERVICE_URL}/payment/transactions`;
 
         logMessage(`[HTTP POST] Gửi yêu cầu tạo giao dịch tới: ${url}`, 'info');
 

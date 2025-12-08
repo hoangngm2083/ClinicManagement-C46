@@ -18,6 +18,8 @@ import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Aggregate
@@ -28,8 +30,8 @@ public class MedicalPackageAggregate {
     private String name;
     private String description;
     private Set<String> serviceIds;
-    private int version;
-    private BigDecimal price;
+    private Map<Integer, BigDecimal> prices = new HashMap<>();
+    private int currentPriceVersion;
     private String image;
     private boolean isDeleted;
 
@@ -49,6 +51,7 @@ public class MedicalPackageAggregate {
                 .price(cmd.price())
                 .image(cmd.image())
                 .serviceIds(cmd.serviceIds())
+                .priceVersion(1)
                 .build();
 
         // apply
@@ -61,9 +64,10 @@ public class MedicalPackageAggregate {
         this.name = event.name();
         this.description = event.description();
         this.serviceIds = event.serviceIds();
-        this.price = event.price();
+        this.prices = new HashMap<>();
+        this.prices.put(event.priceVersion(), event.price());
+        this.currentPriceVersion = event.priceVersion();
         this.image = event.image();
-        this.version = 1;
     }
 
 
@@ -74,14 +78,16 @@ public class MedicalPackageAggregate {
             throw new IllegalArgumentException("Giá mới không hợp lệ");
         }
 
-        if (this.price.compareTo(cmd.newPrice()) == 0) {
+        BigDecimal currentPrice = this.prices.get(this.currentPriceVersion);
+        if (currentPrice != null && currentPrice.compareTo(cmd.newPrice()) == 0) {
             return;
         }
 
+        int newPriceVersion = this.currentPriceVersion + 1;
         MedicalPackagePriceUpdatedEvent event = MedicalPackagePriceUpdatedEvent.builder()
                 .medicalPackageId(cmd.medicalPackageId())
                 .newPrice(cmd.newPrice())
-                .newVersion(++this.version)
+                .newPriceVersion(newPriceVersion)
                 .build();
 
         AggregateLifecycle.apply(event);
@@ -89,8 +95,8 @@ public class MedicalPackageAggregate {
 
     @EventSourcingHandler
     public void on(MedicalPackagePriceUpdatedEvent event) {
-        this.price = event.newPrice();
-        this.version = event.newVersion();
+        this.prices.put(event.newPriceVersion(), event.newPrice());
+        this.currentPriceVersion = event.newPriceVersion();
     }
 
     @CommandHandler
@@ -120,7 +126,6 @@ public class MedicalPackageAggregate {
                 .description(cmd.description())
                 .serviceIds(cmd.serviceIds())
                 .image(cmd.image())
-                .version(++this.version)
                 .build();
 
         AggregateLifecycle.apply(event);
@@ -128,8 +133,6 @@ public class MedicalPackageAggregate {
 
     @EventSourcingHandler
     public void on(MedicalPackageInfoUpdatedEvent event) {
-        if (event.version() <= this.version) return;
-        this.version = event.version();
         if (event.name() != null) this.name = event.name();
         if (event.description() != null) this.description = event.description();
         if (event.serviceIds() != null) this.serviceIds = event.serviceIds();

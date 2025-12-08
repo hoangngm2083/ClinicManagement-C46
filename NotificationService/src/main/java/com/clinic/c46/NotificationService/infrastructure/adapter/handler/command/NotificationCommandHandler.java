@@ -18,6 +18,7 @@ import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.
 import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.EmailVerificationTemplateVariables;
 import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.ExamResultTemplateVariables;
 import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.InvoiceTemplateVariables;
+import com.clinic.c46.NotificationService.infrastructure.adapter.exception.DataNotFoundRetryableException;
 import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.AppointmentReminderTemplateVariables;
 import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.template.variables.AppointmentTemplateVariables;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -53,6 +57,7 @@ public class NotificationCommandHandler {
     }
 
     @CommandHandler
+    @Retryable(retryFor = DataNotFoundRetryableException.class, maxAttemptsExpression = "${retry.maxAttempts}", backoff = @Backoff(maxDelayExpression = "${retry.maxDelay}"))
     public void handle(SendInvoiceEmailCommand command) {
         log.info("[NotificationCommandHandler] Handling SendInvoiceEmailCommand for invoice: {}", command.invoiceId());
 
@@ -64,8 +69,8 @@ public class NotificationCommandHandler {
                     .join();
 
             if (invoiceOpt.isEmpty()) {
-                log.warn("[NotificationCommandHandler] Invoice not found: {}", command.invoiceId());
-                return;
+                log.warn("[NotificationCommandHandler] Invoice not found: {}, will retry", command.invoiceId());
+                throw new DataNotFoundRetryableException("Invoice not found: " + command.invoiceId());
             }
             InvoiceDetailsDto invoice = invoiceOpt.get();
             // Build template variables
@@ -101,6 +106,7 @@ public class NotificationCommandHandler {
     }
 
     @CommandHandler
+    @Retryable(retryFor = DataNotFoundRetryableException.class, maxAttemptsExpression = "${retry.maxAttempts}", backoff = @Backoff(maxDelayExpression = "${retry.maxDelay}"))
     public void handle(SendExamResultEmailCommand command) {
 
 
@@ -113,8 +119,8 @@ public class NotificationCommandHandler {
                     .join();
 
             if (examOpt.isEmpty()) {
-                log.warn("[NotificationCommandHandler] Exam not found: {}", command.examinationId());
-                return;
+                log.warn("[NotificationCommandHandler] Exam not found: {}, will retry", command.examinationId());
+                throw new DataNotFoundRetryableException("Exam not found: " + command.examinationId());
             }
 
             ExamDetailsDto exam = examOpt.get();
@@ -153,58 +159,55 @@ public class NotificationCommandHandler {
     }
 
     @CommandHandler
+    @Retryable(retryFor = DataNotFoundRetryableException.class, maxAttemptsExpression = "${retry.maxAttempts}", backoff = @Backoff(maxDelayExpression = "${retry.maxDelay}"))
     public void handle(SendAppointmentInfoCommand command) {
-        log.info("[NotificationCommandHandler] Handling SendAppointmentInfoCommand for appointment: {}", 
+        log.info("[NotificationCommandHandler] Handling SendAppointmentInfoCommand for appointment: {}",
                 command.appointmentId());
 
         try {
             // Query appointment details
             GetAppointmentDetailsByIdQuery query = new GetAppointmentDetailsByIdQuery(command.appointmentId());
-            queryGateway.query(query, ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class))
-                    .thenAccept(appointmentOpt -> {
-                        if (appointmentOpt.isEmpty()) {
-                            log.warn("[NotificationCommandHandler] Appointment not found: {}", command.appointmentId());
-                            return;
-                        }
+            Optional<AppointmentDetailsDto> appointmentOpt = queryGateway.query(query,
+                            ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class))
+                    .join();
 
-                        AppointmentDetailsDto appointment = appointmentOpt.get();
+            if (appointmentOpt.isEmpty()) {
+                log.warn("[NotificationCommandHandler] Appointment not found: {}, will retry", command.appointmentId());
+                throw new DataNotFoundRetryableException("Appointment not found: " + command.appointmentId());
+            }
 
-                        // Build list of service items
-                        List<AppointmentTemplateVariables.ServiceItem> serviceItems = appointment.getServices()
-                                .stream()
-                                .map(service -> AppointmentTemplateVariables.ServiceItem.builder()
-                                        .name(service.getName())
-                                        .build())
-                                .collect(Collectors.toList());
+            AppointmentDetailsDto appointmentDetails = appointmentOpt.get();
 
-                        // Build template variables
-                        AppointmentTemplateVariables variables = AppointmentTemplateVariables.builder()
-                                .patientName(appointment.getPatientName())
-                                .appointmentId(appointment.getId())
-                                .appointmentDate(appointment.getDate()
-                                        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                                .shift(appointment.getShift())
-                                .appointmentState(appointment.getState())
-                                .medicalPackageName(appointment.getMedicalPackageName())
-                                .services(serviceItems)
-                                .build();
+            // Build list of service items
+            List<AppointmentTemplateVariables.ServiceItem> serviceItems = appointmentDetails.getServices()
+                    .stream()
+                    .map(service -> AppointmentTemplateVariables.ServiceItem.builder()
+                            .name(service.getName())
+                            .build())
+                    .collect(Collectors.toList());
 
-                        // Render template
-                        String htmlContent = emailTemplateFactory.renderTemplate(
-                                EmailTemplate.APPOINTMENT_CONFIRMATION, variables);
+            // Build template variables
+            AppointmentTemplateVariables variables = AppointmentTemplateVariables.builder()
+                    .patientName(appointmentDetails.getPatientName())
+                    .appointmentId(appointmentDetails.getId())
+                    .appointmentDate(appointmentDetails.getDate()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                    .shift(appointmentDetails.getShift())
+                    .appointmentState(appointmentDetails.getState())
+                    .medicalPackageName(appointmentDetails.getMedicalPackageName())
+                    .services(serviceItems)
+                    .build();
 
-                        // Send email
-                        notificationSenderService.sendEmail(appointment.getPatientEmail(),
-                                appointment.getPatientEmail(), EmailTemplate.APPOINTMENT_CONFIRMATION.getSubject(), htmlContent);
+            // Render template
+            String htmlContent = emailTemplateFactory.renderTemplate(
+                    EmailTemplate.APPOINTMENT_CONFIRMATION, variables);
 
-                        log.info("[NotificationCommandHandler] Appointment email sent successfully to: {}",
-                                appointment.getPatientEmail());
-                    })
-                    .exceptionally(ex -> {
-                        log.error("[NotificationCommandHandler] Failed to send appointment email for: {}",
-                                command.appointmentId(), ex);
-                        return null;
-                    });
+            // Send email
+            notificationSenderService.sendEmail(appointmentDetails.getPatientEmail(),
+                    appointmentDetails.getPatientEmail(), EmailTemplate.APPOINTMENT_CONFIRMATION.getSubject(), htmlContent);
+
+            log.info("[NotificationCommandHandler] Appointment email sent successfully to: {}",
+                    appointmentDetails.getPatientEmail());
 
         } catch (Exception e) {
             log.error("[NotificationCommandHandler] Failed to send appointment email for: {}",
@@ -213,51 +216,72 @@ public class NotificationCommandHandler {
     }
 
     @CommandHandler
+    @Retryable(retryFor = DataNotFoundRetryableException.class, maxAttemptsExpression = "${retry.maxAttempts}", backoff = @Backoff(maxDelayExpression = "${retry.maxDelay}"))
     public void handle(RemindAppointmentCommand command) {
-        log.info("[NotificationCommandHandler] Handling RemindAppointmentCommand for appointment: {}", 
+        log.info("[NotificationCommandHandler] Handling RemindAppointmentCommand for appointment: {}",
                 command.appointmentId());
 
         try {
             // Query appointment details
             GetAppointmentDetailsByIdQuery query = new GetAppointmentDetailsByIdQuery(command.appointmentId());
-            queryGateway.query(query, ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class))
-                    .thenAccept(appointmentOpt -> {
-                        if (appointmentOpt.isEmpty()) {
-                            log.warn("[NotificationCommandHandler] Appointment not found: {}", command.appointmentId());
-                            return;
-                        }
+            Optional<AppointmentDetailsDto> appointmentOpt = queryGateway.query(query,
+                            ResponseTypes.optionalInstanceOf(AppointmentDetailsDto.class))
+                    .join();
 
-                        AppointmentDetailsDto appointment = appointmentOpt.get();
+            if (appointmentOpt.isEmpty()) {
+                log.warn("[NotificationCommandHandler] Appointment not found: {}, will retry", command.appointmentId());
+                throw new DataNotFoundRetryableException("Appointment not found: " + command.appointmentId());
+            }
 
-                        // Build template variables (preparation instructions are now in HTML template)
-                        AppointmentReminderTemplateVariables variables = AppointmentReminderTemplateVariables.builder()
-                                .patientName(appointment.getPatientName())
-                                .appointmentDate(appointment.getDate()
-                                        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                                .shift(appointment.getShift())
-                                .medicalPackageName(appointment.getMedicalPackageName())
-                                .build();
+            AppointmentDetailsDto reminderAppointment = appointmentOpt.get();
 
-                        // Render template
-                        String htmlContent = emailTemplateFactory.renderTemplate(
-                                EmailTemplate.APPOINTMENT_REMINDER, variables);
+            // Build template variables (preparation instructions are now in HTML template)
+            AppointmentReminderTemplateVariables variables = AppointmentReminderTemplateVariables.builder()
+                    .patientName(reminderAppointment.getPatientName())
+                    .appointmentDate(reminderAppointment.getDate()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                    .shift(reminderAppointment.getShift())
+                    .medicalPackageName(reminderAppointment.getMedicalPackageName())
+                    .build();
 
-                        // Send email
-                        notificationSenderService.sendEmail(appointment.getPatientEmail(),
-                                appointment.getPatientEmail(), EmailTemplate.APPOINTMENT_REMINDER.getSubject(), htmlContent);
+            // Render template
+            String htmlContent = emailTemplateFactory.renderTemplate(
+                    EmailTemplate.APPOINTMENT_REMINDER, variables);
 
-                        log.info("[NotificationCommandHandler] Appointment reminder email sent successfully to: {}",
-                                appointment.getPatientEmail());
-                    })
-                    .exceptionally(ex -> {
-                        log.error("[NotificationCommandHandler] Failed to send appointment reminder email for: {}",
-                                command.appointmentId(), ex);
-                        return null;
-                    });
+            // Send email
+            notificationSenderService.sendEmail(reminderAppointment.getPatientEmail(),
+                    reminderAppointment.getPatientEmail(), EmailTemplate.APPOINTMENT_REMINDER.getSubject(), htmlContent);
+
+            log.info("[NotificationCommandHandler] Appointment reminder email sent successfully to: {}",
+                    reminderAppointment.getPatientEmail());
 
         } catch (Exception e) {
             log.error("[NotificationCommandHandler] Failed to send appointment reminder email for: {}",
                     command.appointmentId(), e);
         }
+    }
+
+    @Recover
+    public void recover(DataNotFoundRetryableException e, SendInvoiceEmailCommand command) {
+        log.error("[NotificationCommandHandler] Failed to send invoice email after retries for invoiceId: {}, reason: {}",
+                command.invoiceId(), e.getMessage(), e);
+    }
+
+    @Recover
+    public void recover(DataNotFoundRetryableException e, SendExamResultEmailCommand command) {
+        log.error("[NotificationCommandHandler] Failed to send exam result email after retries for examinationId: {}, reason: {}",
+                command.examinationId(), e.getMessage(), e);
+    }
+
+    @Recover
+    public void recover(DataNotFoundRetryableException e, SendAppointmentInfoCommand command) {
+        log.error("[NotificationCommandHandler] Failed to send appointment info email after retries for appointmentId: {}, reason: {}",
+                command.appointmentId(), e.getMessage(), e);
+    }
+
+    @Recover
+    public void recover(DataNotFoundRetryableException e, RemindAppointmentCommand command) {
+        log.error("[NotificationCommandHandler] Failed to send appointment reminder email after retries for appointmentId: {}, reason: {}",
+                command.appointmentId(), e.getMessage(), e);
     }
 }

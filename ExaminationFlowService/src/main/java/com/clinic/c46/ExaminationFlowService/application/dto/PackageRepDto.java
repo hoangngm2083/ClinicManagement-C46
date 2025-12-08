@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 import java.util.Set;
 
 @Builder
-public record PackageRepDto(String id, BigDecimal price, Set<ServiceRepDto> services) {
+public record PackageRepDto(String id, BigDecimal price, int priceVersion, Set<ServiceRepDto> services) {
 }

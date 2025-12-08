@@ -33,9 +33,18 @@ public class InvoiceProjector {
 
     @EventHandler
     public void on(InvoiceCreatedEvent event) {
-        CompletableFuture<InvoiceProjection> projectionFuture = fetchMedicalForm(event.medicalFormId()).thenCompose(
-                medicalFormDto -> fetchAndProcessPackages(medicalFormDto, event.invoiceId()));
-        projectionFuture.thenAccept(this::saveProjection);
+        // Check if snapshotPrice is valid (not null and >= 0)
+        if (event.snapshotPrice() != null && event.snapshotPrice().compareTo(BigDecimal.ZERO) >= 0) {
+            // Use snapshotPrice instead of fetching current package prices
+            CompletableFuture<InvoiceProjection> projectionFuture = fetchMedicalForm(event.medicalFormId()).thenCompose(
+                    medicalFormDto -> createProjectionWithSnapshotPrice(medicalFormDto, event.invoiceId(), event.snapshotPrice()));
+            projectionFuture.thenAccept(this::saveProjection);
+        } else {
+            // Use current medical package prices
+            CompletableFuture<InvoiceProjection> projectionFuture = fetchMedicalForm(event.medicalFormId()).thenCompose(
+                    medicalFormDto -> fetchAndProcessPackages(medicalFormDto, event.invoiceId()));
+            projectionFuture.thenAccept(this::saveProjection);
+        }
     }
 
     @EventHandler
@@ -71,7 +80,7 @@ public class InvoiceProjector {
             List<MedicalPackageDTO> medicalPackageDTOs) {
 
         Set<MedicalPackageRep> medicalPackages = medicalPackageDTOs.stream()
-                .map(dto -> new MedicalPackageRep(dto.medicalPackageId(), dto.name(), dto.price()))
+                .map(dto -> new MedicalPackageRep(dto.medicalPackageId(), dto.name(), dto.price(), dto.priceVersion()))
                 .collect(Collectors.toSet());
 
         BigDecimal totalAmount = medicalPackageDTOs.stream()
@@ -85,6 +94,26 @@ public class InvoiceProjector {
                 .medicalPackages(medicalPackages)
                 .status(InvoiceStatus.PENDING_PAYMENT)
                 .build();
+    }
+
+    private CompletableFuture<InvoiceProjection> createProjectionWithSnapshotPrice(MedicalFormDto medicalFormDto,
+            String invoiceId, BigDecimal snapshotPrice) {
+
+        return queryGateway.query(new GetAllPackagesInIdsQuery(medicalFormDto.packageIds()),
+                        ResponseTypes.multipleInstancesOf(MedicalPackageDTO.class))
+                .thenApply(medicalPackageDTOs -> {
+                    Set<MedicalPackageRep> medicalPackages = medicalPackageDTOs.stream()
+                            .map(dto -> new MedicalPackageRep(dto.medicalPackageId(), dto.name(), dto.price(), dto.priceVersion()))
+                            .collect(Collectors.toSet());
+
+                    return InvoiceProjection.builder()
+                            .id(invoiceId)
+                            .patientId(medicalFormDto.patientId())
+                            .totalAmount(snapshotPrice) // Use snapshotPrice instead of current prices
+                            .medicalPackages(medicalPackages)
+                            .status(InvoiceStatus.PENDING_PAYMENT)
+                            .build();
+                });
     }
 
 

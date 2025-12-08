@@ -20,7 +20,7 @@ services:
       - c46-net
 
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: postgres
     restart: always
     command:
@@ -56,6 +56,7 @@ services:
       - pgdata:/var/lib/postgresql/data
       # - ./data/postgres:/var/lib/postgresql/data:delegated
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U booking" ]
       interval: 10s
@@ -207,7 +208,7 @@ services:
     ports:
       - "8083:8080"
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "wget", "--spider", "http://localhost:8083/actuator/health" ]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -372,38 +373,54 @@ services:
     networks:
       - c46-net
 
-  # ai-service:
-  #   build: ./AIService
-  #   container_name: ai-service
-  #   restart: always
-  #   depends_on:
-  #     api-gateway:
-  #       condition: service_healthy
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     - CLINIC_API_BASE_URL=http://api-gateway:8080
-  #     - AI_SERVICE_PORT=8000
-  #     - CHROMA_DB_PATH=./chroma_db
-  #     - SYNC_DOCTORS_INTERVAL_MINUTES=15
-  #     - SYNC_SLOTS_INTERVAL_MINUTES=5
-  #     - SYNC_PACKAGES_INTERVAL_MINUTES=30
-  #     - MEMORY_MAX_TOKENS=2000
-  #     - MEMORY_WINDOW_SIZE=10
-  #     - TZ=Asia/Ho_Chi_Minh
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - ai_chroma_data:/app/chroma_db
-  #     - ./logs:/app/logs
-  #   healthcheck:
-  #     test: [ "CMD", "wget", "--spider", "http://localhost:8000/health" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 60s
-  #   networks:
-  #     - c46-net
+  ai-service:
+    build: ./AIService
+    container_name: ai-service
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - CLINIC_API_BASE_URL=http://api-gateway:8080
+      - AI_SERVICE_PORT=8000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=vector_db
+      - POSTGRES_USER=booking
+      - POSTGRES_PASSWORD=booking
+      - POSTGRES_SSL_MODE=disable
+      - VECTOR_DIMENSION=1536
+      - VECTOR_SIMILARITY_METRIC=cosine
+      - VECTOR_TABLE_NAME=vector_embeddings
+      - VECTOR_INDEX_TYPE=ivfflat
+      - SYNC_DOCTORS_INTERVAL_MINUTES=15
+      - SYNC_SLOTS_INTERVAL_MINUTES=5
+      - SYNC_PACKAGES_INTERVAL_MINUTES=30
+      - MEMORY_MAX_TOKENS=2000
+      - MEMORY_WINDOW_SIZE=10
+      - LANGGRAPH_AGENT_TYPE=ReAct
+      - LANGGRAPH_MAX_ITERATIONS=5
+      - LANGGRAPH_RECURSION_LIMIT=50
+      - RETRY_MAX_ATTEMPTS=3
+      - RETRY_BACKOFF_MULTIPLIER=1.0
+      - RETRY_MAX_DELAY=10.0
+      - TZ=Asia/Ho_Chi_Minh
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - c46-net
 
   python-server:
     image: python:3.11-alpine

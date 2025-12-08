@@ -1,10 +1,12 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projector;
 
 
+import com.clinic.c46.CommonService.domain.MedicalPackagePrice;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
+import com.clinic.c46.CommonService.exception.TransientDataNotReadyException;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.PackageRepViewRepository;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.repository.ServiceRepViewRepository;
 import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection.PackageRepView;
@@ -12,10 +14,14 @@ import com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,6 +33,15 @@ public class PackageRepViewProjector {
     private final ServiceRepViewRepository serviceRepViewRepository;
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void handle(MedicalPackageCreatedEvent event) {
         if (packageRepViewRepository.existsById(event.medicalPackageId())) {
             log.info("[exam-flow.projection.medical-package.create.existed] [package-id: {}]",
@@ -36,9 +51,13 @@ public class PackageRepViewProjector {
 
         Set<ServiceRepView> serviceRepViews = handleGetServicesByIds(event.serviceIds());
 
+        Set<MedicalPackagePrice> prices = new HashSet<>();
+        prices.add(new MedicalPackagePrice(event.priceVersion(), event.price()));
+
         PackageRepView packageRepView = PackageRepView.builder()
                 .id(event.medicalPackageId())
-                .price(event.price())
+                .prices(prices)
+                .currentPriceVersion(event.priceVersion())
                 .services(serviceRepViews)
                 .build();
 
@@ -48,6 +67,15 @@ public class PackageRepViewProjector {
 
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void handle(MedicalPackageInfoUpdatedEvent event) {
         // Find resource -> throw runtime error for axon retry
         PackageRepView packageRepView = handleGetPackageById(event.medicalPackageId());
@@ -63,11 +91,29 @@ public class PackageRepViewProjector {
     }
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void handle(MedicalPackagePriceUpdatedEvent event) {
         // Find resource -> throw runtime error for axon retry
         PackageRepView packageRepView = handleGetPackageById(event.medicalPackageId());
         // Update data
-        packageRepView.setPrice(event.newPrice());
+        Set<MedicalPackagePrice> prices = packageRepView.getPrices();
+        if (prices == null) {
+            prices = new HashSet<>();
+        }
+        // Remove existing price with same version if exists
+        prices.removeIf(price -> price.getVersion() == event.newPriceVersion());
+        // Add new price
+        prices.add(new MedicalPackagePrice(event.newPriceVersion(), event.newPrice()));
+        packageRepView.setPrices(prices);
+        packageRepView.setCurrentPriceVersion(event.newPriceVersion());
         packageRepView.markUpdated();
         // Save
         packageRepViewRepository.save(packageRepView);
@@ -75,6 +121,15 @@ public class PackageRepViewProjector {
     }
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void handle(MedicalPackageDeletedEvent event) {
         packageRepViewRepository.findById(event.medicalPackageId())
                 .ifPresent(packageRepViewRepository::delete);
@@ -83,8 +138,8 @@ public class PackageRepViewProjector {
 
     private PackageRepView handleGetPackageById(String medicalPackageId) {
         return packageRepViewRepository.findById(medicalPackageId)
-                .orElseThrow(() -> new RuntimeException(
-                        "[exam-flow.projection.medical-package.update.not-found] [package-id: ]" + medicalPackageId));
+                .orElseThrow(() -> new TransientDataNotReadyException(
+                        "Medical package not ready for update operation. Package ID: " + medicalPackageId));
 
     }
 
@@ -110,8 +165,8 @@ public class PackageRepViewProjector {
 
         log.warn("[exam-flow.projection.medical-package.create.medical-service.not-found] [missing-services: {}]",
                 missingIds);
-        throw new RuntimeException(
-                "[exam-flow.projection.medical-package.create.medical-service.not-found] [missing-services: {}]" + missingIds);
+        throw new TransientDataNotReadyException(
+                "Not all medical services are ready for package operation. Missing services: " + missingIds);
     }
 
 }

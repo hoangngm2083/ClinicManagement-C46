@@ -13,6 +13,7 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,10 +68,13 @@ public class PackageQueryHandler {
 
         log.warn("+++++++++++ [PackageQueryHandler] Retrieved PackageRepViews: {}", medicalPackages.toString());
         return medicalPackages.stream()
-                .map(p -> new PackageRepDto(p.getId(), p.getPrice(), p.getServices()
-                        .stream()
-                        .map(serviceMapper::toDto)
-                        .collect(Collectors.toSet())))
+                .map(p -> {
+                    BigDecimal currentPrice = p.getCurrentPrice();
+                    return new PackageRepDto(p.getId(), currentPrice, p.getCurrentPriceVersion(), p.getServices()
+                            .stream()
+                            .map(serviceMapper::toDto)
+                            .collect(Collectors.toSet()));
+                })
                 .toList();
 
     }

@@ -11,6 +11,8 @@ import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
+import java.math.BigDecimal;
+
 @Aggregate
 @NoArgsConstructor
 public class InvoiceAggregate {
@@ -19,12 +21,14 @@ public class InvoiceAggregate {
     private String medicalFormId;
     private String transactionId;
     private InvoiceStatus status;
+    private BigDecimal snapshotPrice;
 
     @CommandHandler
     public InvoiceAggregate(CreateInvoiceCommand command) {
         AggregateLifecycle.apply(InvoiceCreatedEvent.builder()
                 .invoiceId(command.invoiceId())
                 .medicalFormId(command.medicalFormId())
+                .snapshotPrice(command.snapshotPrice())
                 .build());
     }
 
@@ -32,6 +36,7 @@ public class InvoiceAggregate {
     public void on(InvoiceCreatedEvent event) {
         this.invoiceId = event.invoiceId();
         this.medicalFormId = event.medicalFormId();
+        this.snapshotPrice = event.snapshotPrice();
         this.status = InvoiceStatus.PENDING_PAYMENT;
     }
 

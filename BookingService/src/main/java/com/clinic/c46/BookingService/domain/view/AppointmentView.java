@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -24,6 +25,10 @@ public class AppointmentView extends BaseView {
     private String patientId;
     private String state;
     private boolean isReminded;
+    
+    // Snapshot price and priceVersion at booking time
+    private BigDecimal snapshotPrice;
+    private int snapshotPriceVersion;
 
     // --- Chỉ giữ relation ManyToOne ---
     @ManyToOne(fetch = FetchType.EAGER)

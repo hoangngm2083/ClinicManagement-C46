@@ -6,6 +6,7 @@ import com.clinic.c46.BookingService.domain.command.ReleaseFingerprintCommand;
 import com.clinic.c46.BookingService.domain.command.ReleaseLockedSlotCommand;
 import com.clinic.c46.BookingService.domain.event.*;
 import com.clinic.c46.CommonService.command.auth.VerifyEmailCommand;
+import com.clinic.c46.CommonService.command.notification.SendAppointmentInfoCommand;
 import com.clinic.c46.CommonService.command.patient.CreatePatientCommand;
 import com.clinic.c46.CommonService.command.patient.DeletePatientCommand;
 import com.clinic.c46.CommonService.command.patient.PatientCreationFailedEvent;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Saga
 @Slf4j
@@ -44,7 +46,7 @@ public class BookingProcessingSaga {
     private static final String RETRY_CREATE_PATIENT = "retry-create-patient";
     private static final String RETRY_CREATE_APPOINTMENT = "retry-create-appointment";
     private final Duration BOOKING_TIMEOUT = Duration.ofMinutes(10);
-    private final long SCHEDULE_RETRY = 30L;
+    private final long SCHEDULE_RETRY = 500L;
     @Autowired
     @JsonIgnore
     private transient CommandGateway commandGateway;
@@ -153,25 +155,33 @@ public class BookingProcessingSaga {
     private void handle(AppointmentCreatedEvent event) {
         this.stateMachine = BookingProcessingStateMachine.PENDING_RELEASE_SLOT_LOCKED;
         SagaLifecycle.associateWith("fingerprint", this.fingerprint);
-        
+
         // Send ReleaseFingerprintCommand asynchronously
         this.commandGateway.send(ReleaseFingerprintCommand.builder()
-                .slotId(this.slotId)
-                .fingerprint(this.fingerprint)
-                .build())
+                        .slotId(this.slotId)
+                        .fingerprint(this.fingerprint)
+                        .build())
                 .thenCompose(result -> {
-                    // After releasing fingerprint, send appointment email notification
-                    String notificationId = UUID.randomUUID().toString();
-                    return this.commandGateway.send(
-                            com.clinic.c46.CommonService.command.notification.SendAppointmentInfoCommand.builder()
-                                    .notificationId(notificationId)
-                                    .appointmentId(this.appointmentId)
-                                    .build()
-                    );
+                    // Wait a bit to ensure appointment is saved before sending notification
+                    return CompletableFuture.runAsync(() -> {
+                        try {
+                            Thread.sleep(2000); // Wait 2 seconds for event processing
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).thenCompose(v -> {
+                        // After releasing fingerprint and delay, send appointment email notification
+                        String notificationId = UUID.randomUUID()
+                                .toString();
+                        return this.commandGateway.send(SendAppointmentInfoCommand.builder()
+                                .notificationId(notificationId)
+                                .appointmentId(this.appointmentId)
+                                .build());
+                    });
                 })
                 .exceptionally(ex -> {
-                    log.error("Failed to send appointment notification email for appointmentId: {}", 
-                            this.appointmentId, ex);
+                    log.error("Failed to send appointment notification email for appointmentId: {}", this.appointmentId,
+                            ex.getMessage());
                     return null;
                 });
 
@@ -248,7 +258,7 @@ public class BookingProcessingSaga {
         this.retryCountPatient++;
 
         // schedule retry after e.g., 30s * retryCount
-        Duration backoff = Duration.ofSeconds(this.SCHEDULE_RETRY * this.retryCountPatient);
+        Duration backoff = Duration.ofMillis(this.SCHEDULE_RETRY * this.retryCountPatient);
         deadlineManager.schedule(backoff, RETRY_CREATE_PATIENT, this.patientId);
     }
 
@@ -271,8 +281,8 @@ public class BookingProcessingSaga {
             return;
         }
         this.retryCountAppointment++;
-        // schedule retry after e.g., 30s * retryCount
-        Duration backoff = Duration.ofSeconds(this.SCHEDULE_RETRY * this.retryCountAppointment);
+        // schedule retry after e.g., 500ms * retryCount
+        Duration backoff = Duration.ofMillis(this.SCHEDULE_RETRY * this.retryCountAppointment);
         deadlineManager.schedule(backoff, RETRY_CREATE_APPOINTMENT, this.appointmentId);
 
     }

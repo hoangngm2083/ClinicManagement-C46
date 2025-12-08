@@ -1,7 +1,6 @@
 package com.clinic.c46.MedicalPackageService.application.dto;
 
 import com.clinic.c46.CommonService.dto.BasePagedResponse;
-import com.clinic.c46.CommonService.dto.MedicalPackageDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

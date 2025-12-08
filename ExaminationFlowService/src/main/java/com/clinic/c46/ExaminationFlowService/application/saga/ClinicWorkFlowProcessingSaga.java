@@ -8,6 +8,7 @@ import com.clinic.c46.CommonService.event.examination.ExaminationCreatedEvent;
 import com.clinic.c46.CommonService.event.payment.InvoiceCreatedEvent;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.examinationFlow.GetQueueSizeQuery;
+import com.clinic.c46.CommonService.query.appointment.GetAppointmentByPatientIdAndDateQuery;
 import com.clinic.c46.ExaminationFlowService.application.dto.ServiceRepDto;
 import com.clinic.c46.ExaminationFlowService.application.query.GetAllServicesOfPackagesQuery;
 import com.clinic.c46.ExaminationFlowService.application.service.websocket.WebSocketNotifier;
@@ -36,7 +37,9 @@ import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.spring.stereotype.Saga;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.*;
 
 @Saga
@@ -94,11 +97,38 @@ public class ClinicWorkFlowProcessingSaga {
             return;
         }
 
+        // Find appointment by patientId and today's date to get snapshotPrice
+        BigDecimal snapshotPrice = null;
+        try {
+            GetAppointmentByPatientIdAndDateQuery appointmentQuery = GetAppointmentByPatientIdAndDateQuery.builder()
+                    .patientId(this.patientId)
+                    .date(LocalDate.now())
+                    .build();
+
+            Optional<com.clinic.c46.CommonService.dto.AppointmentDetailsDto> appointmentOpt =
+                    queryGateway.query(appointmentQuery,
+                            ResponseTypes.optionalInstanceOf(com.clinic.c46.CommonService.dto.AppointmentDetailsDto.class))
+                    .join();
+
+            if (appointmentOpt.isPresent()) {
+                snapshotPrice = appointmentOpt.get().getSnapshotPrice();
+                log.info("[ClinicWorkFlowProcessingSaga] Found appointment for patientId: {} on date: {}, snapshotPrice: {}",
+                        this.patientId, LocalDate.now(), snapshotPrice);
+            } else {
+                log.warn("[ClinicWorkFlowProcessingSaga] No appointment found for patientId: {} on date: {}",
+                        this.patientId, LocalDate.now());
+            }
+        } catch (Exception e) {
+            log.error("[ClinicWorkFlowProcessingSaga] Error querying appointment for patientId: {}, date: {}",
+                    this.patientId, LocalDate.now(), e);
+        }
+
         // Send command to create Invoice
         SagaLifecycle.associateWith("invoiceId", this.invoiceId);
         CreateInvoiceCommand invoiceCommand = CreateInvoiceCommand.builder()
                 .invoiceId(this.invoiceId)
                 .medicalFormId(this.medicalFormId)
+                .snapshotPrice(snapshotPrice)
                 .build();
 
         this.sendCmd(invoiceCommand);
