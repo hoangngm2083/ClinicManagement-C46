@@ -148,4 +148,11 @@ public class MedicalPackageController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/test-retry")
+    public ResponseEntity<String> testRetryMechanism(@RequestParam(defaultValue = "true") boolean shouldFail) {
+        String result = ((com.clinic.c46.MedicalPackageService.application.service.MedicalPackageServiceImpl) medicalPackageService)
+                .testRetryMechanism(shouldFail);
+        return ResponseEntity.ok(result);
+    }
+
 }

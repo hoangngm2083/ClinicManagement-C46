@@ -5,6 +5,8 @@ import com.clinic.c46.CommonService.dto.MedicalPackageDTO;
 import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
+import com.clinic.c46.CommonService.query.medicalPackage.ExistsAllServicesByIdsQuery;
+import com.clinic.c46.CommonService.query.medicalPackage.ExistsMedicalPackageByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.FindMedicalPackageByIdQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesInIdsQuery;
 import com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery;
@@ -12,6 +14,7 @@ import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetail
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDetailsDTO;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
+import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryHandler;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 public class MedicalPackageQueryHandler extends BaseQueryHandler {
 
     private final MedicalPackageViewRepository packageRepo;
+    private final MedicalServiceViewRepository serviceRepo;
     private final PageAndSortHelper pageAndSortHelper;
     private final SpecificationBuilder specificationBuilder;
 
@@ -112,5 +116,23 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
                             .build();
                 })
                 .collect(Collectors.toSet());
+    }
+
+    @QueryHandler
+    public Boolean handle(ExistsMedicalPackageByIdQuery query) {
+        return packageRepo.existsById(query.medicalPackageId());
+    }
+
+    @QueryHandler
+    public Boolean handle(ExistsAllServicesByIdsQuery query) {
+        if (query.serviceIds() == null || query.serviceIds().isEmpty()) {
+            return true;
+        }
+        // Find all services by IDs and check if all exist (not deleted)
+        long foundCount = serviceRepo.findAll(specificationBuilder.in("id", List.copyOf(query.serviceIds())))
+                .stream()
+                .filter(service -> !service.isDeleted())
+                .count();
+        return query.serviceIds().size() == foundCount;
     }
 }

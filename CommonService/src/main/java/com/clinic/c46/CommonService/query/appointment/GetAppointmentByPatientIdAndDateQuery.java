@@ -8,3 +8,4 @@ import java.time.LocalDate;
 public record GetAppointmentByPatientIdAndDateQuery(String patientId, LocalDate date) {
 }
 
+

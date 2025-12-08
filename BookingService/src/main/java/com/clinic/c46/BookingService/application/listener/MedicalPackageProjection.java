@@ -9,8 +9,11 @@ import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEv
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
+import com.clinic.c46.CommonService.exception.TransientDataNotReadyException;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.eventhandling.EventHandler;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,8 +32,24 @@ public class MedicalPackageProjection {
 
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void on(MedicalPackageCreatedEvent event) {
+        // Check eventual consistency - ensure all required services exist
         Set<ServiceRepView> services = new HashSet<>(serviceRepViewRepository.findAllById(event.serviceIds()));
+        if (services.size() != event.serviceIds().size()) {
+            throw new TransientDataNotReadyException(
+                "Not all medical services are ready for package creation. Expected: " + event.serviceIds().size() +
+                ", Found: " + services.size()
+            );
+        }
 
         Set<MedicalPackagePrice> prices = new HashSet<>();
         prices.add(new MedicalPackagePrice(event.priceVersion(), event.price()));
@@ -48,6 +67,15 @@ public class MedicalPackageProjection {
     }
     
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void on(MedicalPackagePriceUpdatedEvent event) {
         medicalPackageRepository.findById(event.medicalPackageId())
                 .ifPresent(view -> {
@@ -67,16 +95,47 @@ public class MedicalPackageProjection {
     }
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void on(MedicalPackageInfoUpdatedEvent event) {
         medicalPackageRepository.findById(event.medicalPackageId())
                 .ifPresent(view -> {
                     view.setMedicalPackageName(event.name());
+
+                    // Check eventual consistency for service updates
+                    if (event.serviceIds() != null && !event.serviceIds().isEmpty()) {
+                        Set<ServiceRepView> services = new HashSet<>(serviceRepViewRepository.findAllById(event.serviceIds()));
+                        if (services.size() != event.serviceIds().size()) {
+                            throw new TransientDataNotReadyException(
+                                "Not all medical services are ready for package update. Expected: " + event.serviceIds().size() +
+                                ", Found: " + services.size()
+                            );
+                        }
+                        view.setServices(services);
+                    }
+
                     view.setUpdatedAt(LocalDateTime.now());
                     medicalPackageRepository.save(view);
                 });
     }
 
     @EventHandler
+    @Retryable(
+        retryFor = {Exception.class},
+        maxAttemptsExpression = "#{${retry.maxAttempts}}",
+        backoff = @Backoff(
+            delayExpression = "#{${retry.maxDelay}/3}",
+            maxDelayExpression = "#{${retry.maxDelay}}",
+            multiplier = 2.0
+        )
+    )
     public void on(MedicalPackageDeletedEvent event) {
         medicalPackageRepository.findById(event.medicalPackageId())
                 .ifPresent(view -> {
