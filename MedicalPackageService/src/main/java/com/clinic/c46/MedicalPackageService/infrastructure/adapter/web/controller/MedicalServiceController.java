@@ -1,7 +1,7 @@
 package com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.controller;
 
 
-import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDTO;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDetailsDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalServicesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.service.MedicalServiceService;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalServiceCommand;
@@ -34,11 +34,13 @@ public class MedicalServiceController {
     @GetMapping
     public ResponseEntity<MedicalServicesPagedDto> getMedicalServices(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "keyword", required = false) String keyword) {
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "medicalPackageId", required = false) String medicalPackageId) {
 
         GetAllMedicalServicesQuery getAllMedicalPackageQuery = GetAllMedicalServicesQuery.builder()
                 .keyword(keyword)
                 .page(page)
+                .medicalPackageId(medicalPackageId)
                 .build();
 
         MedicalServicesPagedDto medicalPackageDTOs = queryGateway.query(getAllMedicalPackageQuery,
@@ -71,21 +73,20 @@ public class MedicalServiceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MedicalServiceDTO> getById(@PathVariable String id) {
+    public ResponseEntity<MedicalServiceDetailsDTO> getById(@PathVariable String id) {
 
         GetMedicalServiceByIdQuery query = GetMedicalServiceByIdQuery.builder()
                 .medicalServiceId(id)
                 .build();
 
-        MedicalServiceDTO medicalServiceDTO = queryGateway.query(query,
-                        ResponseTypes.instanceOf(MedicalServiceDTO.class))
+        MedicalServiceDetailsDTO medicalServiceDTO = queryGateway.query(query,
+                        ResponseTypes.instanceOf(MedicalServiceDetailsDTO.class))
                 .join();
         return ResponseEntity.ok(medicalServiceDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateMedicalService(
-            @PathVariable String id,
+    public ResponseEntity<Void> updateMedicalService(@PathVariable String id,
             @RequestBody UpdateMedicalServiceRequest request) {
 
         UpdateMedicalServiceInfoCommand cmd = UpdateMedicalServiceInfoCommand.builder()
@@ -98,7 +99,8 @@ public class MedicalServiceController {
                 .build();
 
         medicalServiceService.update(cmd);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                .build();
     }
 
     @DeleteMapping("/{id}")
@@ -108,7 +110,8 @@ public class MedicalServiceController {
                 .build();
 
         medicalServiceService.delete(cmd);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                .build();
     }
 
 }

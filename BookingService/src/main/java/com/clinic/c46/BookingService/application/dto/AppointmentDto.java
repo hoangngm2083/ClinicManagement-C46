@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,6 +21,8 @@ public class AppointmentDto {
     private LocalDate date;
     private String medicalPackageId;
     private String medicalPackageName;
+    private BigDecimal snapshotPrice;
+    private int snapshotPriceVersion;
     private String state;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

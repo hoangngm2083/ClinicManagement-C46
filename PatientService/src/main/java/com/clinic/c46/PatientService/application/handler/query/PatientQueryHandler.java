@@ -6,6 +6,7 @@ import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.patient.ExistsPatientByIdQuery;
 import com.clinic.c46.CommonService.query.patient.GetAllPatientsQuery;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientOptByIdQuery;
 import com.clinic.c46.PatientService.application.repository.PatientViewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,18 @@ public class PatientQueryHandler {
                         .name(view.getName())
                         .build())
                 .orElseThrow(() -> new IllegalArgumentException("Patient not found"));
+    }
+
+    @QueryHandler
+    public PatientDto handle(GetPatientOptByIdQuery query) {
+        return repository.findById(query.patientId())
+                .map(view -> PatientDto.builder()
+                        .patientId(view.getId())
+                        .name(view.getName())
+                        .email(view.getEmail())
+                        .phone(view.getPhone())
+                        .build())
+                .orElse(null);
     }
 
     @QueryHandler

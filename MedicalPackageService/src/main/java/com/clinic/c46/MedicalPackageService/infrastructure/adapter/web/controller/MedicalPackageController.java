@@ -38,8 +38,14 @@ public class MedicalPackageController {
     @GetMapping
     public ResponseEntity<MedicalPackagesPagedDto> getMedicalPackages(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "0") int size,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "keyword", required = false) String keyword,
+            @Parameter(
+                    in = ParameterIn.QUERY,
+                    description = "Trường sắp xếp",
+                    schema = @Schema(allowableValues = {"name", "currentPriceVersion"}, defaultValue = "name")
+            )
+            @RequestParam(value = "sortBy", defaultValue = "name") String sortBy,
             @Parameter(
                     in = ParameterIn.QUERY,
                     description = "Hướng sắp xếp: 'ASC' (tăng dần) hoặc 'DESC' (giảm dần)",
@@ -51,6 +57,7 @@ public class MedicalPackageController {
                 .page(page)
                 .size(size)
                 .keyword(keyword)
+                .sortBy(sortBy)
                 .sort(sort)
                 .build();
 

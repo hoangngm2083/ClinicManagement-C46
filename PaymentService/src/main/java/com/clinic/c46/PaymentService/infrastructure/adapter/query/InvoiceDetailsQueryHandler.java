@@ -102,6 +102,7 @@ public class InvoiceDetailsQueryHandler {
                                 .id(rep.id())
                                 .name(rep.name())
                                 .price(rep.price())
+                                .priceVersion(rep.priceVersion())
                                 .build();
         }
 }

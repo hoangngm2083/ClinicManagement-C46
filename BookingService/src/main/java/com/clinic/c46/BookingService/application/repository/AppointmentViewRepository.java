@@ -10,4 +10,5 @@ import java.util.List;
 public interface AppointmentViewRepository extends JpaRepository<AppointmentView, String>, JpaSpecificationExecutor<AppointmentView> {
     List<AppointmentView> findByDateAndState(LocalDate date, String state);
     List<AppointmentView> findByDateAndStateAndIsRemindedFalse(LocalDate date, String state);
+    List<AppointmentView> findAllByPatientIdAndPatientName(String patientId, String patientName);
 }

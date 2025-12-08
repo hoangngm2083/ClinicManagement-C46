@@ -1,5 +1,6 @@
 package com.clinic.c46.MedicalPackageService.application.listener;
 
+import com.clinic.c46.CommonService.domain.MedicalPackagePrice;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
@@ -14,7 +15,10 @@ import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -39,11 +43,15 @@ public class MedicalPackageProjection {
             }
         }
 
+        Set<MedicalPackagePrice> prices = new HashSet<>();
+        prices.add(new MedicalPackagePrice(event.priceVersion(), event.price()));
+
         MedicalPackageView view = MedicalPackageView.builder()
                 .id(event.medicalPackageId())
                 .name(event.name())
                 .description(event.description())
-                .price(event.price())
+                .prices(prices)
+                .currentPriceVersion(event.priceVersion())
                 .image(event.image())
                 .medicalServices(services)
                 .build();
@@ -59,7 +67,16 @@ public class MedicalPackageProjection {
 
         packageRepo.findById(event.medicalPackageId())
                 .ifPresent(view -> {
-                    view.setPrice(event.newPrice());
+                    Set<MedicalPackagePrice> prices = view.getPrices();
+                    if (prices == null) {
+                        prices = new HashSet<>();
+                    }
+                    // Remove existing price with same version if exists
+                    prices.removeIf(price -> price.getVersion() == event.newPriceVersion());
+                    // Add new price
+                    prices.add(new MedicalPackagePrice(event.newPriceVersion(), event.newPrice()));
+                    view.setPrices(prices);
+                    view.setCurrentPriceVersion(event.newPriceVersion());
                     view.markUpdated();
                     packageRepo.save(view);
                 });

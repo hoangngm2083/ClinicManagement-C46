@@ -5,5 +5,5 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 @Builder
-public record MedicalPackagePriceUpdatedEvent(String medicalPackageId, int newVersion, BigDecimal newPrice) {
+public record MedicalPackagePriceUpdatedEvent(String medicalPackageId, int newPriceVersion, BigDecimal newPrice) {
 }
