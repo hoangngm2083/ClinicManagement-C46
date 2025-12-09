@@ -38,7 +38,7 @@ def setup_logging():
         },
         "root": {
             "level": "INFO",
-            "handlers": ["console", "file"]
+            "handlers": ["console"]  # Only use console handler in Docker
         },
         "loggers": {
             "app": {

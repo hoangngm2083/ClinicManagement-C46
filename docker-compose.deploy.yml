@@ -1,0 +1,594 @@
+version: '3.9'
+
+services:
+
+  # Database Services
+  redis:
+    build: ./db/redis
+    container_name: redis-prod
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+      - ./db/redis/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - c46-net
+    # No external port exposure for security
+
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: postgres-prod
+    restart: unless-stopped
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=3GB"
+      - "-c"
+      - "maintenance_work_mem=256MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=32MB"
+      - "-c"
+      - "default_statistics_target=100"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+      - "-c"
+      - "work_mem=4MB"
+      - "-c"
+      - "min_wal_size=2GB"
+      - "-c"
+      - "max_wal_size=8GB"
+      - "-c"
+      - "listen_addresses=*"
+      - "-c"
+      - "log_min_messages=warning"
+      - "-c"
+      - "log_statement=none"
+    environment:
+      POSTGRES_USER: ${DB_USER:-booking}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-booking}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/postgres/init/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./db/postgres/init/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-booking}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4GB
+          cpus: '2.0'
+        reservations:
+          memory: 2GB
+          cpus: '1.0'
+    networks:
+      - c46-net
+    # No external port exposure for security
+
+  axon-server:
+    image: axoniq/axonserver:2024.1.1
+    container_name: axon-server-prod
+    restart: unless-stopped
+    environment:
+      - AXONIQ_AXONSERVER_CONTEXTS=default
+      - AXONIQ_AXONSERVER_AUTOCLUSTER_FIRST=axonserver
+      - AXONIQ_AXONSERVER_AUTOCLUSTER_CONTEXTS=default
+      - AXONIQ_AXONSERVER_DEVMODE_ENABLED=false
+      - AXONIQ_AXONSERVER_NAME=axonserver
+      - AXONIQ_AXONSERVER_HOSTNAME=axonserver
+      - AXONIQ_AXONSERVER_ACCESS_TOKEN=${AXON_ACCESS_TOKEN}
+    volumes:
+      - axon_data:/axonserver/data
+      - axon_events:/axonserver/events
+      - axon_config:/axonserver/config
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8024" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+        reservations:
+          memory: 512MB
+    networks:
+      - c46-net
+    # Dashboard only accessible internally or through reverse proxy
+
+  # Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  # API Gateway - Main entry point
+  api-gateway:
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    container_name: api-gateway-prod
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+      - booking-service
+      - notification-service
+      - patient-service
+      - staff-service
+      - medical-package-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx1g -Xms512m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8080
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+          cpus: '1.0'
+        reservations:
+          memory: 512MB
+          cpus: '0.5'
+    networks:
+      - c46-net
+    # No external port - accessed through nginx
+
+  # Microservices
+  booking-service:
+    build:
+      context: ./BookingService
+      dockerfile: Dockerfile
+    container_name: booking-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - AXONSERVER_HOST=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/booking_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx1g -Xms512m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8082
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+          cpus: '1.0'
+        reservations:
+          memory: 512MB
+          cpus: '0.5'
+    networks:
+      - c46-net
+
+  auth-service:
+    build:
+      context: ./AuthService
+      dockerfile: Dockerfile
+    container_name: auth-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL}
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx1g -Xms512m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8081
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+          cpus: '1.0'
+        reservations:
+          memory: 512MB
+          cpus: '0.5'
+    networks:
+      - c46-net
+
+  notification-service:
+    build:
+      context: ./NotificationService
+      dockerfile: Dockerfile
+    container_name: notification-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8080
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  patient-service:
+    build:
+      context: ./PatientService
+      dockerfile: Dockerfile
+    container_name: patient-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/patient_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8088
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8088/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  staff-service:
+    build:
+      context: ./StaffService
+      dockerfile: Dockerfile
+    container_name: staff-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/staff_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8090
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  medical-package-service:
+    build:
+      context: ./MedicalPackageService
+      dockerfile: Dockerfile
+    container_name: medical-package-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/medical_package_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=8086
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  examination-service:
+    build:
+      context: ./ExaminationService
+      dockerfile: Dockerfile
+    container_name: examination-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/examination_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=9094
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9094/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  examination-flow-service:
+    build:
+      context: ./ExaminationFlowService
+      dockerfile: Dockerfile
+    container_name: examination-flow-service-prod
+    restart: unless-stopped
+    ports:
+      - "9093:9093"  # Temporary for testing
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/examination_flow_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=9093
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  payment-service:
+    build:
+      context: ./PaymentService
+      dockerfile: Dockerfile
+    container_name: payment-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
+    environment:
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - SPRING_PROFILES_ACTIVE=prod
+      - VNP_TMN_CODE=${VNP_TMN_CODE}
+      - VNP_SECRET_KEY=${VNP_SECRET_KEY}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - TZ=Asia/Ho_Chi_Minh
+      - SERVER_PORT=9098
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9098/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+          cpus: '0.5'
+        reservations:
+          memory: 256MB
+          cpus: '0.25'
+    networks:
+      - c46-net
+
+  ai-service:
+    build:
+      context: ./AIService
+      dockerfile: Dockerfile
+    container_name: ai-service-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+    environment:
+      - CLINIC_API_BASE_URL=http://api-gateway:8080
+      - AI_SERVICE_PORT=8000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=vector_db
+      - POSTGRES_USER=${DB_USER:-booking}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_SSL_MODE=require
+      - VECTOR_DIMENSION=1536
+      - VECTOR_SIMILARITY_METRIC=cosine
+      - VECTOR_TABLE_NAME=vector_embeddings
+      - VECTOR_INDEX_TYPE=ivfflat
+      - SYNC_DOCTORS_INTERVAL_MINUTES=15
+      - SYNC_SLOTS_INTERVAL_MINUTES=5
+      - SYNC_PACKAGES_INTERVAL_MINUTES=30
+      - MEMORY_MAX_TOKENS=2000
+      - MEMORY_WINDOW_SIZE=10
+      - LANGGRAPH_AGENT_TYPE=ReAct
+      - LANGGRAPH_MAX_ITERATIONS=5
+      - LANGGRAPH_RECURSION_LIMIT=50
+      - RETRY_MAX_ATTEMPTS=3
+      - RETRY_BACKOFF_MULTIPLIER=1.0
+      - RETRY_MAX_DELAY=10.0
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ai_logs:/app/logs
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=10)" ]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '1.0'
+        reservations:
+          memory: 1GB
+          cpus: '0.5'
+    networks:
+      - c46-net
+
+volumes:
+  redis_data:
+  postgres_data:
+  axon_data:
+  axon_events:
+  axon_config:
+  ai_logs:
+  nginx_logs:
+
+networks:
+  c46-net:
+    driver: bridge
