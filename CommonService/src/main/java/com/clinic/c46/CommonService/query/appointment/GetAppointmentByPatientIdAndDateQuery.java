@@ -9,3 +9,4 @@ public record GetAppointmentByPatientIdAndDateQuery(String patientId, LocalDate 
 }
 
 
+
