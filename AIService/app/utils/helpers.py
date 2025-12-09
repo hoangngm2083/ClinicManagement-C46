@@ -31,7 +31,7 @@ def setup_logging():
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "detailed",
                 "level": "DEBUG",
-                "filename": "logs/ai_service.log",
+                "filename": "/app/logs/ai_service.log",
                 "maxBytes": 10 * 1024 * 1024,  # 10MB
                 "backupCount": 5
             }
@@ -60,7 +60,7 @@ def setup_logging():
     }
 
     # Create logs directory
-    logs_dir = Path("logs")
+    logs_dir = Path("/app/logs")
     logs_dir.mkdir(exist_ok=True)
 
     # Apply configuration
