@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+.env.prod
+.env.production
 
 # Python
 __pycache__/
@@ -51,9 +53,13 @@ target/
 out/
 bin/
 
-# Redis data
-redis/data/
-redis/data/**
+# Database data
+db/postgres/data/
+db/postgres/data/**
+db/axon/data/
+db/axon/data/**
+db/redis/data/
+db/redis/data/**
 
 
 # Temporary files
@@ -61,6 +67,3 @@ redis/data/**
 *.temp
 .cache/
 *.cache
-
-# Cursor
-.idea

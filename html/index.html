@@ -21,7 +21,8 @@
 <body>
 
 <div class="container">
-    <h1>👨‍⚕️ Examination Flow Client Test</h1>
+    <h1>👨‍⚕️ Examination Flow Client Test (via Nginx)</h1>
+    <p><strong>Testing WebSocket through nginx reverse proxy (port 80) - Direct to Service</strong></p>
 
     <p>Trạng thái kết nối: <span id="status">Đang ngắt kết nối...</span></p>
     <hr>
@@ -96,7 +97,7 @@
 
 <script>
     // --- Cấu hình Server ---
-    const SERVER_URL = 'http://localhost:9093'; 
+    const SERVER_URL = 'http://localhost'; // Test through nginx reverse proxy
     const HANDSHAKE_ENDPOINT = '/ws/exam-workflow'; 
     const EXAMINATION_SERVICE_URL = 'http://localhost:9094';
     const PAYMENT_SERVICE_URL = 'http://localhost:9098';
