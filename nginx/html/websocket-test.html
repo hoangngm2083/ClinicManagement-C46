@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test - Examination Flow Service</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>🧪 WebSocket Test - Examination Flow Service</h1>
+    
+    <div id="status">Status: <span id="connection-status" style="color: red;">Disconnected</span></div>
+    <br>
+    
+    <button onclick="connect()">Connect WebSocket</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <button onclick="sendTestMessage()">Send Test Message</button>
+    <br><br>
+    
+    <div id="messages">
+        <h3>Messages:</h3>
+        <div id="message-list" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let messageList = document.getElementById('message-list');
+        let connectionStatus = document.getElementById('connection-status');
+
+        function connect() {
+            const socket = new SockJS('http://localhost/ws/exam-workflow');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                connectionStatus.style.color = 'green';
+                connectionStatus.textContent = 'Connected';
+                addMessage('Connected: ' + frame);
+                
+                // Subscribe to a topic (you may need to adjust based on your actual endpoints)
+                stompClient.subscribe('/topic/examination-updates', function(message) {
+                    addMessage('Received: ' + message.body);
+                });
+                
+            }, function(error) {
+                connectionStatus.style.color = 'red';
+                connectionStatus.textContent = 'Connection failed';
+                addMessage('Connection error: ' + error);
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                connectionStatus.style.color = 'red';
+                connectionStatus.textContent = 'Disconnected';
+                addMessage('Disconnected');
+            }
+        }
+
+        function sendTestMessage() {
+            if (stompClient && stompClient.connected) {
+                stompClient.send('/app/test', {}, JSON.stringify({
+                    message: 'Hello from WebSocket test client!',
+                    timestamp: new Date().toISOString()
+                }));
+                addMessage('Sent test message');
+            } else {
+                addMessage('Not connected - cannot send message');
+            }
+        }
+
+        function addMessage(message) {
+            const div = document.createElement('div');
+            div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+            messageList.appendChild(div);
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+
+        // Auto-connect on page load
+        window.onload = function() {
+            addMessage('WebSocket test client loaded. Click "Connect WebSocket" to test.');
+        };
+    </script>
+</body>
+</html>

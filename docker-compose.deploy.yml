@@ -134,7 +134,7 @@ services:
       api-gateway:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -155,25 +155,15 @@ services:
       context: ./ApiGateway
       dockerfile: Dockerfile
     container_name: api-gateway-prod
-    restart: unless-stopped
+    restart: on-failure
     depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
       auth-service:
-        condition: service_healthy
-      booking-service:
-        condition: service_healthy
-      notification-service:
-        condition: service_healthy
-      patient-service:
-        condition: service_healthy
-      staff-service:
-        condition: service_healthy
-      medical-package-service:
-        condition: service_healthy
-      examination-service:
-        condition: service_healthy
-      examination-flow-service:
-        condition: service_healthy
-      payment-service:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
