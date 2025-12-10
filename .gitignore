@@ -5,7 +5,7 @@
 .env.prod
 .env.production
 *.pem
-ec2.env.push.sh
+ec2.push.sh
 # Python
 __pycache__/
 *.py[cod]

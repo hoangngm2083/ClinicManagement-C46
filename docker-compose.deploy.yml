@@ -104,7 +104,7 @@ services:
       - axon_events:/axonserver/events
       - axon_config:/axonserver/config
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8024" ]
+      test: [ "CMD", "wget", "--spider", "http://127.0.0.1:8024" ]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -131,7 +131,8 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - nginx_logs:/var/log/nginx
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost" ]
       interval: 30s
@@ -156,21 +157,31 @@ services:
     container_name: api-gateway-prod
     restart: unless-stopped
     depends_on:
-      - auth-service
-      - booking-service
-      - notification-service
-      - patient-service
-      - staff-service
-      - medical-package-service
-    ports:
-      - "8080:8080"
+      auth-service:
+        condition: service_healthy
+      booking-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+      staff-service:
+        condition: service_healthy
+      medical-package-service:
+        condition: service_healthy
+      examination-service:
+        condition: service_healthy
+      examination-flow-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_OPTS=-Xmx1g -Xms512m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=8080
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -209,7 +220,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=8082
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8082/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -246,7 +257,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=8081
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8081/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -284,9 +295,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
       - TZ=Asia/Ho_Chi_Minh
-      - SERVER_PORT=8080
+      - SERVER_PORT=8081
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8081/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -322,7 +333,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=8088
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8088/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8088/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -358,7 +369,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=8090
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8090/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -394,7 +405,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=8086
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8086/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -430,7 +441,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=9094
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9094/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9094/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -451,8 +462,6 @@ services:
       dockerfile: Dockerfile
     container_name: examination-flow-service-prod
     restart: unless-stopped
-    ports:
-      - "9093:9093"  # Temporary for testing
     depends_on:
       postgres:
         condition: service_healthy
@@ -472,7 +481,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=9093
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9093/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -510,7 +519,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - SERVER_PORT=9098
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9098/actuator/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9098/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -564,7 +573,7 @@ services:
     volumes:
       - ai_logs:/app/logs
     healthcheck:
-      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=10)" ]
+      test: [ "CMD", "python", "-c", "import requests; requests.get('http://127.0.0.1:8000/health', timeout=10)" ]
       interval: 60s
       timeout: 30s
       retries: 3
