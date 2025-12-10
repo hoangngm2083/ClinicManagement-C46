@@ -15,7 +15,8 @@ public record AppointmentTemplateVariables(
         int shift,
         String appointmentState,
         String medicalPackageName,
-        List<ServiceItem> services) implements EmailTemplateVariables {
+        List<ServiceItem> services,
+        String publicBaseUrl) implements EmailTemplateVariables {
 
     @Builder
     public record ServiceItem(String name) {
@@ -30,6 +31,7 @@ public record AppointmentTemplateVariables(
         map.put("shift", shift);
         map.put("appointmentState", appointmentState);
         map.put("medicalPackageName", medicalPackageName);
+        map.put("publicBaseUrl", publicBaseUrl);
         map.put("services", services.stream().map(service -> {
             Map<String, String> serviceMap = new HashMap<>();
             serviceMap.put("name", service.name());
