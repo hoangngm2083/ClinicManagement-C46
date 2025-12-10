@@ -24,6 +24,7 @@ import com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email.
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.retry.annotation.Backoff;
@@ -46,6 +47,9 @@ public class NotificationCommandHandler {
     private final EmailTemplateFactory emailTemplateFactory;
     private final QueryGateway queryGateway;
     private final FormTemplateParser formTemplateParser;
+
+    @Value("${app.public-base-url}")
+    private String publicBaseUrl;
 
     @CommandHandler
     public void handle(SendOTPVerificationCommand command) {
@@ -196,6 +200,7 @@ public class NotificationCommandHandler {
                     .appointmentState(appointmentDetails.getState())
                     .medicalPackageName(appointmentDetails.getMedicalPackageName())
                     .services(serviceItems)
+                    .publicBaseUrl(publicBaseUrl)
                     .build();
 
             // Render template
