@@ -40,7 +40,8 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/v3/api-docs/**",
                     "/api-docs/**",
-                    "/auth/otp/email"
+                    "/auth/otp/email",
+                    "/actuator/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
