@@ -10,7 +10,7 @@ set -e
 
 # Check if docker is available
 if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed. Please install Docker first."
+    echo "Docker is not installed. Please install Docker first."
     exit 1
 fi
 
@@ -18,10 +18,10 @@ fi
 # Check if docker compose (v2) is available, otherwise fall back to docker-compose (v1)
 if docker compose version &>/dev/null; then
     COMPOSE_CMD="docker compose"
-    echo "🐳 Using Docker Compose V2 (docker compose)"
+    echo "Using Docker Compose V2 (docker compose)"
 else
     COMPOSE_CMD="docker-compose"
-    echo "🐳 Using Docker Compose V1 (docker-compose)"
+    echo "Using Docker Compose V1 (docker-compose)"
 fi
 
 # Default compose file and env file
@@ -33,7 +33,7 @@ ARGS="$@"
 
 # If no arguments provided, show usage
 if [ $# -eq 0 ]; then
-    echo "🚀 Clinic Management System - Deploy Script"
+    echo "Clinic Management System - Deploy Script"
     echo ""
     echo "Usage: ./deploy.sh [docker-compose arguments]"
     echo ""
@@ -50,7 +50,7 @@ if [ $# -eq 0 ]; then
     exit 0
 fi
 
-echo "🚀 Executing: $COMPOSE_CMD -f $COMPOSE_FILE --env-file $ENV_FILE $ARGS"
+echo "Executing: $COMPOSE_CMD -f $COMPOSE_FILE --env-file $ENV_FILE $ARGS"
 
 # Execute the docker compose command with all arguments
 exec $COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" $ARGS
