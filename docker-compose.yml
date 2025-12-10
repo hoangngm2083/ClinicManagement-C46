@@ -198,12 +198,12 @@ services:
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587
       # - MAIL_USERNAME=${MAIL_USERNAME}
-      # - MAIL_PASSWORD=${MAIL_PASSWORD} 
+      # - MAIL_PASSWORD=${MAIL_PASSWORD}
       # - SPRING_PROFILES_ACTIVE=prod # kích hoạt profile tương ứng -> load cấu hình khác nhau
 
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=booking
       - SPRING_DATASOURCE_PASSWORD=booking
       - JAVA_OPTS=-Xmx512m -Xms256m

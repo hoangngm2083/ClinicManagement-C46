@@ -6,7 +6,7 @@ services:
   redis:
     build: ./db/redis
     container_name: redis-prod
-    restart: unless-stopped
+    restart: always
     volumes:
       - redis_data:/data
       - ./db/redis/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
@@ -16,12 +16,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
     networks:
       - c46-net
     # No external port exposure for security
@@ -29,7 +23,7 @@ services:
   postgres:
     image: pgvector/pgvector:pg15
     container_name: postgres-prod
-    restart: unless-stopped
+    restart: always
     command:
       - "postgres"
       - "-c"
@@ -75,14 +69,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 4GB
-          cpus: '2.0'
-        reservations:
-          memory: 2GB
-          cpus: '1.0'
     networks:
       - c46-net
     # No external port exposure for security
@@ -90,7 +76,7 @@ services:
   axon-server:
     image: axoniq/axonserver:2024.1.1
     container_name: axon-server-prod
-    restart: unless-stopped
+    restart: always
     environment:
       - AXONIQ_AXONSERVER_CONTEXTS=default
       - AXONIQ_AXONSERVER_AUTOCLUSTER_FIRST=axonserver
@@ -108,12 +94,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
-    deploy:
-      resources:
-        limits:
-          memory: 1GB
-        reservations:
-          memory: 512MB
     networks:
       - c46-net
     # Dashboard only accessible internally or through reverse proxy
@@ -122,7 +102,7 @@ services:
   nginx:
     image: nginx:alpine
     container_name: nginx-prod
-    restart: unless-stopped
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -138,14 +118,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-        reservations:
-          memory: 128MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -175,14 +147,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1GB
-          cpus: '1.0'
-        reservations:
-          memory: 512MB
-          cpus: '0.5'
     networks:
       - c46-net
     # No external port - accessed through nginx
@@ -193,7 +157,7 @@ services:
       context: ./BookingService
       dockerfile: Dockerfile
     container_name: booking-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -214,14 +178,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1GB
-          cpus: '1.0'
-        reservations:
-          memory: 512MB
-          cpus: '0.5'
     networks:
       - c46-net
 
@@ -230,7 +186,7 @@ services:
       context: ./AuthService
       dockerfile: Dockerfile
     container_name: auth-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -251,14 +207,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1GB
-          cpus: '1.0'
-        reservations:
-          memory: 512MB
-          cpus: '0.5'
+      start_period: 90s
     networks:
       - c46-net
 
@@ -267,7 +216,7 @@ services:
       context: ./NotificationService
       dockerfile: Dockerfile
     container_name: notification-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -280,7 +229,7 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - JAVA_OPTS=-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -XX:MaxGCPauseMillis=200
@@ -291,14 +240,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
+      start_period: 90s
     networks:
       - c46-net
 
@@ -307,7 +249,7 @@ services:
       context: ./PatientService
       dockerfile: Dockerfile
     container_name: patient-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -327,14 +269,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -343,7 +277,7 @@ services:
       context: ./StaffService
       dockerfile: Dockerfile
     container_name: staff-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -363,14 +297,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -379,7 +305,7 @@ services:
       context: ./MedicalPackageService
       dockerfile: Dockerfile
     container_name: medical-package-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -399,14 +325,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -415,7 +333,7 @@ services:
       context: ./ExaminationService
       dockerfile: Dockerfile
     container_name: examination-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -435,14 +353,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -451,7 +361,7 @@ services:
       context: ./ExaminationFlowService
       dockerfile: Dockerfile
     container_name: examination-flow-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -475,14 +385,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -491,7 +393,7 @@ services:
       context: ./PaymentService
       dockerfile: Dockerfile
     container_name: payment-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -513,14 +415,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-          cpus: '0.5'
-        reservations:
-          memory: 256MB
-          cpus: '0.25'
     networks:
       - c46-net
 
@@ -529,7 +423,7 @@ services:
       context: ./AIService
       dockerfile: Dockerfile
     container_name: ai-service-prod
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -568,14 +462,6 @@ services:
       timeout: 30s
       retries: 3
       start_period: 120s
-    deploy:
-      resources:
-        limits:
-          memory: 2GB
-          cpus: '1.0'
-        reservations:
-          memory: 1GB
-          cpus: '0.5'
     networks:
       - c46-net
 
