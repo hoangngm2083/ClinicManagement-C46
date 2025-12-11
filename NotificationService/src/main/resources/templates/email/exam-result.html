@@ -57,15 +57,44 @@
        flex: 1;
        }
        /* ===========================
-       IMAGES (Giữ nguyên)
+       IMAGES (Table-based grid layout cho email compatibility)
        =========================== */
-       .medical-image {
-       max-width: 100%;
+       .medical-image-grid table {
+       width: 100%;
+       border-collapse: separate;
+       border-spacing: 15px 10px;
        margin: 10px 0;
+       }
+       .medical-image-grid td {
+       width: 50%;
+       vertical-align: top;
+       padding: 0;
+       }
+       .medical-image-grid .image-cell {
+       width: 100%;
+       height: 200px;
        border-radius: 6px;
        border: 1px solid #ddd;
        padding: 5px;
        background: #fff;
+       overflow: hidden;
+       text-align: center; /* Center content */
+       }
+       .medical-image-grid .image-cell img {
+       width: 100%;
+       height: 100%;
+       object-fit: cover;
+       border-radius: 4px;
+       display: block;
+       }
+       /* For single image, make the cell smaller and centered */
+       .medical-image-grid td:only-child {
+       width: auto;
+       max-width: 200px;
+       }
+       .medical-image-grid td:only-child .image-cell {
+       width: 200px;
+       margin: 0 auto;
        }
     </style>
 </head>
