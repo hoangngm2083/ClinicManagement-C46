@@ -1,5 +1,6 @@
 package com.clinic.c46.PatientService.infrastructure.adapter.web;
 
+import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.PatientService.application.service.PatientService;
 import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/patient")
 public class PatientController {
     private final PatientService patientService;
+
     // --- COMMAND ---
     @PostMapping
     public ResponseEntity<String> createPatient(@RequestBody PatientView request) {
@@ -29,13 +31,13 @@ public class PatientController {
 
     // --- QUERY ---
     @GetMapping("/{id}")
-    public CompletableFuture<ResponseEntity<PatientView>> getPatientById(@PathVariable String id) {
+    public CompletableFuture<ResponseEntity<PatientDto>> getPatientById(@PathVariable String id) {
         return patientService.getPatientById(id)
                 .thenApply(ResponseEntity::ok);
     }
 
     @GetMapping
-    public CompletableFuture<ResponseEntity<List<PatientView>>> getAllPatients() {
+    public CompletableFuture<ResponseEntity<List<PatientDto>>> getAllPatients() {
         return patientService.getAllPatients()
                 .thenApply(ResponseEntity::ok);
     }

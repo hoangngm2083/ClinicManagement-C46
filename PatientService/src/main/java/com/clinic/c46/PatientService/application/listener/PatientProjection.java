@@ -14,14 +14,15 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@ProcessingGroup("patient-projection")
 public class PatientProjection {
 
     private final PatientViewRepository repository;
 
+
     @EventHandler
     public void on(PatientCreatedEvent event) {
         log.debug("Handling PatientCreatedEvent: {}", event);
+
         PatientView view = PatientView.builder()
                 .id(event.patientId())
                 .name(event.name())
