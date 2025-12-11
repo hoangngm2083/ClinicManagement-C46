@@ -3,6 +3,7 @@ package com.clinic.c46.BookingService.application.handler.query;
 
 import com.clinic.c46.BookingService.application.repository.SlotViewRepository;
 import com.clinic.c46.BookingService.domain.query.ExistsBySlotIdQuery;
+import com.clinic.c46.BookingService.domain.query.ExistsSlotByDateShiftPackageQuery;
 import com.clinic.c46.BookingService.domain.query.FindSlotByIdQuery;
 import com.clinic.c46.BookingService.domain.query.GetAllSlotOfPackageQuery;
 import com.clinic.c46.BookingService.domain.view.SlotView;
@@ -55,6 +56,11 @@ public class SlotQueryHandler extends BaseQueryHandler {
     @QueryHandler
     public Boolean handle(ExistsBySlotIdQuery query) {
         return slotRepository.existsById(query.slotId());
+    }
+
+    @QueryHandler
+    public Boolean handle(ExistsSlotByDateShiftPackageQuery query) {
+        return slotRepository.existsByDateAndShiftAndMedicalPackageId(query.date(), query.shift(), query.medicalPackageId());
     }
 
 
