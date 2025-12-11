@@ -35,6 +35,7 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
     private static final String IMAGE_CLASS = "medical-image";
     private static final String FILE_LINK_CLASS = "file-link";
     private static final String STATIC_CONTENT_CLASS = "static-content";
+    private static final String IMAGE_GRID_CLASS = "medical-image-grid";
 
     @Override
     public String parse(JsonNode formTemplate, JsonNode resultData) {
@@ -46,15 +47,33 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
         StringBuilder html = new StringBuilder();
         html.append("<div class='").append(CONTAINER_CLASS).append("'>");
 
+        // Handle nested data structure - if data is wrapped in a "data" object, extract it
+        JsonNode actualData = extractActualData(resultData);
+
         JsonNode components = formTemplate.get("components");
         if (components != null && components.isArray()) {
-            parseComponents(components, resultData, html);
+            parseComponents(components, actualData, html);
         } else {
             log.warn("No 'components' array found in formTemplate");
         }
 
         html.append("</div>");
         return html.toString();
+    }
+
+    /**
+     * Extract the actual form data, handling nested structures
+     * Some data comes as {"data": {...}} while others come as {...}
+     */
+    private JsonNode extractActualData(JsonNode resultData) {
+        // Check if data is nested under a "data" key
+        if (resultData.has("data") && resultData.get("data").isObject()) {
+            log.debug("Found nested data structure, extracting from 'data' key");
+            return resultData.get("data");
+        }
+
+        // Return as-is for flat structures
+        return resultData;
     }
 
     /**
@@ -209,17 +228,100 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
         }
         
         html.append("<div class='").append(VALUE_CLASS).append("'>");
-        
+
         // Handle array of files
         if (valueNode.isArray()) {
-            for (JsonNode fileNode : valueNode) {
-                renderFileItem(fileNode, html);
+            renderImageGrid(valueNode, html);
+        } else {
+            // Single file - create a 1x1 grid
+            renderImageGrid(valueNode, html);
+        }
+
+        html.append("</div>");
+        html.append("</div>");
+    }
+
+    /**
+     * Render image grid using table layout for email compatibility
+     */
+    private void renderImageGrid(JsonNode valueNode, StringBuilder html) {
+        html.append("<div class='").append(IMAGE_GRID_CLASS).append("'>");
+        html.append("<table>");
+
+        if (valueNode.isArray()) {
+            // Multiple images - create rows with 2 images per row
+            for (int i = 0; i < valueNode.size(); i += 2) {
+                html.append("<tr>");
+                // First image in row
+                html.append("<td>");
+                renderImageCell(valueNode.get(i), html);
+                html.append("</td>");
+
+                // Second image in row (if exists)
+                if (i + 1 < valueNode.size()) {
+                    html.append("<td>");
+                    renderImageCell(valueNode.get(i + 1), html);
+                    html.append("</td>");
+                } else {
+                    // Empty cell for proper spacing
+                    html.append("<td></td>");
+                }
+                html.append("</tr>");
             }
         } else {
-            renderFileItem(valueNode, html);
+            // Single image
+            html.append("<tr><td>");
+            renderImageCell(valueNode, html);
+            html.append("</td></tr>");
         }
-        
+
+        html.append("</table>");
         html.append("</div>");
+    }
+
+    /**
+     * Render individual image cell
+     */
+    private void renderImageCell(JsonNode fileNode, StringBuilder html) {
+        String url = "";
+        String name = "";
+        String type = "";
+
+        if (fileNode.isTextual()) {
+            // Simple string URL
+            url = fileNode.asText();
+            name = extractFileNameFromUrl(url);
+        } else if (fileNode.isObject()) {
+            // File object with metadata
+            url = getComponentProperty(fileNode, "url");
+            name = getComponentProperty(fileNode, "name");
+            type = getComponentProperty(fileNode, "type");
+
+            if (url.isEmpty() && fileNode.has("storage") && fileNode.get("storage").asText().equals("url")) {
+                url = getComponentProperty(fileNode, "storage");
+            }
+        }
+
+        if (url.isEmpty()) {
+            return;
+        }
+
+        html.append("<div class='image-cell'>");
+
+        // Check if it's an image
+        if (isImageFile(url, type)) {
+            html.append("<img src='").append(escapeHtml(url))
+                .append("' alt='").append(escapeHtml(name))
+                .append("' />");
+        } else {
+            // Render as download link
+            html.append("<a href='").append(escapeHtml(url))
+                .append("' class='").append(FILE_LINK_CLASS)
+                .append("' target='_blank'>")
+                .append(escapeHtml(name.isEmpty() ? "Download File" : name))
+                .append("</a>");
+        }
+
         html.append("</div>");
     }
 
