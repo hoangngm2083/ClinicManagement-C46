@@ -1,21 +1,13 @@
 package com.clinic.c46.BookingService.domain.aggregate;
 
 
-import com.clinic.c46.BookingService.domain.command.CreateSlotCommand;
-import com.clinic.c46.BookingService.domain.command.LockSlotCommand;
-import com.clinic.c46.BookingService.domain.command.ReleaseFingerprintCommand;
-import com.clinic.c46.BookingService.domain.command.ReleaseLockedSlotCommand;
-import com.clinic.c46.BookingService.domain.command.UpdateSlotMaxQuantityCommand;
-import com.clinic.c46.CommonService.type.Shift;
-import com.clinic.c46.BookingService.domain.event.FingerprintReleasedEvent;
-import com.clinic.c46.BookingService.domain.event.LockedSlotReleasedEvent;
-import com.clinic.c46.BookingService.domain.event.SlotCreatedEvent;
-import com.clinic.c46.BookingService.domain.event.SlotLockedEvent;
-import com.clinic.c46.BookingService.domain.event.SlotMaxQuantityUpdatedEvent;
+import com.clinic.c46.BookingService.domain.command.*;
+import com.clinic.c46.BookingService.domain.event.*;
 import com.clinic.c46.BookingService.domain.exception.LockedSlotNotFound;
 import com.clinic.c46.BookingService.domain.exception.SlotLockConflictException;
 import com.clinic.c46.BookingService.domain.exception.SlotUnavailableException;
 import com.clinic.c46.BookingService.domain.valueObject.LockedSlot;
+import com.clinic.c46.CommonService.type.Shift;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;

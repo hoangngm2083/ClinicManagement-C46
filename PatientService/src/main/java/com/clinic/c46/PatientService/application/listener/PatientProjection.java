@@ -7,7 +7,6 @@ import com.clinic.c46.PatientService.domain.event.PatientDeletedEvent;
 import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Service;
 

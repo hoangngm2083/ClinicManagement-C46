@@ -1,12 +1,11 @@
 package com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection;
 
 import com.clinic.c46.CommonService.domain.BaseView;
+import com.clinic.c46.ExaminationService.domain.valueObject.ExaminationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
-
-import com.clinic.c46.ExaminationService.domain.valueObject.ExaminationStatus;
 
 import java.io.Serializable;
 import java.util.HashSet;

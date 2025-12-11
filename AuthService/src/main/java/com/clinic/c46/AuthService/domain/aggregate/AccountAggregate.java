@@ -1,7 +1,7 @@
 package com.clinic.c46.AuthService.domain.aggregate;
 
-import com.clinic.c46.CommonService.command.auth.CreateAccountCommand;
 import com.clinic.c46.AuthService.domain.event.AccountCreatedEvent;
+import com.clinic.c46.CommonService.command.auth.CreateAccountCommand;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;

@@ -1,8 +1,8 @@
 package com.clinic.c46.PaymentService.domain.aggregate;
 
+import com.clinic.c46.CommonService.event.payment.TransactionCompletedEvent;
 import com.clinic.c46.PaymentService.domain.command.ConfirmTransactionCommand;
 import com.clinic.c46.PaymentService.domain.command.CreateTransactionCommand;
-import com.clinic.c46.CommonService.event.payment.TransactionCompletedEvent;
 import com.clinic.c46.PaymentService.domain.event.TransactionCreatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;

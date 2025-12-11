@@ -2,7 +2,6 @@ package com.clinic.c46.ExaminationService.application.handler;
 
 import com.clinic.c46.CommonService.command.notification.SendExamResultEmailCommand;
 import com.clinic.c46.CommonService.event.examination.ExaminationCompletedEvent;
-import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;

@@ -1,10 +1,10 @@
 package com.clinic.c46.PaymentService.infrastructure.adapter.controller;
 
+import com.clinic.c46.CommonService.command.payment.CreateInvoiceCommand;
+import com.clinic.c46.CommonService.dto.MedicalFormDto;
 import com.clinic.c46.CommonService.exception.ResourceNotFoundException;
 import com.clinic.c46.CommonService.query.examinationFlow.GetAllMedicalFormsQuery;
 import com.clinic.c46.CommonService.query.examinationFlow.GetMedicalFormByIdQuery;
-import com.clinic.c46.CommonService.dto.MedicalFormDto;
-import com.clinic.c46.CommonService.command.payment.CreateInvoiceCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -12,7 +12,10 @@ import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

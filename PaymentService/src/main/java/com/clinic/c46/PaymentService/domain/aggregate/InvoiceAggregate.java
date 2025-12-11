@@ -1,8 +1,8 @@
 package com.clinic.c46.PaymentService.domain.aggregate;
 
 import com.clinic.c46.CommonService.command.payment.CreateInvoiceCommand;
-import com.clinic.c46.PaymentService.domain.command.MarkInvoicePaidCommand;
 import com.clinic.c46.CommonService.event.payment.InvoiceCreatedEvent;
+import com.clinic.c46.PaymentService.domain.command.MarkInvoicePaidCommand;
 import com.clinic.c46.PaymentService.domain.event.InvoicePaidEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;

@@ -1,13 +1,9 @@
 package com.clinic.c46.ExaminationFlowService.infrastructure.adapter.persistence.projection;
 
-import com.clinic.c46.CommonService.domain.BaseView;
 import com.clinic.c46.CommonService.converter.JsonNodeConverter;
+import com.clinic.c46.CommonService.domain.BaseView;
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

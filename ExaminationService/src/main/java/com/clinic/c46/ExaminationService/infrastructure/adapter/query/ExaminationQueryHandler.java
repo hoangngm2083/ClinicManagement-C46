@@ -1,17 +1,17 @@
 package com.clinic.c46.ExaminationService.infrastructure.adapter.query;
 
 
+import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.CommonService.helper.PageAndSortHelper;
 import com.clinic.c46.CommonService.helper.SortDirection;
 import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.examination.GetExamDetailsByIdQuery;
-import com.clinic.c46.CommonService.dto.ExamDetailsDto;
 import com.clinic.c46.ExaminationService.application.dto.ExamViewDto;
 import com.clinic.c46.ExaminationService.application.dto.ExamsPagedDto;
 import com.clinic.c46.ExaminationService.domain.query.SearchExamsQuery;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.helper.ExamMapper;
-import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.ExamViewRepository;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.ExamView;
+import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.ExamViewRepository;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;

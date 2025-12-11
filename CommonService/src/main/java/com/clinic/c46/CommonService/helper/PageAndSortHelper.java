@@ -4,7 +4,6 @@ import com.clinic.c46.CommonService.dto.BasePagedResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
 import java.util.function.Supplier;

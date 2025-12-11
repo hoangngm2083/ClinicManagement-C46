@@ -1,10 +1,10 @@
 package com.clinic.c46.PaymentService.infrastructure.adapter.query;
 
-import com.clinic.c46.CommonService.dto.PatientDto;
-import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import com.clinic.c46.CommonService.dto.InvoiceDetailsDto;
 import com.clinic.c46.CommonService.dto.MedicalPackageRepDto;
+import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.query.invoice.GetInvoiceDetailsByIdQuery;
+import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.projection.InvoiceProjection;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.projection.MedicalPackageRep;
 import com.clinic.c46.PaymentService.infrastructure.adapter.persistence.repository.InvoiceRepository;

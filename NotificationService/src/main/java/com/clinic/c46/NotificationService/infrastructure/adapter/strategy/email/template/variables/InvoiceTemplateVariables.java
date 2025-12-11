@@ -2,8 +2,8 @@ package com.clinic.c46.NotificationService.infrastructure.adapter.strategy.email
 
 import lombok.Builder;
 
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 

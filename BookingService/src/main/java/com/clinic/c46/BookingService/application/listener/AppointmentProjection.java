@@ -7,12 +7,12 @@ import com.clinic.c46.BookingService.application.repository.SlotViewRepository;
 import com.clinic.c46.BookingService.domain.enums.AppointmentState;
 import com.clinic.c46.BookingService.domain.event.AppointmentCreatedEvent;
 import com.clinic.c46.BookingService.domain.event.AppointmentStateUpdatedEvent;
-import com.clinic.c46.CommonService.event.patient.PatientCreatedEvent;
 import com.clinic.c46.BookingService.domain.view.AppointmentView;
 import com.clinic.c46.BookingService.domain.view.MedicalPackageView;
 import com.clinic.c46.BookingService.domain.view.SlotView;
 import com.clinic.c46.BookingService.infrastructure.adapter.exception.DataNotFoundRetryableException;
 import com.clinic.c46.CommonService.dto.PatientDto;
+import com.clinic.c46.CommonService.event.patient.PatientCreatedEvent;
 import com.clinic.c46.CommonService.query.patient.GetPatientOptByIdQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +23,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

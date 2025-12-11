@@ -1,11 +1,7 @@
 package com.clinic.c46.AuthService.infrastructure.adapter.in.web;
 
 import com.clinic.c46.AuthService.application.service.AuthService;
-import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.AccountInfoResponse;
-import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.AuthResponse;
-import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.CreateAccountRequest;
-import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.LoginRequest;
-import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.RefreshTokenRequest;
+import com.clinic.c46.AuthService.infrastructure.adapter.in.web.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
