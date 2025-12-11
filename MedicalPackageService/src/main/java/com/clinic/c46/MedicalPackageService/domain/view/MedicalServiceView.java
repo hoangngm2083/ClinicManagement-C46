@@ -1,14 +1,13 @@
 package com.clinic.c46.MedicalPackageService.domain.view;
 
-import com.clinic.c46.CommonService.domain.BaseView;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Convert;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.clinic.c46.CommonService.converter.JsonNodeConverter;
-import lombok.*;
+import com.clinic.c46.CommonService.domain.BaseView;
+import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity

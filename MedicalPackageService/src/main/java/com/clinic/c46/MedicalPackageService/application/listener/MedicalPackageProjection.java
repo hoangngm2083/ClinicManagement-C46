@@ -4,10 +4,10 @@ import com.clinic.c46.CommonService.domain.MedicalPackagePrice;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
 import com.clinic.c46.CommonService.exception.TransientDataNotReadyException;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
-import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +18,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 @Slf4j

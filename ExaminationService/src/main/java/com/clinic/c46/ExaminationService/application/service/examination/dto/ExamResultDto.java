@@ -1,7 +1,6 @@
 package com.clinic.c46.ExaminationService.application.service.examination.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder

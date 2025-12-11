@@ -1,15 +1,14 @@
 package com.clinic.c46.MedicalPackageService.domain.aggregate;
 
 
-
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageCreatedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageDeletedEvent;
 import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackageInfoUpdatedEvent;
+import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
 import com.clinic.c46.MedicalPackageService.domain.command.CreateMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.DeleteMedicalPackageCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackageInfoCommand;
 import com.clinic.c46.MedicalPackageService.domain.command.UpdateMedicalPackagePriceCommand;
-import com.clinic.c46.CommonService.event.medicalPackage.MedicalPackagePriceUpdatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;

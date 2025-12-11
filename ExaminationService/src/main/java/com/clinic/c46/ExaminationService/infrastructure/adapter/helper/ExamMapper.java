@@ -6,10 +6,9 @@ import com.clinic.c46.ExaminationService.domain.valueObject.ResultStatus;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.ExamView;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.ResultView;
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.projection.ServiceRepView;
-import org.springframework.stereotype.Component;
-
 import com.clinic.c46.ExaminationService.infrastructure.adapter.persistence.repository.ServiceRepViewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;

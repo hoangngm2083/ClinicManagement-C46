@@ -1,13 +1,14 @@
 package com.clinic.c46.PatientService.application.service;
+
 import com.clinic.c46.CommonService.command.patient.CreatePatientCommand;
 import com.clinic.c46.CommonService.command.patient.DeletePatientCommand;
+import com.clinic.c46.CommonService.dto.PatientDto;
 import com.clinic.c46.CommonService.query.patient.GetAllPatientsQuery;
 import com.clinic.c46.CommonService.query.patient.GetPatientByIdQuery;
-import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
+import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +25,8 @@ public class PatientService {
     // COMMAND
     public void createPatient(String name, String email, String phone) {
         CreatePatientCommand cmd = CreatePatientCommand.builder()
-                .patientId(UUID.randomUUID().toString())
+                .patientId(UUID.randomUUID()
+                        .toString())
                 .name(name)
                 .email(email)
                 .phone(phone)
@@ -40,17 +42,11 @@ public class PatientService {
     }
 
     // QUERY
-    public CompletableFuture<PatientView> getPatientById(String id) {
-        return queryGateway.query(
-                new GetPatientByIdQuery(id),
-                ResponseTypes.instanceOf(PatientView.class)
-                                 );
+    public CompletableFuture<PatientDto> getPatientById(String id) {
+        return queryGateway.query(new GetPatientByIdQuery(id), ResponseTypes.instanceOf(PatientDto.class));
     }
 
-    public CompletableFuture<List<PatientView>> getAllPatients() {
-        return queryGateway.query(
-                new GetAllPatientsQuery(),
-                ResponseTypes.multipleInstancesOf(PatientView.class)
-                                 );
+    public CompletableFuture<List<PatientDto>> getAllPatients() {
+        return queryGateway.query(new GetAllPatientsQuery(), ResponseTypes.multipleInstancesOf(PatientDto.class));
     }
 }

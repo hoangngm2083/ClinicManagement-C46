@@ -7,21 +7,21 @@ import com.clinic.c46.PatientService.domain.event.PatientDeletedEvent;
 import com.clinic.c46.PatientService.domain.view.PatientView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@ProcessingGroup("patient-projection")
 public class PatientProjection {
 
     private final PatientViewRepository repository;
 
+
     @EventHandler
     public void on(PatientCreatedEvent event) {
         log.debug("Handling PatientCreatedEvent: {}", event);
+
         PatientView view = PatientView.builder()
                 .id(event.patientId())
                 .name(event.name())

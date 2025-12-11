@@ -2,11 +2,13 @@ package com.clinic.c46.CommonService.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.axonframework.config.ConfigurationScopeAwareProvider;
+import org.axonframework.config.EventProcessingConfigurer;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.SimpleDeadlineManager;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.serialization.json.JacksonSerializer;
 import org.axonframework.spring.messaging.unitofwork.SpringTransactionManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,5 +47,14 @@ public class CommonAxonConfig {
                 .build();
     }
 
+    /**
+     * Configure retry mechanism for default event processor
+     * This will apply to all modules using default processor (without @ProcessingGroup)
+     */
+    @Autowired
+    public void configureDefaultEventProcessorRetry(EventProcessingConfigurer configurer) {
+        configurer.registerDefaultListenerInvocationErrorHandler(config ->
+            org.axonframework.eventhandling.PropagatingErrorHandler.instance());
+    }
 
 }
