@@ -4,9 +4,7 @@
 .env.*.local
 .env.prod
 .env.production
-*.pem
-ec2.push.sh
-deploy.sh
+
 # Python
 __pycache__/
 *.py[cod]
@@ -69,3 +67,11 @@ db/redis/data/**
 *.temp
 .cache/
 *.cache
+
+
+# Deploy
+*.pem
+ec2.push.sh
+deploy.sh
+nginx/ssl
+nginx/ssl/**
