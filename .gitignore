@@ -6,6 +6,7 @@
 .env.production
 *.pem
 ec2.push.sh
+deploy.sh
 # Python
 __pycache__/
 *.py[cod]
