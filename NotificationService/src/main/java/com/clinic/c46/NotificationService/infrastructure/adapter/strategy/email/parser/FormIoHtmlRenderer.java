@@ -44,17 +44,57 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
             return "";
         }
 
+        // CRITICAL FIX: If formTemplate is a TextNode containing JSON string, parse it first
+        JsonNode actualFormTemplate = formTemplate;
+        if (formTemplate.isTextual()) {
+            log.info("FormTemplate is JSON string, parsing it to ObjectNode");
+            try {
+                actualFormTemplate = new com.fasterxml.jackson.databind.ObjectMapper().readTree(formTemplate.asText());
+            } catch (Exception e) {
+                log.error("Failed to parse formTemplate JSON string", e);
+                return "";
+            }
+        }
+        
+        // CRITICAL FIX: If resultData is a TextNode containing JSON string, parse it first
+        JsonNode actualResultData = resultData;
+        if (resultData.isTextual()) {
+            log.info("ResultData is JSON string, parsing it to ObjectNode");
+            try {
+                actualResultData = new com.fasterxml.jackson.databind.ObjectMapper().readTree(resultData.asText());
+            } catch (Exception e) {
+                log.error("Failed to parse resultData JSON string", e);
+                return "";
+            }
+        }
+
         StringBuilder html = new StringBuilder();
-        html.append("<div class='").append(CONTAINER_CLASS).append("'>");
+        html.append("<div class='").append(CONTAINER_CLASS).append("' style='padding: 0; margin: 0;'>");
 
         // Handle nested data structure - if data is wrapped in a "data" object, extract it
-        JsonNode actualData = extractActualData(resultData);
+        JsonNode actualData = extractActualData(actualResultData);
 
-        JsonNode components = formTemplate.get("components");
+        JsonNode components = actualFormTemplate.get("components");
+
         if (components != null && components.isArray()) {
             parseComponents(components, actualData, html);
         } else {
             log.warn("No 'components' array found in formTemplate");
+            // Try alternative structures
+            if (actualFormTemplate.isObject()) {
+                if (actualFormTemplate.isArray()) {
+                    parseComponents(actualFormTemplate, actualData, html);
+                } else {
+                    // Check for nested structure
+                    JsonNode display = actualFormTemplate.get("display");
+                    if (display != null && display.has("components")) {
+                        JsonNode displayComponents = display.get("components");
+                        if (displayComponents != null && displayComponents.isArray()) {
+                            parseComponents(displayComponents, actualData, html);
+                        }
+                    }
+                }
+            }
         }
 
         html.append("</div>");
@@ -66,13 +106,19 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
      * Some data comes as {"data": {...}} while others come as {...}
      */
     private JsonNode extractActualData(JsonNode resultData) {
+        log.info("Extracting actual data from resultData");
+        log.info("ResultData has 'data' key: {}", resultData.has("data"));
+        
         // Check if data is nested under a "data" key
         if (resultData.has("data") && resultData.get("data").isObject()) {
-            log.debug("Found nested data structure, extracting from 'data' key");
-            return resultData.get("data");
+            log.info("Found nested data structure, extracting from 'data' key");
+            JsonNode extracted = resultData.get("data");
+            log.info("Extracted data: {}", extracted.toString());
+            return extracted;
         }
 
         // Return as-is for flat structures
+        log.info("Using resultData as-is (flat structure)");
         return resultData;
     }
 
@@ -219,7 +265,8 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
             return;
         }
 
-        html.append("<div class='").append(FIELD_CLASS).append("'>");
+        // Add inline style to remove margin for image fields
+        html.append("<div class='").append(FIELD_CLASS).append("' style='margin: 0;'>");
         
         if (!label.isEmpty()) {
             html.append("<label class='").append(LABEL_CLASS).append("'>")
@@ -227,13 +274,14 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
                 .append(":</label>");
         }
         
-        html.append("<div class='").append(VALUE_CLASS).append("'>");
+        // Add special class for image fields to remove padding/background
+        html.append("<div class='").append(VALUE_CLASS).append(" image-field-value'>");
 
         // Handle array of files
         if (valueNode.isArray()) {
             renderImageGrid(valueNode, html);
-        } else {
-            // Single file - create a 1x1 grid
+        } else if (valueNode.isObject()) {
+            // Single file
             renderImageGrid(valueNode, html);
         }
 
@@ -245,34 +293,37 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
      * Render image grid using table layout for email compatibility
      */
     private void renderImageGrid(JsonNode valueNode, StringBuilder html) {
-        html.append("<div class='").append(IMAGE_GRID_CLASS).append("'>");
-        html.append("<table>");
+        // Add inline styles to override Gmail's CSS
+        html.append("<div class='").append(IMAGE_GRID_CLASS).append("' style='padding: 0; margin: 0;'>");
+        html.append("<table style='width: 100%; border-collapse: separate; border-spacing: 8px; margin: 0; padding: 0;'>");
 
         if (valueNode.isArray()) {
             // Multiple images - create rows with 2 images per row
             for (int i = 0; i < valueNode.size(); i += 2) {
                 html.append("<tr>");
                 // First image in row
-                html.append("<td>");
+                html.append("<td style='width: 50%; vertical-align: top; padding: 0;'>");
                 renderImageCell(valueNode.get(i), html);
                 html.append("</td>");
 
                 // Second image in row (if exists)
                 if (i + 1 < valueNode.size()) {
-                    html.append("<td>");
+                    html.append("<td style='width: 50%; vertical-align: top; padding: 0;'>");
                     renderImageCell(valueNode.get(i + 1), html);
                     html.append("</td>");
                 } else {
-                    // Empty cell for proper spacing
-                    html.append("<td></td>");
+                    // Empty cell to maintain grid
+                    html.append("<td style='width: 50%;'></td>");
                 }
                 html.append("</tr>");
             }
         } else {
             // Single image
-            html.append("<tr><td>");
+            html.append("<tr>");
+            html.append("<td style='width: 100%; padding: 0;'>");
             renderImageCell(valueNode, html);
-            html.append("</td></tr>");
+            html.append("</td>");
+            html.append("</tr>");
         }
 
         html.append("</table>");
@@ -306,16 +357,21 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
             return;
         }
 
-        html.append("<div class='image-cell'>");
+        // Add inline styles for the cell
+        html.append("<div class='image-cell' style='width: 100%; height: 250px; border: none; padding: 0; background: transparent; overflow: hidden; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px;'>");
 
         // Check if it's an image
         if (isImageFile(url, type)) {
-            html.append("<img src='").append(escapeHtml(url))
+            // Sanitize URL for XSS protection (but don't escape - it breaks URLs)
+            String sanitizedUrl = sanitizeImageUrl(url);
+            // Add inline styles for the image
+            html.append("<img src='").append(sanitizedUrl)
                 .append("' alt='").append(escapeHtml(name))
-                .append("' />");
+                .append("' style='width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0; border: none;' />");
         } else {
             // Render as download link
-            html.append("<a href='").append(escapeHtml(url))
+            String sanitizedUrl = sanitizeImageUrl(url);
+            html.append("<a href='").append(sanitizedUrl)
                 .append("' class='").append(FILE_LINK_CLASS)
                 .append("' target='_blank'>")
                 .append(escapeHtml(name.isEmpty() ? "Download File" : name))
@@ -354,12 +410,14 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
         
         // Check if it's an image
         if (isImageFile(url, type)) {
-            html.append("<img src='").append(escapeHtml(url))
+            String sanitizedUrl = sanitizeImageUrl(url);
+            html.append("<img src='").append(sanitizedUrl)
                 .append("' alt='").append(escapeHtml(name))
                 .append("' class='").append(IMAGE_CLASS).append("' />");
         } else {
             // Render as download link
-            html.append("<a href='").append(escapeHtml(url))
+            String sanitizedUrl = sanitizeImageUrl(url);
+            html.append("<a href='").append(sanitizedUrl)
                 .append("' class='").append(FILE_LINK_CLASS)
                 .append("' target='_blank'>")
                 .append(escapeHtml(name.isEmpty() ? "Download File" : name))
@@ -564,6 +622,39 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
             return url.substring(lastSlash + 1);
         }
         
+        return url;
+    }
+
+    /**
+     * Sanitize image URL to prevent XSS attacks
+     * Allows: http://, https://, data: URLs
+     * Blocks: javascript:, vbscript:, file:, etc.
+     */
+    private String sanitizeImageUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return "";
+        }
+        
+        String lowerUrl = url.toLowerCase().trim();
+        
+        // Allow safe protocols
+        if (lowerUrl.startsWith("http://") || 
+            lowerUrl.startsWith("https://") || 
+            lowerUrl.startsWith("data:image/")) {
+            return url; // Return original (preserve case and special chars)
+        }
+        
+        // Block dangerous protocols
+        if (lowerUrl.startsWith("javascript:") ||
+            lowerUrl.startsWith("vbscript:") ||
+            lowerUrl.startsWith("file:") ||
+            lowerUrl.startsWith("data:text/html")) {
+            log.warn("Blocked potentially dangerous URL: {}", url);
+            return ""; // Return empty - don't render
+        }
+        
+        // For relative URLs or unknown protocols, return as-is
+        // (could be relative paths like "/images/photo.jpg")
         return url;
     }
 }
