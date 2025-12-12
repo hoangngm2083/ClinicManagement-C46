@@ -44,17 +44,57 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
             return "";
         }
 
+        // CRITICAL FIX: If formTemplate is a TextNode containing JSON string, parse it first
+        JsonNode actualFormTemplate = formTemplate;
+        if (formTemplate.isTextual()) {
+            log.info("FormTemplate is JSON string, parsing it to ObjectNode");
+            try {
+                actualFormTemplate = new com.fasterxml.jackson.databind.ObjectMapper().readTree(formTemplate.asText());
+            } catch (Exception e) {
+                log.error("Failed to parse formTemplate JSON string", e);
+                return "";
+            }
+        }
+        
+        // CRITICAL FIX: If resultData is a TextNode containing JSON string, parse it first
+        JsonNode actualResultData = resultData;
+        if (resultData.isTextual()) {
+            log.info("ResultData is JSON string, parsing it to ObjectNode");
+            try {
+                actualResultData = new com.fasterxml.jackson.databind.ObjectMapper().readTree(resultData.asText());
+            } catch (Exception e) {
+                log.error("Failed to parse resultData JSON string", e);
+                return "";
+            }
+        }
+
         StringBuilder html = new StringBuilder();
         html.append("<div class='").append(CONTAINER_CLASS).append("'>");
 
         // Handle nested data structure - if data is wrapped in a "data" object, extract it
-        JsonNode actualData = extractActualData(resultData);
+        JsonNode actualData = extractActualData(actualResultData);
 
-        JsonNode components = formTemplate.get("components");
+        JsonNode components = actualFormTemplate.get("components");
+
         if (components != null && components.isArray()) {
             parseComponents(components, actualData, html);
         } else {
             log.warn("No 'components' array found in formTemplate");
+            // Try alternative structures
+            if (actualFormTemplate.isObject()) {
+                if (actualFormTemplate.isArray()) {
+                    parseComponents(actualFormTemplate, actualData, html);
+                } else {
+                    // Check for nested structure
+                    JsonNode display = actualFormTemplate.get("display");
+                    if (display != null && display.has("components")) {
+                        JsonNode displayComponents = display.get("components");
+                        if (displayComponents != null && displayComponents.isArray()) {
+                            parseComponents(displayComponents, actualData, html);
+                        }
+                    }
+                }
+            }
         }
 
         html.append("</div>");
@@ -66,13 +106,19 @@ public class FormIoHtmlRenderer implements FormTemplateParser {
      * Some data comes as {"data": {...}} while others come as {...}
      */
     private JsonNode extractActualData(JsonNode resultData) {
+        log.info("Extracting actual data from resultData");
+        log.info("ResultData has 'data' key: {}", resultData.has("data"));
+        
         // Check if data is nested under a "data" key
         if (resultData.has("data") && resultData.get("data").isObject()) {
-            log.debug("Found nested data structure, extracting from 'data' key");
-            return resultData.get("data");
+            log.info("Found nested data structure, extracting from 'data' key");
+            JsonNode extracted = resultData.get("data");
+            log.info("Extracted data: {}", extracted.toString());
+            return extracted;
         }
 
         // Return as-is for flat structures
+        log.info("Using resultData as-is (flat structure)");
         return resultData;
     }
 
