@@ -23,15 +23,17 @@ public class PatientService {
     private final QueryGateway queryGateway;
 
     // COMMAND
-    public void createPatient(String name, String email, String phone) {
+    public String createPatient(String name, String email, String phone) {
+        String patientId = UUID.randomUUID()
+                .toString();
         CreatePatientCommand cmd = CreatePatientCommand.builder()
-                .patientId(UUID.randomUUID()
-                        .toString())
+                .patientId(patientId)
                 .name(name)
                 .email(email)
                 .phone(phone)
                 .build();
         commandGateway.sendAndWait(cmd);
+        return patientId;
     }
 
     public void deletePatient(String id) {
