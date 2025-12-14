@@ -118,6 +118,7 @@ services:
       - patient-service
       - staff-service
       - medical-package-service
+      - file-service
     ports:
       - "8080:8080"
     environment:
@@ -126,6 +127,30 @@ services:
       - TZ=Asia/Ho_Chi_Minh
     healthcheck:
       test: [ "CMD", "wget", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - c46-net
+
+  file-service:
+    build: ./FileService
+    restart: always
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - AWS_CLOUD_FRONT_URL=${AWS_CLOUD_FRONT_URL}
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - TZ=Asia/Ho_Chi_Minh
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:8084/actuator/health" ]
       interval: 20s
       timeout: 10s
       retries: 5
