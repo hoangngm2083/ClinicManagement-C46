@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -18,9 +19,9 @@ public class PatientController {
 
     // --- COMMAND ---
     @PostMapping
-    public ResponseEntity<String> createPatient(@RequestBody PatientView request) {
-        patientService.createPatient(request.getName(), request.getEmail(), request.getPhone());
-        return ResponseEntity.ok("Patient created successfully");
+    public ResponseEntity<Map<String, String>> createPatient(@RequestBody PatientView request) {
+        String patientId = patientService.createPatient(request.getName(), request.getEmail(), request.getPhone());
+        return ResponseEntity.ok(Map.of("patientId", patientId));
     }
 
     @DeleteMapping("/{id}")
