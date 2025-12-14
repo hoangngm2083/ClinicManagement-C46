@@ -20,6 +20,7 @@
     <module>ExaminationService</module>
     <module>ExaminationFlowService</module>
     <module>PaymentService</module>
+    <module>FileService</module>
   </modules>
 
   <properties>
