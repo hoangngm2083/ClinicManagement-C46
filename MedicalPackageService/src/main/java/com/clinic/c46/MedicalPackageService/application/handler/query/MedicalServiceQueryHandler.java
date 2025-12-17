@@ -9,6 +9,7 @@ import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDetail
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalServicesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
+import com.clinic.c46.MedicalPackageService.domain.query.GetExistingMedicalServiceIdsQuery;
 import com.clinic.c46.MedicalPackageService.domain.query.GetAllMedicalServicesQuery;
 import com.clinic.c46.MedicalPackageService.domain.query.GetMedicalServiceByIdQuery;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
@@ -84,6 +85,17 @@ public class MedicalServiceQueryHandler extends BaseQueryHandler {
     @QueryHandler
     public Boolean handle(ExistsServiceByIdQuery query) {
         return serviceRepo.existsById(query.serviceId());
+    }
+
+    @QueryHandler
+    public List<String> handle(GetExistingMedicalServiceIdsQuery query) {
+        if (query.serviceIds() == null || query.serviceIds().isEmpty()) {
+            return List.of();
+        }
+
+        return serviceRepo.findAllById(query.serviceIds()).stream()
+                .map(MedicalServiceView::getId)
+                .toList();
     }
 
 }
