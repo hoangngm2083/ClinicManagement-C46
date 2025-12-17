@@ -136,10 +136,19 @@ services:
   file-service:
     build: ./FileService
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
     ports:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/file_db
+      - SPRING_DATASOURCE_USERNAME=booking
+      - SPRING_DATASOURCE_PASSWORD=booking
+      - AXON_AXONSERVER_SERVERS=axon-server
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - AWS_REGION=${AWS_REGION}

@@ -58,6 +58,24 @@ public class S3Uploader {
         }
     }
 
+    /**
+     * Upload byte array to S3 (for CSV files from bulk import).
+     */
+    public String uploadBytes(byte[] content, String filename, String contentType) {
+        String key = "uploads/" + LocalDate.now() + "/" + UUID.randomUUID() + "_" + filename;
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType != null ? contentType : "text/csv")
+                .cacheControl("public, max-age=31536000")
+                .build();
+
+        s3Client.putObject(request, RequestBody.fromBytes(content));
+
+        return cloudFront + "/" + key;
+    }
+
     private String getKeyFromUrl(String url) {
         // Simple extraction assuming standard S3 URL format
         // https://bucket.s3.region.amazonaws.com/key

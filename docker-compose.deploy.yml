@@ -161,8 +161,19 @@ services:
       dockerfile: Dockerfile
     container_name: file-service-prod
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      axon-server:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/file_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - AXON_AXONSERVER_SERVERS=axon-server
+      - AXONSERVER_HOST=axon-server
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - AWS_REGION=${AWS_REGION:-ap-southeast-1}
@@ -194,6 +205,7 @@ services:
       - AXON_AXONSERVER_SERVERS=axon-server
       - AXONSERVER_HOST=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/booking_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -223,6 +235,7 @@ services:
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL}
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -256,6 +269,7 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -285,6 +299,7 @@ services:
     environment:
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/patient_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -313,6 +328,7 @@ services:
     environment:
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/staff_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -341,6 +357,7 @@ services:
     environment:
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/medical_package_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -369,6 +386,7 @@ services:
     environment:
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/examination_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -399,6 +417,7 @@ services:
     environment:
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/examination_flow_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
@@ -429,6 +448,7 @@ services:
     environment:
       - AXON_AXONSERVER_SERVERS=axon-server
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - VNP_TMN_CODE=${VNP_TMN_CODE}
       - VNP_SECRET_KEY=${VNP_SECRET_KEY}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/payment_db
@@ -468,7 +488,7 @@ services:
       - POSTGRES_DB=vector_db
       - POSTGRES_USER=${DB_USER:-booking}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_SSL_MODE=require
+      - POSTGRES_SSL_MODE=disable
       - VECTOR_DIMENSION=1536
       - VECTOR_SIMILARITY_METRIC=cosine
       - VECTOR_TABLE_NAME=vector_embeddings

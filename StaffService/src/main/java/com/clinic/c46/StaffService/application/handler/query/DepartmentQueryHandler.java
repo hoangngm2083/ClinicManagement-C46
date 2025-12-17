@@ -20,7 +20,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.clinic.c46.CommonService.query.department.GetExistingDepartmentIdsQuery;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +75,15 @@ public class DepartmentQueryHandler extends BaseQueryHandler {
                 .toList();
     }
 
-
+    @QueryHandler
+    public List<String> handle(GetExistingDepartmentIdsQuery query) {
+        Set<String> requestedIds = query.departmentIds();
+        if (requestedIds == null || requestedIds.isEmpty()) {
+            return List.of();
+        }
+        
+        return departmentViewRepository.findAllById(requestedIds).stream()
+                .map(DepartmentView::getId)
+                .toList();
+    }
 }

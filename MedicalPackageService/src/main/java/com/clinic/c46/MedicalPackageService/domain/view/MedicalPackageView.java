@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Builder;
 import lombok.experimental.SuperBuilder;
 
 import java.util.HashSet;
@@ -31,6 +32,7 @@ public class MedicalPackageView extends BaseView {
         name = "medical_package_prices",
         joinColumns = @JoinColumn(name = "medical_package_id")
     )
+    @Builder.Default
     private Set<MedicalPackagePrice> prices = new HashSet<>();
 
     private int currentPriceVersion;
@@ -40,6 +42,7 @@ public class MedicalPackageView extends BaseView {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "package_service", joinColumns = @JoinColumn(name = "medical_package_id"), inverseJoinColumns = @JoinColumn(name = "medical_service_id"))
+    @Builder.Default
     private Set<MedicalServiceView> medicalServices = new HashSet<>();
 
     // Manual getters for Lombok compatibility

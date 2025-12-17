@@ -17,6 +17,7 @@ import com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.Updat
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
@@ -34,6 +35,7 @@ public class MedicalPackageController {
 
     private final QueryGateway queryGateway;
     private final MedicalPackageService medicalPackageService;
+    private final com.clinic.c46.MedicalPackageService.application.service.BulkImportService bulkImportService;
 
     @GetMapping
     public ResponseEntity<MedicalPackagesPagedDto> getMedicalPackages(
@@ -153,6 +155,37 @@ public class MedicalPackageController {
         String result = ((com.clinic.c46.MedicalPackageService.application.service.MedicalPackageServiceImpl) medicalPackageService)
                 .testRetryMechanism(shouldFail);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<Map<String, String>> importCsv(
+            @Valid @RequestBody com.clinic.c46.MedicalPackageService.infrastructure.adapter.web.dto.ImportCsvRequest request) {
+        
+        String bulkId = bulkImportService.startBulkImport("MEDICAL_PACKAGE", request.getCsvUrl());
+        
+        return ResponseEntity.status(org.springframework.http.HttpStatus.ACCEPTED)
+                .body(Map.of(
+                        "bulkId", bulkId,
+                        "status", "ACCEPTED",
+                        "message", "Bulk import started successfully"
+                ));
+    }
+
+    @GetMapping("/import/{bulkId}")
+    public ResponseEntity<com.clinic.c46.MedicalPackageService.domain.view.BulkImportStatusView> getImportStatus(
+            @PathVariable String bulkId) {
+        
+        com.clinic.c46.MedicalPackageService.domain.query.GetBulkImportStatusQuery query = 
+                com.clinic.c46.MedicalPackageService.domain.query.GetBulkImportStatusQuery.builder()
+                        .bulkId(bulkId)
+                        .build();
+        
+        com.clinic.c46.MedicalPackageService.domain.view.BulkImportStatusView status = 
+                queryGateway.query(query, ResponseTypes.instanceOf(
+                        com.clinic.c46.MedicalPackageService.domain.view.BulkImportStatusView.class))
+                        .join();
+        
+        return ResponseEntity.ok(status);
     }
 
 }

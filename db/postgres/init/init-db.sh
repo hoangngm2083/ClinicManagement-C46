@@ -15,6 +15,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
     CREATE DATABASE examination_flow_db;
     CREATE DATABASE payment_db;
     CREATE DATABASE vector_db;
+    CREATE DATABASE file_db;
 EOSQL
 
 echo "All databases created successfully!"
