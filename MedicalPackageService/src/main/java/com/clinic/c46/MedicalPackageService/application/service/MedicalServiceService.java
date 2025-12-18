@@ -11,4 +11,6 @@ public interface MedicalServiceService {
     void update(UpdateMedicalServiceInfoCommand cmd);
 
     void delete(DeleteMedicalServiceCommand cmd);
+
+    java.util.concurrent.CompletableFuture<byte[]> exportServices(com.clinic.c46.MedicalPackageService.domain.query.GetAllMedicalServicesQuery query);
 }

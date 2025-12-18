@@ -19,6 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageExportDTO;
+import com.opencsv.bean.ColumnPositionMappingStrategy;
 
 @Service
 @RequiredArgsConstructor
@@ -109,5 +113,31 @@ public class MedicalPackageServiceImpl implements MedicalPackageService {
         retryCounter.set(0); // Reset for next test
         log.info("Test retry mechanism - SUCCESS on attempt {}", attempt);
         return "Retry test successful after " + attempt + " attempts";
+    }
+    @Override
+    public java.util.concurrent.CompletableFuture<byte[]> exportPackages(com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery query) {
+        return queryGateway.query(query, ResponseTypes.multipleInstancesOf(MedicalPackageExportDTO.class))
+            .thenApply(this::generatePackageCsv);
+    }
+
+    private byte[] generatePackageCsv(java.util.List<MedicalPackageExportDTO> exportList) {
+        try (java.io.StringWriter writer = new java.io.StringWriter()) {
+            ColumnPositionMappingStrategy<MedicalPackageExportDTO> strategy = new ColumnPositionMappingStrategy<>();
+            strategy.setType(MedicalPackageExportDTO.class);
+            String[] columns = new String[]{"id", "name", "description", "price", "serviceIds", "serviceNames", "createdAt", "updatedAt", "deletedAt"};
+            strategy.setColumnMapping(columns);
+
+            StatefulBeanToCsv<MedicalPackageExportDTO> beanToCsv =
+                    new StatefulBeanToCsvBuilder<MedicalPackageExportDTO>(writer)
+                            .withMappingStrategy(strategy)
+                            .withQuotechar(com.opencsv.CSVWriter.DEFAULT_QUOTE_CHARACTER)
+                            .build();
+
+            writer.write("id,name,description,price,serviceIds,serviceNames,createdAt,updatedAt,deletedAt\n");
+            beanToCsv.write(exportList);
+            return writer.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating CSV", e);
+        }
     }
 }

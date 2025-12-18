@@ -13,6 +13,8 @@ import com.clinic.c46.MedicalPackageService.domain.query.GetExistingMedicalServi
 import com.clinic.c46.MedicalPackageService.domain.query.GetAllMedicalServicesQuery;
 import com.clinic.c46.MedicalPackageService.domain.query.GetMedicalServiceByIdQuery;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceExportDTO;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class MedicalServiceQueryHandler extends BaseQueryHandler {
 
     private final MedicalServiceViewRepository serviceRepo;
@@ -66,6 +69,43 @@ public class MedicalServiceQueryHandler extends BaseQueryHandler {
                 .processingPriority(view.getProcessingPriority())
                 .description(view.getDescription())
                 .build(), MedicalServicesPagedDto::new);
+    }
+
+    @QueryHandler
+    public List<MedicalServiceExportDTO> handleExport(GetAllMedicalServicesQuery query) {
+        Specification<MedicalServiceView> spec = Specification.where(null);
+
+        String medicalPackageId = query.medicalPackageId();
+        if (medicalPackageId != null && !medicalPackageId.isBlank()) {
+            var medicalPackage = packageRepo.findById(medicalPackageId);
+            if (medicalPackage.isPresent()) {
+                var serviceIds = medicalPackage.get()
+                        .getMedicalServices()
+                        .stream()
+                        .map(MedicalServiceView::getId)
+                        .toList();
+                spec = spec.and(specBuilder.in("id", serviceIds));
+            } else {
+                spec = spec.and(specBuilder.in("id", List.of()));
+            }
+        }
+
+        spec = spec.and(specBuilder.keyword(query.keyword(), List.of("name", "description", "departmentName")));
+
+        return serviceRepo.findAll(spec).stream()
+                .map(view -> MedicalServiceExportDTO.builder()
+                        .id(view.getId())
+                        .name(view.getName())
+                        .description(view.getDescription())
+                        .departmentName(view.getDepartmentName())
+                        .departmentId(view.getDepartmentId())
+                        .processingPriority(view.getProcessingPriority())
+                        .formTemplate(view.getFormTemplate() != null ? view.getFormTemplate().toString() : null)
+                        .createdAt(view.getCreatedAt())
+                        .updatedAt(view.getUpdatedAt())
+                        .deletedAt(view.getDeletedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @QueryHandler
