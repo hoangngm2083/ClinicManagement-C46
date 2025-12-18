@@ -190,6 +190,37 @@ async def test_create_booking_api_error(mock_clinic_api, mock_vector_store):
 
 
 @pytest.mark.asyncio
+async def test_create_booking_with_date_and_shift(mock_clinic_api, mock_vector_store):
+    init_tools(mock_clinic_api, mock_vector_store)
+    from app.agents.tools import set_current_session_id
+    set_current_session_id("test_session_abc")
+
+    patient_info = "name:Nguyễn Văn Test,email:test@example.com,phone:0123456789"
+
+    mock_clinic_api.get_medical_packages.return_value = [
+        {"id": "pkg_general", "name": "Dịch vụ khám tổng hợp", "price": 100000}
+    ]
+
+    mock_clinic_api.get_available_slots.return_value = [
+        {"slotId": "slot_earliest_morning", "date": "2025-12-19", "shift": "MORNING", "remainingQuantity": 10, "totalQuantity": 50},
+        {"slotId": "slot_target_afternoon", "date": "2025-12-20", "shift": "AFTERNOON", "remainingQuantity": 50, "totalQuantity": 50}
+    ]
+
+    result = await create_booking(
+        patient_info,
+        slot_id=None,
+        medical_package="Dịch vụ khám tổng hợp",
+        date="20/12/2025",
+        shift="AFTERNOON"
+    )
+
+    assert result is not None
+    assert mock_clinic_api.create_booking.called
+    call_args = mock_clinic_api.create_booking.call_args
+    assert call_args[1]["slot_id"] == "slot_target_afternoon"
+
+
+@pytest.mark.asyncio
 async def test_full_booking_flow_via_agent(initialized_agent, sample_session_id):
     """Test complete booking flow through agent"""
     # Step 1: Check available slots
@@ -257,4 +288,3 @@ async def test_booking_with_package_filter(mock_clinic_api, mock_vector_store):
     
     assert result is not None
     # Should filter by package name
-

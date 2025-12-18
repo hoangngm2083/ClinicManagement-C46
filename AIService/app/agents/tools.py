@@ -483,7 +483,7 @@ async def recommend_medical_packages(symptoms: str) -> str:
 
 
 @tool
-async def create_booking(patient_info: str, slot_id: Optional[str] = None, medical_package: Optional[str] = None) -> str:
+async def create_booking(patient_info: str, slot_id: Optional[str] = None, medical_package: Optional[str] = None, date: Optional[str] = None, shift: Optional[str] = None) -> str:
     """
     Tạo lịch hẹn khám mới cho bệnh nhân.
     Sử dụng tool này sau khi đã xác nhận thông tin bệnh nhân và slot trống.
@@ -514,99 +514,133 @@ async def create_booking(patient_info: str, slot_id: Optional[str] = None, medic
         if missing_fields:
             return f"Thiếu thông tin bắt buộc: {', '.join(missing_fields)}. Vui lòng cung cấp đầy đủ."
 
-        # If slot_id is not provided, find the earliest available slot
         if not slot_id:
             if not medical_package:
                 return "Lỗi: Cần cung cấp slot_id hoặc medical_package để tìm slot."
 
-            logger.info(f"Finding earliest slot for medical_package: {medical_package}")
-            # Use the same logic as find_earliest_available_slot
             from datetime import datetime, timedelta
 
             packages = await clinic_api.get_medical_packages(keyword=medical_package)
-
             if not packages:
                 return f"Không tìm thấy gói khám phù hợp với '{medical_package}'."
 
-            # Find target package (same logic as find_earliest_available_slot)
             target_package = None
             medical_package_lower = medical_package.lower().strip()
-
             for package in packages:
                 if package.get('name', '').lower().strip() == medical_package_lower:
                     target_package = package
                     break
-
             if not target_package:
                 for package in packages:
                     package_name_lower = package.get('name', '').lower().strip()
                     if medical_package_lower in package_name_lower or package_name_lower in medical_package_lower:
                         target_package = package
                         break
-
             if not target_package:
                 target_package = packages[0]
 
-            # Find earliest slot
-            current_date = datetime.now().date()
-            earliest_slot = None
-            earliest_date = None
+            if date:
+                formatted_date = _parse_and_format_date(date)
+                if not formatted_date:
+                    return f"Không thể hiểu ngày '{date}'. Vui lòng cung cấp ngày hợp lệ."
 
-            date_from = current_date
-            date_to = current_date + timedelta(days=7)
+                slots = await clinic_api.get_available_slots(
+                    target_package['id'],
+                    date_from=formatted_date,
+                    date_to=formatted_date
+                )
 
-            date_from_str = date_from.strftime("%Y-%m-%d")
-            date_to_str = date_to.strftime("%Y-%m-%d")
+                shift_numeric = None
+                if shift:
+                    s = shift.strip().upper()
+                    if s.startswith('MORNING') or s == '0':
+                        shift_numeric = 0
+                    elif s.startswith('AFTERNOON') or s == '1':
+                        shift_numeric = 1
 
-            for shift in [0, 1]:
-                try:
-                    slots = await clinic_api.get_available_slots(
-                        target_package['id'],
-                        date_from=date_from_str,
-                        date_to=date_to_str
-                    )
-
-                    logger.info(f"Found {len(slots)} slots for package {target_package['id']}, shift {shift}")
-
-                    for slot in slots:
-                        slot_date = slot.get('date', '')
-                        slot_shift = slot.get('shift', '')
-
-                        if isinstance(slot_date, str):
-                            try:
-                                slot_date_obj = datetime.fromisoformat(slot_date).date()
-                                slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
-                            except:
-                                slot_date_str = str(slot_date)
-                        else:
-                            slot_date_str = str(slot_date)
-
-                        if slot_shift == shift:
-                            remaining = slot.get('remainingQuantity', 0)
-                            if remaining > 0:
-                                slot_date_obj = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
-                                if not earliest_slot or slot_date_obj < earliest_date:
-                                    earliest_slot = {
-                                        'slot_id': slot.get('slotId', ''),
-                                        'date': slot_date_str,
-                                        'shift': slot_shift,
-                                        'remaining': remaining,
-                                        'price': target_package.get('price', 0)
-                                    }
-                                    earliest_date = slot_date_obj
-
-                except Exception as e:
-                    logger.warning(f"Error getting slots for package {target_package['id']}: {e}")
-                    continue
-
-                if earliest_slot:
+                chosen = None
+                for slot in slots:
+                    slot_date = slot.get('date', '')
+                    slot_shift_raw = slot.get('shift', '')
+                    slot_shift_num = None
+                    if isinstance(slot_shift_raw, int):
+                        slot_shift_num = slot_shift_raw
+                    elif isinstance(slot_shift_raw, str):
+                        s = slot_shift_raw.strip().upper()
+                        if s.startswith('MORNING'):
+                            slot_shift_num = 0
+                        elif s.startswith('AFTERNOON'):
+                            slot_shift_num = 1
+                    remaining = slot.get('remainingQuantity', 0)
+                    if remaining <= 0:
+                        continue
+                    if shift_numeric is not None and slot_shift_num is not None and slot_shift_num != shift_numeric:
+                        continue
+                    chosen = slot
                     break
 
-            if not earliest_slot:
-                return f"Không tìm thấy slot trống cho gói khám '{medical_package}'."
+                if not chosen:
+                    if shift_numeric is not None:
+                        return f"Không tìm thấy slot trống vào ngày {formatted_date} cho buổi đã chọn."
+                    return f"Không tìm thấy slot trống vào ngày {formatted_date}."
 
-            slot_id = earliest_slot['slot_id']
-            logger.info(f"Found slot_id: {slot_id} for medical_package: {medical_package}")
+                slot_id = chosen.get('slotId', '')
+            else:
+                current_date = datetime.now().date()
+                earliest_slot = None
+                earliest_date = None
+                date_from = current_date
+                date_to = current_date + timedelta(days=7)
+                date_from_str = date_from.strftime("%Y-%m-%d")
+                date_to_str = date_to.strftime("%Y-%m-%d")
+                for sh in [0, 1]:
+                    try:
+                        slots = await clinic_api.get_available_slots(
+                            target_package['id'],
+                            date_from=date_from_str,
+                            date_to=date_to_str
+                        )
+                        for slot in slots:
+                            slot_date = slot.get('date', '')
+                            slot_shift_raw = slot.get('shift', '')
+                            slot_shift_num = None
+                            if isinstance(slot_shift_raw, int):
+                                slot_shift_num = slot_shift_raw
+                            elif isinstance(slot_shift_raw, str):
+                                s = slot_shift_raw.strip().upper()
+                                if s.startswith('MORNING'):
+                                    slot_shift_num = 0
+                                elif s.startswith('AFTERNOON'):
+                                    slot_shift_num = 1
+                            if isinstance(slot_date, str):
+                                try:
+                                    slot_date_obj = datetime.fromisoformat(slot_date).date()
+                                    slot_date_str = slot_date_obj.strftime("%Y-%m-%d")
+                                except:
+                                    slot_date_str = str(slot_date)
+                            else:
+                                slot_date_str = str(slot_date)
+                            if slot_shift_num == sh:
+                                remaining = slot.get('remainingQuantity', 0)
+                                if remaining > 0:
+                                    slot_date_obj = datetime.strptime(slot_date_str, "%Y-%m-%d").date()
+                                    if not earliest_slot or slot_date_obj < earliest_date:
+                                        earliest_slot = {
+                                            'slot_id': slot.get('slotId', ''),
+                                            'date': slot_date_str,
+                                            'shift': slot_shift_num,
+                                            'remaining': remaining,
+                                            'price': target_package.get('price', 0)
+                                        }
+                                        earliest_date = slot_date_obj
+                    except Exception as e:
+                        logger.warning(f"Error getting slots for package {target_package['id']}: {e}")
+                        continue
+                    if earliest_slot:
+                        break
+                if not earliest_slot:
+                    return f"Không tìm thấy slot trống cho gói khám '{medical_package}'."
+                slot_id = earliest_slot['slot_id']
 
         # Use current session_id as fingerprint for booking
         if not current_session_id:

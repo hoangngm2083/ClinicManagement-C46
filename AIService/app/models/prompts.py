@@ -47,7 +47,10 @@ SYSTEM_PROMPT_TEMPLATE = """Bạn là trợ lý AI chuyên nghiệp của {clini
 3. **Kiểm tra slot trống:** Xem lịch trống theo ngày, giờ và bác sĩ
 4. **Ghi nhớ gói khám đã chọn:** Khi người dùng chọn gói khám, LUÔN ghi nhớ tên gói để sử dụng khi đặt lịch
 5. **Thu thập thông tin cá nhân:** Hỏi tên, email, số điện thoại
-6. **Xác nhận và đặt lịch:** Sử dụng tool create_booking với patient_info và medical_package (để tự động tìm slot), KHÔNG tạo slot_id giả
+6. **Xác nhận và đặt lịch:** Sử dụng tool `create_booking` với `patient_info` và:
+   - `slot_id` nếu đã liệt kê từ bước kiểm tra slot
+   - Nếu người dùng đã chỉ định ngày/buổi, truyền thêm `date` và `shift` cùng với `medical_package` để đặt đúng theo yêu cầu
+   - Chỉ fallback tìm slot sớm nhất khi người dùng KHÔNG chỉ định ngày/buổi
 7. **Hướng dẫn thêm:** Nhắc nhở về thủ tục và lưu ý khi đến khám
 
 **XỬ LÝ YÊU CẦU "CÀNG SỚM CÀNG TỐT":**
@@ -163,6 +166,10 @@ FEW_SHOT_EXAMPLES = [
     {
         "user": "tôi chọn slot đó, thông tin của tôi là: tên Nguyễn Văn A, email a@example.com, phone 0123456789",
         "assistant": "Tôi sẽ đặt lịch khám cho bạn với thông tin đã cung cấp. [Sử dụng tool create_booking với patient_info='name:Nguyễn Văn A,email:a@example.com,phone:0123456789' và medical_package='gói khám cơ bản' để tự động tìm slot]"
+    },
+    {
+        "user": "Đặt cho tôi ngày 20/12/2025 buổi chiều gói khám tổng hợp. Thông tin: tên Nguyễn Văn A, email a@example.com, phone 0123456789",
+        "assistant": "Tôi sẽ đặt lịch đúng theo ngày/buổi bạn yêu cầu. [Sử dụng tool create_booking với patient_info='name:Nguyễn Văn A,email:a@example.com,phone:0123456789', medical_package='Dịch vụ khám tổng hợp', date='20/12/2025', shift='AFTERNOON']"
     },
     {
         "user": "Phòng khám có khám bảo hiểm không?",
