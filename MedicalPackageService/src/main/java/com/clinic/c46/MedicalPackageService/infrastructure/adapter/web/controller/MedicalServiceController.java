@@ -51,6 +51,24 @@ public class MedicalServiceController {
                 .body(medicalPackageDTOs);
     }
 
+    @GetMapping("/export")
+    public java.util.concurrent.CompletableFuture<ResponseEntity<byte[]>> exportMedicalServices(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "medicalPackageId", required = false) String medicalPackageId) {
+
+        GetAllMedicalServicesQuery query = GetAllMedicalServicesQuery.builder()
+                .keyword(keyword)
+                .page(1)
+                .medicalPackageId(medicalPackageId)
+                .build();
+
+        return medicalServiceService.exportServices(query)
+                .thenApply(csvBytes -> ResponseEntity.ok()
+                        .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"medical_services.csv\"")
+                        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv")
+                        .body(csvBytes));
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, String>> createMedicalService(
             @RequestBody @Valid CreateMedicalServiceRequest bodyRequest) {

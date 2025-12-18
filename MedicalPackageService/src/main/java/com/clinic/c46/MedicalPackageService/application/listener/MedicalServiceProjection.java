@@ -49,6 +49,7 @@ public class MedicalServiceProjection {
                 .formTemplate(ev.formTemplate())
                 .build();
 
+        svc.markCreated();
         medicalServiceViewRepository.save(svc);
     }
 

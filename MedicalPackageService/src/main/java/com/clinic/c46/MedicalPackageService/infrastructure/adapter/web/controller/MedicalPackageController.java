@@ -71,6 +71,27 @@ public class MedicalPackageController {
                 .body(medicalPackageDTOs);
     }
 
+    @GetMapping("/export")
+    public java.util.concurrent.CompletableFuture<ResponseEntity<byte[]>> exportMedicalPackages(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "sortBy", defaultValue = "name") String sortBy,
+            @RequestParam(value = "sort", defaultValue = "ASC") SortDirection sort) {
+
+        GetAllPackagesQuery query = GetAllPackagesQuery.builder()
+                .page(1)
+                .size(10000)
+                .keyword(keyword)
+                .sortBy(sortBy)
+                .sort(sort)
+                .build();
+
+        return medicalPackageService.exportPackages(query)
+                .thenApply(csvBytes -> ResponseEntity.ok()
+                        .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"medical_packages.csv\"")
+                        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv")
+                        .body(csvBytes));
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, String>> createMedicalPackage(
             @RequestBody CreateMedicalPackageRequest bodyRequest) {

@@ -13,4 +13,6 @@ public interface MedicalPackageService {
     void updateInfo(UpdateMedicalPackageInfoCommand cmd);
 
     void delete(DeleteMedicalPackageCommand cmd);
+
+    java.util.concurrent.CompletableFuture<byte[]> exportPackages(com.clinic.c46.CommonService.query.medicalPackage.GetAllPackagesQuery query);
 }

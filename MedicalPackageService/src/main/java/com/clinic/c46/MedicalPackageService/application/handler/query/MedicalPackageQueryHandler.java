@@ -7,11 +7,13 @@ import com.clinic.c46.CommonService.helper.SpecificationBuilder;
 import com.clinic.c46.CommonService.query.BaseQueryHandler;
 import com.clinic.c46.CommonService.query.medicalPackage.*;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageDetailDTO;
+import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackageExportDTO;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalPackagesPagedDto;
 import com.clinic.c46.MedicalPackageService.application.dto.MedicalServiceDetailsDTO;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalPackageViewRepository;
 import com.clinic.c46.MedicalPackageService.application.repository.MedicalServiceViewRepository;
 import com.clinic.c46.MedicalPackageService.domain.view.MedicalPackageView;
+import com.clinic.c46.MedicalPackageService.domain.view.MedicalServiceView;
 import lombok.RequiredArgsConstructor;
 import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class MedicalPackageQueryHandler extends BaseQueryHandler {
 
     private final MedicalPackageViewRepository packageRepo;
@@ -63,6 +66,29 @@ public class MedicalPackageQueryHandler extends BaseQueryHandler {
                     .build();
         }, MedicalPackagesPagedDto::new);
 
+    }
+
+    @QueryHandler
+    public List<MedicalPackageExportDTO> handleExport(GetAllPackagesQuery q) {
+        Specification<MedicalPackageView> finalSpec = specificationBuilder.keyword(q.keyword(),
+                List.of("name", "description"));
+
+        return packageRepo.findAll(finalSpec).stream()
+            .map(view -> {
+                List<MedicalServiceView> services = new java.util.ArrayList<>(view.getMedicalServices());
+                return MedicalPackageExportDTO.builder()
+                    .id(view.getId())
+                    .name(view.getName())
+                    .description(view.getDescription())
+                    .price(view.getCurrentPrice())
+                    .serviceIds(services.stream().map(MedicalServiceView::getId).collect(Collectors.joining(",")))
+                    .serviceNames(services.stream().map(MedicalServiceView::getName).collect(Collectors.joining(",")))
+                    .createdAt(view.getCreatedAt())
+                    .updatedAt(view.getUpdatedAt())
+                    .deletedAt(view.getDeletedAt())
+                    .build();
+            })
+            .collect(Collectors.toList());
     }
 
     @QueryHandler

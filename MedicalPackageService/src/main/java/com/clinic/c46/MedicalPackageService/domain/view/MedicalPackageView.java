@@ -27,7 +27,7 @@ public class MedicalPackageView extends BaseView {
     private String name;
     private String description;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "medical_package_prices",
         joinColumns = @JoinColumn(name = "medical_package_id")
