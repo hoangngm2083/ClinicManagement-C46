@@ -844,8 +844,8 @@ async def find_earliest_available_slot(medical_package: Optional[str] = None, ma
         earliest_date = None
 
         # Calculate date range and get all slots in one go
-        date_from = current_date  # Start from today
-        date_to = current_date + timedelta(days=max_days_ahead)
+        date_from = current_date + timedelta(days=1)  # Start from today
+        date_to = date_from + timedelta(days=max_days_ahead)
 
         date_from_str = date_from.strftime("%Y-%m-%d")
         date_to_str = date_to.strftime("%Y-%m-%d")
