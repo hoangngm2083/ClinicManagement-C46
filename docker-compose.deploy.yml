@@ -263,6 +263,7 @@ services:
       axon-server:
         condition: service_healthy
     environment:
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL}
       - MAIL_HOST=${MAIL_HOST}
       - MAIL_PORT=${MAIL_PORT}
       - MAIL_USERNAME=${MAIL_USERNAME}
