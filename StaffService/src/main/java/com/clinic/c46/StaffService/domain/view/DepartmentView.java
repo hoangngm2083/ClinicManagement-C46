@@ -20,6 +20,7 @@ public class DepartmentView extends BaseView {
     @Id
     private String id;
     private String name;
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private String description;
 
 

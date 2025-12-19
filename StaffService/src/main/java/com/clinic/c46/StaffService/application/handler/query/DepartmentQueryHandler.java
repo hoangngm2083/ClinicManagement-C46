@@ -86,4 +86,9 @@ public class DepartmentQueryHandler extends BaseQueryHandler {
                 .map(DepartmentView::getId)
                 .toList();
     }
+
+    @QueryHandler
+    public Boolean handle(com.clinic.c46.CommonService.query.department.ExistsDepartmentByIdQuery query) {
+        return departmentViewRepository.existsById(query.departmentId());
+    }
 }

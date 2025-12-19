@@ -28,6 +28,7 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     @Override
     public void create(CreateMedicalServiceCommand cmd) {
         log.debug("=== CreateMedicalServiceCommand: {}", cmd);
+        validateDepartmentExists(cmd.departmentId());
         commandGateway.sendAndWait(cmd);
     }
 
@@ -35,6 +36,7 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     public void update(UpdateMedicalServiceInfoCommand cmd) {
         log.debug("=== UpdateMedicalServiceInfoCommand: {}", cmd);
         validateServiceExists(cmd.medicalServiceId());
+        validateDepartmentExists(cmd.departmentId());
         commandGateway.sendAndWait(cmd);
     }
 
@@ -48,15 +50,37 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     private void validateServiceExists(String serviceId) {
         try {
             Boolean exists = queryGateway.query(new ExistsServiceByIdQuery(serviceId),
-                    ResponseTypes.instanceOf(Boolean.class)).get();
+                    ResponseTypes.instanceOf(Boolean.class)).join();
             if (Boolean.FALSE.equals(exists)) {
                 log.warn("Medical service not found: {}", serviceId);
                 throw new ResourceNotFoundException("Dịch vụ y tế");
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
+            if (e instanceof ResourceNotFoundException) {
+                throw e;
+            }
             log.error("Error validating service existence: {}", serviceId, e);
-            Thread.currentThread().interrupt();
             throw new RuntimeException("Lỗi khi kiểm tra dịch vụ tồn tại", e);
+        }
+    }
+
+    private void validateDepartmentExists(String departmentId) {
+        if (departmentId == null || departmentId.isEmpty()) return;
+
+        try {
+            Boolean exists = queryGateway.query(new com.clinic.c46.CommonService.query.department.ExistsDepartmentByIdQuery(departmentId),
+                    ResponseTypes.instanceOf(Boolean.class)).join();
+
+            if (Boolean.FALSE.equals(exists)) {
+                log.warn("Department not found: {}", departmentId);
+                throw new ResourceNotFoundException("Phòng ban");
+            }
+        } catch (Exception e) {
+            if (e instanceof ResourceNotFoundException) {
+                throw e;
+            }
+            log.error("Error validating department existence: {}", departmentId, e);
+            throw new RuntimeException("Lỗi khi kiểm tra phòng ban tồn tại", e);
         }
     }
 

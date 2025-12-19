@@ -22,6 +22,7 @@ public class MedicalServiceView extends BaseView {
     @Id
     private String id;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String departmentName;
     private String departmentId;

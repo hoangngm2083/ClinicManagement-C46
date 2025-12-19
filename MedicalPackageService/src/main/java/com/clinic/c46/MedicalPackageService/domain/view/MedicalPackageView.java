@@ -25,6 +25,7 @@ public class MedicalPackageView extends BaseView {
     @Id
     private String id;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ElementCollection(fetch = FetchType.EAGER)
