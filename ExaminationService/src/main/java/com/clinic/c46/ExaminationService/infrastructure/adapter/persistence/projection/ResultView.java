@@ -24,6 +24,7 @@ public class ResultView extends BaseView implements Serializable {
     @Column(columnDefinition = "TEXT")
     @Convert(converter = JsonNodeConverter.class)
     private JsonNode data;
+    @Column(columnDefinition = "TEXT")
     private String pdfUrl;
     private ResultStatus status;
     private String doctorName;
