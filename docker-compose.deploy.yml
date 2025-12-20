@@ -452,6 +452,10 @@ services:
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
       - VNP_TMN_CODE=${VNP_TMN_CODE}
       - VNP_SECRET_KEY=${VNP_SECRET_KEY}
+      - VNP_PAY_URL=${VNP_PAY_URL}
+      - VNP_RETURN_URL=${VNP_RETURN_URL}
+      - VNP_API_URL=${VNP_API_URL}
+      - VNP_EXPIRE_MINUTES=${VNP_EXPIRE_MINUTES}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/payment_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-booking}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
