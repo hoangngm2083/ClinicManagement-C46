@@ -399,6 +399,10 @@ services:
       # - SPRING_PROFILES_ACTIVE=docker
       - VNP_TMN_CODE=V7Y4V0R8
       - VNP_SECRET_KEY=U6EHCUWU4R3MTE50997GPHLTJAXEOXXA
+      - VNP_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - VNP_RETURN_URL=http://localhost:3000/receptionist/billing/payment-result
+      - VNP_API_URL=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+      - VNP_EXPIRE_MINUTES=15
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/payment_db
       - SPRING_DATASOURCE_USERNAME=booking
       - SPRING_DATASOURCE_PASSWORD=booking
