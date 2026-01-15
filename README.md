@@ -388,16 +388,6 @@ API documentation is available via Swagger UI for each service:
 
 ---
 
-## 👨‍💻 Developer Information
-
-**Name**: [Your Name]  
-**Position**: Junior Java Developer Candidate  
-**Email**: [Your Email]  
-**LinkedIn**: [Your LinkedIn]  
-**GitHub**: [Your GitHub]
-
----
-
 ## 📄 License
 
 This project is developed for educational and portfolio purposes.
